@@ -44,6 +44,14 @@ pytest
 
 The default run is offline and fast. Tests that hit real external APIs are marked `live` and deselected; run them on purpose with `pytest -m live`. Please do not add tests that need a real API key to pass by default.
 
+## Linting
+
+Run Ruff before opening a pull request:
+
+```bash
+ruff check .
+```
+
 ## Making a change
 
 1. Fork the repo and branch from `main` (`fix/short-name`, `feat/short-name`).
