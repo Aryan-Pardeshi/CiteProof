@@ -15,17 +15,18 @@ import json
 import logging
 import re
 from typing import Any, Dict, List, Optional, Tuple
+
 from langchain_core.messages import HumanMessage
 
 from backend.app.agents.research_mode._common import (
-    get_llm_for,
     _safe_invoke_llm,
+    get_llm_for,
 )
 from backend.app.models.evidence import (
+    UNKNOWN_SECTION,
     ConfidenceBasis,
     EvidenceRecord,
     EvidenceSpan,
-    UNKNOWN_SECTION,
     apply_chain_downgrade,
     build_claims,
     locate_quote,

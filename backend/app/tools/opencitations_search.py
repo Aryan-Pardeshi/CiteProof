@@ -8,8 +8,9 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any, Dict, List, Optional, Set
 import urllib.parse
+from typing import Any, Dict, List, Optional, Set
+
 import httpx
 
 from backend.app.models.evidence import PaperRecord, make_paper_id

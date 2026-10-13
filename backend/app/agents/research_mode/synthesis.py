@@ -6,12 +6,13 @@ import json
 import logging
 import re
 from typing import Any, Dict, List
+
 from langchain_core.messages import HumanMessage
 
 from backend.app.agents.research_mode._common import (
-    get_llm_for,
     _safe_invoke_llm,
     _strip_preamble,
+    get_llm_for,
 )
 from backend.app.models.evidence import TaxonomyTheme
 

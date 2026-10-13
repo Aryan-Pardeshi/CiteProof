@@ -1,26 +1,32 @@
+import os
+import re
+import secrets
+import sys
 from contextlib import asynccontextmanager
-import sys, os, re, secrets
 from pathlib import Path
+
 import uvicorn
-from fastapi import FastAPI, HTTPException, Header
+from dotenv import load_dotenv
+from fastapi import FastAPI, Header, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
-from dotenv import load_dotenv
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
+from pydantic import BaseModel
 
 root_dir = Path(__file__).resolve().parent.parent.parent
 if str(root_dir) not in sys.path:
     sys.path.insert(0, str(root_dir))
 
+from fastapi.middleware.cors import CORSMiddleware
+
 from backend.app.api.agent import router as agent_router
 from backend.app.api.research_mode import router as research_mode_router
-from backend.app.llm import lazy_llm, llm_fast, llm_pro
-from backend.app.graph.research_mode_builder import set_checkpointer as set_rm_checkpointer
 from backend.app.graph.builder import set_checkpointer as set_ds_checkpointer
+from backend.app.graph.research_mode_builder import (
+    set_checkpointer as set_rm_checkpointer,
+)
+from backend.app.llm import lazy_llm, llm_fast, llm_pro
 from backend.app.stats import init_stats_db
-
-from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
 ENV_PATH = root_dir / ".env"

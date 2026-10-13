@@ -9,12 +9,14 @@ from __future__ import annotations
 import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
 
-from backend.app.models.evidence import PRISMATracker, PaperRecord, EvidenceRecord
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.patches as patches
+import matplotlib.pyplot as plt
+
+from backend.app.models.evidence import EvidenceRecord, PaperRecord, PRISMATracker
 
 
 def render_prisma_diagram(

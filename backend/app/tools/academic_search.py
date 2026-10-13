@@ -9,12 +9,13 @@ single provider never aborts the fan-out.
 
 from __future__ import annotations
 
+import asyncio
+import json
+import logging
 import os
 import re
-import json
-import asyncio
-import logging
-from typing import List, Dict, Any, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
+
 import httpx
 
 try:
@@ -25,12 +26,12 @@ except ImportError:
 from backend.app.llm import get_llm
 from backend.app.models.evidence import PaperRecord, PRISMATracker, make_paper_id
 from backend.app.tools.crossref_search import search_crossref
-from backend.app.tools.pubmed_search import search_pubmed
-from backend.app.tools.openalex_search import search_openalex
-from backend.app.tools.semantic_scholar_search import search_semantic_scholar
-from backend.app.tools.europe_pmc_search import search_europe_pmc
-from backend.app.tools.doaj_search import search_doaj
 from backend.app.tools.datacite_search import search_datacite
+from backend.app.tools.doaj_search import search_doaj
+from backend.app.tools.europe_pmc_search import search_europe_pmc
+from backend.app.tools.openalex_search import search_openalex
+from backend.app.tools.pubmed_search import search_pubmed
+from backend.app.tools.semantic_scholar_search import search_semantic_scholar
 
 logger = logging.getLogger(__name__)
 

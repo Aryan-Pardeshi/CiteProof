@@ -24,9 +24,12 @@ from backend.app.graph.research_mode_builder import (
     get_research_mode_graph,
     set_checkpointer,
 )
-from backend.app.models.evidence import PaperRecord, PRISMATracker, SearchProtocol
-
-from backend.app.models.evidence import ConfidenceBasis
+from backend.app.models.evidence import (
+    ConfidenceBasis,
+    PaperRecord,
+    PRISMATracker,
+    SearchProtocol,
+)
 
 CONF_BASIS_VAL = list(ConfidenceBasis)[0].value
 

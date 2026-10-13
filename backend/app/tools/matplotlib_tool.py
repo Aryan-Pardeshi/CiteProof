@@ -1,10 +1,14 @@
 import os
+
 import matplotlib
+
 # Use Agg backend for headless container environment
 matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 import uuid
+
+import matplotlib.pyplot as plt
 from langchain_core.tools import tool
+
 
 @tool
 def generate_matplotlib_chart(python_code: str) -> str:

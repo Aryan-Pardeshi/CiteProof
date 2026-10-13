@@ -2,18 +2,19 @@
 
 import pytest
 from pydantic import ValidationError
+
 from backend.app.models.evidence import (
     Claim,
-    PaperRecord,
     EvidenceRecord,
-    ReviewClaim,
+    PaperRecord,
     PRISMATracker,
+    ReviewClaim,
     SearchProtocol,
     TaxonomyTheme,
     ValidationReport,
-    make_paper_id,
-    make_evidence_id,
     make_claim_id,
+    make_evidence_id,
+    make_paper_id,
 )
 
 

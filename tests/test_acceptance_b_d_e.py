@@ -1,9 +1,9 @@
-import sys
-import os
-import time
 import asyncio
-import uuid
 import logging
+import os
+import sys
+import time
+import uuid
 from pathlib import Path
 
 root_dir = Path(__file__).resolve().parent
@@ -21,7 +21,11 @@ logger = logging.getLogger("test_acceptance_b_d_e")
 
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 from langgraph.types import Command
-from backend.app.graph.research_mode_builder import set_checkpointer, get_research_mode_graph
+
+from backend.app.graph.research_mode_builder import (
+    get_research_mode_graph,
+    set_checkpointer,
+)
 from backend.app.tools.pdf_generator import generate_paper_pdf
 
 PROBLEM_STATEMENT = "Autonomous Multi-Agent Robotics in Subterranean Search and Rescue Operations 2026"

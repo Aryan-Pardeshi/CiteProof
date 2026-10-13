@@ -15,7 +15,7 @@ import re
 import unicodedata
 from typing import Any, Dict, List, Set, Tuple
 
-from backend.app.models.evidence import ValidationReport, PRISMATracker, PaperRecord
+from backend.app.models.evidence import PaperRecord, PRISMATracker, ValidationReport
 
 logger = logging.getLogger(__name__)
 

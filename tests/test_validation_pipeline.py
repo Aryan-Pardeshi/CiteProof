@@ -1,9 +1,9 @@
 from backend.app.agents.research_mode.validation import (
-    validate_citations_in_text,
-    extract_numerical_claims,
     CITATION_PATTERN,
+    extract_numerical_claims,
+    validate_citations_in_text,
 )
-from backend.app.models.evidence import PaperRecord, ValidationReport, PRISMATracker
+from backend.app.models.evidence import PaperRecord, PRISMATracker, ValidationReport
 
 
 def test_citation_pattern_regex():

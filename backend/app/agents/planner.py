@@ -8,11 +8,13 @@ if str(root_dir) not in sys.path:
     sys.path.insert(0, str(root_dir))
 
 import logging
-from langchain_core.prompts import ChatPromptTemplate
-from backend.app.graph.state import ResearchState
 from typing import List, Optional
+
+from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
-from backend.app.llm import llm, invoke_structured
+
+from backend.app.graph.state import ResearchState
+from backend.app.llm import invoke_structured, llm
 
 logger = logging.getLogger(__name__)
 

@@ -1,49 +1,52 @@
 """Legacy Research Mode Graph Builder (v1) for backward compatibility."""
 
-import sys
-import logging
 import asyncio
+import logging
+import sys
 from pathlib import Path
 
 root_dir = Path(__file__).resolve().parent.parent.parent.parent
 if str(root_dir) not in sys.path:
     sys.path.insert(0, str(root_dir))
 
-from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import MemorySaver
+from langgraph.graph import END, START, StateGraph
 from langgraph.types import interrupt
 
-from backend.app.graph.research_mode_state import ResearchModeState
 from backend.app.agents.research_mode.planning import (
+    keyword_extractor_agent,
     scope_definition_agent,
     scope_reviser_agent,
-    keyword_extractor_agent,
 )
 from backend.app.agents.research_mode.retrieval import paper_fetcher_agent
-from backend.app.agents.research_mode.screening import paper_screener_agent, fulltext_eligibility_agent
-from backend.app.agents.research_mode.writing import (
-    literature_review_agent,
-    research_design_agent,
-    data_collection_agent,
-    data_analysis_agent,
-    results_agent,
-    discussion_agent,
-    limitations_agent,
-    conclusion_agent,
-    future_scope_agent,
-    references_agent,
-    figures_node,
-    appendices_agent,
-    introduction_agent,
-    abstract_agent,
-    title_agent,
+from backend.app.agents.research_mode.screening import (
+    fulltext_eligibility_agent,
+    paper_screener_agent,
 )
 from backend.app.agents.research_mode.synthesis import (
-    gap_analysis_agent,
     conceptual_framework_agent,
+    gap_analysis_agent,
     hypotheses_agent,
 )
 from backend.app.agents.research_mode.validation import citation_validator_node
+from backend.app.agents.research_mode.writing import (
+    abstract_agent,
+    appendices_agent,
+    conclusion_agent,
+    data_analysis_agent,
+    data_collection_agent,
+    discussion_agent,
+    figures_node,
+    future_scope_agent,
+    introduction_agent,
+    limitations_agent,
+    literature_review_agent,
+    references_agent,
+    research_design_agent,
+    results_agent,
+    title_agent,
+)
+from backend.app.graph.research_mode_state import ResearchModeState
 from backend.app.llm import get_llm
 
 logger = logging.getLogger(__name__)

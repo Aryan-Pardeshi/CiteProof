@@ -1,6 +1,8 @@
 # Supervisor + Send() logic
 from langgraph.types import Send
+
 from backend.app.graph.state import ResearchState
+
 
 #Spawns sub agents
 #Precisely it creates independent graphs for each worker with independent state

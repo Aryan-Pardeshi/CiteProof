@@ -1,26 +1,26 @@
-import sys
-import uuid
-import json
-import time
 import asyncio
+import json
 import logging
 import re
+import sys
+import time
+import uuid
 from pathlib import Path
-from typing import List, Optional, Dict, Any, Set
+from typing import Any, Dict, List, Optional, Set
 
-from fastapi import APIRouter, HTTPException, BackgroundTasks, Header
-from fastapi.responses import StreamingResponse, FileResponse
+from fastapi import APIRouter, BackgroundTasks, Header, HTTPException
+from fastapi.responses import FileResponse, StreamingResponse
+from langgraph.types import Command
 from pydantic import BaseModel
 
-from langgraph.types import Command
+from backend.app.agents.research_mode.writing import EV_MARKER_RE
+
 # Resolved lazily rather than importing the compiled graph: lifespan recompiles it
 # with the SQLite checkpointer, and a module-level binding would keep the old object.
 from backend.app.graph.research_mode_builder import get_research_mode_graph
-from backend.app.agents.research_mode.writing import EV_MARKER_RE
-from backend.app.tools.pdf_generator import generate_paper_pdf
+from backend.app.stats import get_paper_count, increment_paper_count
 from backend.app.tools.docx_generator import generate_paper_docx
-from backend.app.stats import increment_paper_count, get_paper_count
-
+from backend.app.tools.pdf_generator import generate_paper_pdf
 
 logger = logging.getLogger(__name__)
 

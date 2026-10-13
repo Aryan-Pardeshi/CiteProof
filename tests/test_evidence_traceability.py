@@ -25,7 +25,6 @@ from backend.app.models.evidence import (
     score_confidence,
 )
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
@@ -361,8 +360,8 @@ async def test_provenance_agent_emits_claims_and_keeps_state_consistent(monkeypa
 
 @pytest.mark.asyncio
 async def test_provenance_backfills_missing_fulltext_then_upgrades_anchor(monkeypatch):
-    from backend.app.agents.research_mode import extraction
     import backend.app.tools.fulltext_fetcher as ftf
+    from backend.app.agents.research_mode import extraction
 
     paper = dict(PAPER)
     paper.pop("fulltext_excerpt")

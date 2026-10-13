@@ -7,6 +7,7 @@ if str(root_dir) not in sys.path:
 
 from backend.app.agents.research_mode.agents import verify_citations
 
+
 def main():
     papers = [
         {"authors": ["John Smith", "Alice Johnson"], "year": 2024, "title": "Real Paper 1"},

@@ -1,10 +1,11 @@
+import logging
 import os
 import re
-import logging
 from datetime import date
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
 from fpdf import FPDF
-from typing import Dict, Any, Optional, List, Tuple
 
 logger = logging.getLogger(__name__)
 

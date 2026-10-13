@@ -1,6 +1,6 @@
-import sys
 import asyncio
 import logging
+import sys
 from pathlib import Path
 
 root_dir = Path(__file__).resolve().parent.parent
@@ -14,6 +14,7 @@ logging.basicConfig(level=logging.INFO)
 
 from backend.app.tools.academic_search import search_academic_papers
 from backend.app.tools.fulltext_fetcher import fetch_fulltext_excerpts
+
 
 async def main():
     print("=== FETCHING REAL PAPERS FROM ACADEMIC SEARCH ===")

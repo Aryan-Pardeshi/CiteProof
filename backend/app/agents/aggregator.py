@@ -1,8 +1,10 @@
 # Final report builder
 import logging
-from backend.app.llm import llm_pro
+
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+
 from backend.app.graph.state import ResearchState
-from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
+from backend.app.llm import llm_pro
 
 logger = logging.getLogger(__name__)
 
@@ -48,8 +50,9 @@ async def aggregator_node(state: ResearchState) -> dict:
     ]
 
     try:
-        from backend.app.tools.matplotlib_tool import generate_matplotlib_chart
         from langchain_core.messages import ToolMessage
+
+        from backend.app.tools.matplotlib_tool import generate_matplotlib_chart
         
         llm_with_tools = llm_pro.bind_tools([generate_matplotlib_chart])
         

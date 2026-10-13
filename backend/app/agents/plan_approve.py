@@ -2,18 +2,21 @@
 
 import sys
 from pathlib import Path
+
 # Add workspace root to sys.path so 'backend' is importable
 root_dir = Path(__file__).resolve().parent.parent.parent.parent
 if str(root_dir) not in sys.path:
     sys.path.insert(0, str(root_dir))
 
 import logging
-from langchain_core.prompts import ChatPromptTemplate
-from backend.app.graph.state import ResearchState
 from typing import List
-from pydantic import BaseModel, Field
-from backend.app.llm import llm_fast, invoke_structured
+
+from langchain_core.prompts import ChatPromptTemplate
 from langgraph.types import interrupt
+from pydantic import BaseModel, Field
+
+from backend.app.graph.state import ResearchState
+from backend.app.llm import invoke_structured, llm_fast
 
 logger = logging.getLogger(__name__)
 

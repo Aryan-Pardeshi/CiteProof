@@ -7,18 +7,17 @@ if str(root_dir) not in sys.path:
     sys.path.insert(0, str(root_dir))
 
 # LangGraph graph definition
-from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import MemorySaver
-from langgraph.types import interrupt, Command
+from langgraph.graph import END, START, StateGraph
+from langgraph.types import Command, interrupt
 
-from backend.app.graph.state import ResearchState
-from backend.app.agents.planner import planner_node
-from backend.app.agents.plan_approve import plan_approval
 from backend.app.agents.aggregator import aggregator_node
-from backend.app.agents.supervisor import dispatch_researchers
-from backend.app.agents.researcher import researcher_node
+from backend.app.agents.plan_approve import plan_approval
+from backend.app.agents.planner import planner_node
 from backend.app.agents.query_validator import query_validator
-
+from backend.app.agents.researcher import researcher_node
+from backend.app.agents.supervisor import dispatch_researchers
+from backend.app.graph.state import ResearchState
 
 # state = memory
 

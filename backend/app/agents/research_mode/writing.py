@@ -12,23 +12,24 @@ import os
 import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
 from langchain_core.messages import HumanMessage
 
 from backend.app.agents.research_mode._common import (
-    get_llm_for,
+    EVIDENCE_BASIS_NOTE,
     _safe_invoke_llm,
     _strip_preamble,
-    EVIDENCE_BASIS_NOTE,
+    get_llm_for,
 )
 from backend.app.models.evidence import (
-    PaperRecord,
     EvidenceRecord,
+    PaperRecord,
     PRISMATracker,
     ReviewClaim,
     make_claim_id,
 )
 from backend.app.tools.academic_search import format_apa
-from backend.app.tools.figures import render_prisma_diagram, render_evidence_table
+from backend.app.tools.figures import render_evidence_table, render_prisma_diagram
 
 logger = logging.getLogger(__name__)
 

@@ -1,11 +1,13 @@
-import os
-import io
-import re
-import logging
 import asyncio
+import io
+import logging
+import os
+import re
 import xml.etree.ElementTree as ET
+
 import httpx
 import pypdf
+
 from backend.app.tools.oa_resolver import resolve_oa_pdf_url
 
 logger = logging.getLogger(__name__)

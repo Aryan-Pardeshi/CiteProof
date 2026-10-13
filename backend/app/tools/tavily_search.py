@@ -1,9 +1,10 @@
 # Tavily tool wrapper
-from tavily import TavilyClient
-from langchain_core.tools import tool
 import os
+from typing import List, Literal, Optional
+
 from dotenv import load_dotenv
-from typing import Optional, Literal, List
+from langchain_core.tools import tool
+from tavily import TavilyClient
 
 load_dotenv()
 

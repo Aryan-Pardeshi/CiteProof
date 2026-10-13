@@ -1,13 +1,16 @@
 # query validator node
 import logging
+
 from backend.app.graph.state import ResearchState
 
 logger = logging.getLogger(__name__)
 
 from typing import Optional
-from pydantic import BaseModel, Field
+
 from langchain_core.prompts import ChatPromptTemplate
-from backend.app.llm import llm_fast, invoke_structured
+from pydantic import BaseModel, Field
+
+from backend.app.llm import invoke_structured, llm_fast
 
 # System prompt for query validation
 VALIDATOR_SYSTEM_PROMPT = """You are an input validation assistant for a specialized Research Bot.

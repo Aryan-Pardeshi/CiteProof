@@ -10,8 +10,9 @@ import logging
 import os
 import re
 import time
-from typing import Any, Dict, List, Optional
 import xml.etree.ElementTree as ET
+from typing import Any, Dict, List, Optional
+
 import httpx
 
 from backend.app.models.evidence import PaperRecord, make_paper_id

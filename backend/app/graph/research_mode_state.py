@@ -1,4 +1,5 @@
-from typing import List, Dict, Any, Optional, TypedDict
+from typing import Any, Dict, List, Optional, TypedDict
+
 
 class ResearchModeState(TypedDict, total=False):
     """State schema for Autonomous Research Mode pipeline.

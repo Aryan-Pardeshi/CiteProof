@@ -1,12 +1,15 @@
 import os
-import pytest
+
 import httpx
+import pytest
+
 from backend.app.tools.oa_resolver import (
-    resolve_unpaywall,
-    resolve_europe_pmc,
     resolve_core,
-    resolve_oa_pdf_url
+    resolve_europe_pmc,
+    resolve_oa_pdf_url,
+    resolve_unpaywall,
 )
+
 
 @pytest.mark.asyncio
 async def test_resolve_unpaywall_missing_doi():

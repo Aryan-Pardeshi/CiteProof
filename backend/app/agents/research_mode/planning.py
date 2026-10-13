@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import re
 from typing import Any, Dict, List
+
 from pydantic import BaseModel, Field
 
 from backend.app.agents.research_mode._common import get_llm_for

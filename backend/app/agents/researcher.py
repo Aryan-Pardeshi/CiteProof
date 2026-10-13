@@ -1,17 +1,20 @@
 # Worker agent (reused for each sub-question)
 import sys
 from pathlib import Path
+
 # Add workspace root to sys.path so 'backend' is importable
 root_dir = Path(__file__).resolve().parent.parent.parent.parent
 if str(root_dir) not in sys.path:
     sys.path.insert(0, str(root_dir))
 
-import logging
 import concurrent.futures
-from langchain_core.messages import SystemMessage, HumanMessage, ToolMessage
-from backend.app.graph.state import ResearchState
+import logging
 from typing import List
+
+from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 from pydantic import BaseModel, Field
+
+from backend.app.graph.state import ResearchState
 from backend.app.llm import llm
 from backend.app.tools.tavily_search import search_web
 
@@ -73,8 +76,8 @@ class ResearchResult(BaseModel):
 
 
 def researcher_node(state: ResearchState) -> dict:
-    import time
     import random
+    import time
     query = state["query"]
     logger.info(f"Researcher starting for query: {query}")
 

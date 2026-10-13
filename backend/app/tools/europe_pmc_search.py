@@ -32,6 +32,7 @@ from __future__ import annotations
 import logging
 import re
 from typing import Any, Dict, List, Optional
+
 import httpx
 
 from backend.app.models.evidence import PaperRecord, make_paper_id

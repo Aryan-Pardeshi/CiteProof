@@ -9,9 +9,9 @@ Features:
 
 from __future__ import annotations
 
-import sys
-import logging
 import asyncio
+import logging
+import sys
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -19,59 +19,59 @@ root_dir = Path(__file__).resolve().parent.parent.parent.parent
 if str(root_dir) not in sys.path:
     sys.path.insert(0, str(root_dir))
 
-from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import MemorySaver
+from langgraph.graph import END, START, StateGraph
 from langgraph.types import interrupt
 
-from backend.app.graph.research_mode_state import ResearchModeState
 from backend.app.agents.research_mode import (
-    # Phase 1: Planning
-    scope_definition_agent,
-    protocol_agent,
-    keyword_extractor_agent,
-    scope_reviser_agent,
-    # Phase 2: Retrieval
-    paper_fetcher_agent,
-    citation_expander_agent,
-    metadata_validator_agent,
-    # Phase 3: Screening
-    paper_screener_agent,
-    fulltext_eligibility_agent,
-    quality_appraisal_agent,
-    # Phase 4: Evidence Extraction
-    evidence_extractor_agent,
-    quantitative_extractor_agent,
-    methodology_extractor_agent,
-    limitation_extractor_agent,
-    provenance_agent,
-    # Phase 5: Synthesis
-    taxonomy_agent,
-    gap_analysis_agent,
-    conceptual_framework_agent,
-    hypotheses_agent,
-    # Writing & Rendering
-    literature_review_agent,
-    research_design_agent,
-    data_collection_agent,
-    data_analysis_agent,
-    results_agent,
-    discussion_agent,
-    limitations_agent,
-    conclusion_agent,
-    future_scope_agent,
-    references_agent,
-    appendices_agent,
-    introduction_agent,
     abstract_agent,
-    title_agent,
-    figures_node,
-    claims_linker_node,
+    appendices_agent,
+    citation_expander_agent,
     # Validation
     citation_validator_node,
     claim_validator_node,
+    claims_linker_node,
+    conceptual_framework_agent,
+    conclusion_agent,
+    data_analysis_agent,
+    data_collection_agent,
+    discussion_agent,
+    # Phase 4: Evidence Extraction
+    evidence_extractor_agent,
+    figures_node,
+    fulltext_eligibility_agent,
+    future_scope_agent,
+    gap_analysis_agent,
+    hypotheses_agent,
     integrity_auditor_node,
+    introduction_agent,
+    keyword_extractor_agent,
+    limitation_extractor_agent,
+    limitations_agent,
+    # Writing & Rendering
+    literature_review_agent,
+    metadata_validator_agent,
+    methodology_extractor_agent,
+    # Phase 2: Retrieval
+    paper_fetcher_agent,
+    # Phase 3: Screening
+    paper_screener_agent,
+    protocol_agent,
+    provenance_agent,
+    quality_appraisal_agent,
+    quantitative_extractor_agent,
+    references_agent,
+    research_design_agent,
+    results_agent,
+    # Phase 1: Planning
+    scope_definition_agent,
+    scope_reviser_agent,
+    # Phase 5: Synthesis
+    taxonomy_agent,
+    title_agent,
 )
 from backend.app.graph.research_mode_builder_v1 import get_research_mode_graph_v1
+from backend.app.graph.research_mode_state import ResearchModeState
 
 logger = logging.getLogger(__name__)
 

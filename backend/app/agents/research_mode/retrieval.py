@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 from typing import Any, Dict, List
-import asyncio
 
 from backend.app.models.evidence import PaperRecord, PRISMATracker
-from backend.app.tools.academic_search import search_academic_papers_structured, _normalize_doi
+from backend.app.tools.academic_search import (
+    _normalize_doi,
+    search_academic_papers_structured,
+)
 from backend.app.tools.crossref_search import search_crossref
 from backend.app.tools.opencitations_search import expand_citation_graph
 

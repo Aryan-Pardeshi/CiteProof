@@ -20,21 +20,20 @@ import json
 
 import pytest
 
+from backend.app.agents.research_mode.validation import (
+    citation_validator_node,
+    claim_validator_node,
+    integrity_auditor_node,
+    validate_claim_chains,
+)
+from backend.app.agents.research_mode.writing import (
+    EV_MARKER_RE,
+    claims_linker_node,
+)
 from backend.app.models.evidence import (
     EvidenceRecord,
     make_paper_id,
 )
-from backend.app.agents.research_mode.writing import (
-    claims_linker_node,
-    EV_MARKER_RE,
-)
-from backend.app.agents.research_mode.validation import (
-    validate_claim_chains,
-    citation_validator_node,
-    claim_validator_node,
-    integrity_auditor_node,
-)
-
 
 # ---------------------------------------------------------------------------
 # Fixtures: a simulated completed research-mode corpus

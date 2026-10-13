@@ -6,11 +6,11 @@ on the marketing landing page.
 Real LLM + academic-API cost. Each question takes ~15-25 minutes.
 Run from the repo root: python scripts/generate_landing_examples.py
 """
-import sys
-import os
-import json
-import uuid
 import asyncio
+import json
+import os
+import sys
+import uuid
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -20,7 +20,11 @@ if str(repo_root) not in sys.path:
 
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 from langgraph.types import Command
-from backend.app.graph.research_mode_builder import set_checkpointer, get_research_mode_graph
+
+from backend.app.graph.research_mode_builder import (
+    get_research_mode_graph,
+    set_checkpointer,
+)
 
 DB_PATH = repo_root / "data" / "landing_examples.db"
 OUTPUT_PATH = repo_root / "frontend" / "assets" / "examples.json"

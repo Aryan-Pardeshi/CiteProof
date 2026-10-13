@@ -1,6 +1,6 @@
-from typing import List, TypedDict, Annotated, Literal, Optional
-
 import operator
+from typing import Annotated, List, Literal, Optional, TypedDict
+
 
 class ResearchState(TypedDict):
     """State for the research assistant graph."""

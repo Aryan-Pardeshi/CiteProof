@@ -1,15 +1,16 @@
 """Unit tests for Stage 6: Multi-Source Retrieval Tools and Deduplication."""
 
 import pytest
+
 from backend.app.models.evidence import PaperRecord, PRISMATracker
-from backend.app.tools.crossref_search import search_crossref, _clean_abstract
-from backend.app.tools.opencitations_search import _clean_doi
 from backend.app.tools.academic_search import (
     _normalize_doi,
     _normalize_title,
     _select_candidates,
     format_apa,
 )
+from backend.app.tools.crossref_search import _clean_abstract, search_crossref
+from backend.app.tools.opencitations_search import _clean_doi
 
 
 def test_clean_abstract_and_doi():

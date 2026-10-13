@@ -1,17 +1,17 @@
+import asyncio
+import json
+import re
+import uuid
 from typing import List, Literal
+
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
+from langgraph.types import Command
+from pydantic import BaseModel
+
 # Resolved per call, not bound at import: lifespan recompiles the graph with the
 # SQLite checkpointer, and an import-time binding would pin the in-memory one.
 from backend.app.graph.builder import get_research_graph
-import uuid
-import json
-import asyncio
-import re
-
-from pydantic import BaseModel
-
-from langgraph.types import Command
 
 THREAD_ID_PATTERN = re.compile(r"[a-zA-Z0-9\-_]{1,64}")
 
