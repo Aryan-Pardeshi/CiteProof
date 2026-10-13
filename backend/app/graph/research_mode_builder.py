@@ -9,11 +9,9 @@ Features:
 
 from __future__ import annotations
 
-import asyncio
 import logging
 import sys
 from pathlib import Path
-from typing import Any, Dict, Optional
 
 root_dir = Path(__file__).resolve().parent.parent.parent.parent
 if str(root_dir) not in sys.path:
@@ -70,7 +68,6 @@ from backend.app.agents.research_mode import (
     taxonomy_agent,
     title_agent,
 )
-from backend.app.graph.research_mode_builder_v1 import get_research_mode_graph_v1
 from backend.app.graph.research_mode_state import ResearchModeState
 
 logger = logging.getLogger(__name__)
@@ -331,7 +328,7 @@ def set_checkpointer(checkpointer):
     logger.info(f"Research Mode v2 graph compiled with checkpointer: {type(checkpointer).__name__}")
 
 
-def get_research_mode_graph(thread_id: Optional[str] = None):
+def get_research_mode_graph(thread_id: str | None = None):
     """Retrieve compiled Research Mode graph with dual-builder soft cut-over support."""
     global _compiled_graph
     if _compiled_graph is None:

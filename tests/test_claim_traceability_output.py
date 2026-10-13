@@ -16,7 +16,6 @@ Contract under test (Academic Evidence Layer, Task 1):
     text. Any claim without a resolvable evidence_id fails the gates.
 """
 
-import json
 
 import pytest
 
@@ -249,7 +248,7 @@ def test_chain_validation_flags_empty_support_and_missing_locator():
     papers_no_locator = [{
         "paper_id": PAPER_A["paper_id"], "title": "Alpha", "doi": None, "source_url": "",
     }]
-    total, resolved, unresolved, details = validate_claim_chains(
+    _total, resolved, unresolved, details = validate_claim_chains(
         [no_support, broken_locator], EVIDENCE, papers_no_locator
     )
     assert resolved == 0

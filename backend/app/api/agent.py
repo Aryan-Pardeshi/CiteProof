@@ -2,7 +2,7 @@ import asyncio
 import json
 import re
 import uuid
-from typing import List, Literal
+from typing import Literal
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
@@ -24,7 +24,7 @@ def _validate_thread_id(thread_id: str) -> str:
 
 class ResearchStartRequest(BaseModel):
     query: str
-    search_topic: List[Literal["all", "news", "academic", "finance", "patent"]] = ["all"]
+    search_topic: list[Literal["all", "news", "academic", "finance", "patent"]] = ["all"]
 
 
 class ResearchApproveRequest(BaseModel):
@@ -67,8 +67,8 @@ async def run_research(request: ResearchStartRequest):
         return {"thread_id": id, "ps": ps, "plan": plan, "status": status, "error": error}
     except Exception as e:
         import logging
-        logging.getLogger(__name__).error(f"Error during run_research: {e}", exc_info=True)
-        return {"thread_id": id, "ps": None, "plan": None, "status": "error", "error": f"Failed to start research: {str(e)}"}
+        logging.getLogger(__name__).exception("Error during run_research")
+        return {"thread_id": id, "ps": None, "plan": None, "status": "error", "error": f"Failed to start research: {e!s}"}
 
 
 # SSE
@@ -221,7 +221,7 @@ async def approve_plan(request: ResearchApproveRequest):
                 # Send the complete final state payload to mark completion
                 yield f"data: {json.dumps(final_payload)}\n\n"
 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 yield f"data: {json.dumps({'event': 'error', 'message': str(e)})}\n\n"
         finally:
             if active_tasks.get(request.thread_id) == current_task:

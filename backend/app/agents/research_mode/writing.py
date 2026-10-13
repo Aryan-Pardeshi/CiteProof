@@ -6,12 +6,11 @@ enforcing strict evidence grounding and APA 7th edition citations.
 
 from __future__ import annotations
 
-import json
 import logging
 import os
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from langchain_core.messages import HumanMessage
 
@@ -22,8 +21,6 @@ from backend.app.agents.research_mode._common import (
     get_llm_for,
 )
 from backend.app.models.evidence import (
-    EvidenceRecord,
-    PaperRecord,
     PRISMATracker,
     ReviewClaim,
     make_claim_id,
@@ -65,7 +62,7 @@ def _strip_ev_markers(text: str) -> str:
     return re.sub(r"[ \t]{2,}", " ", cleaned)
 
 
-async def claims_linker_node(state: Dict[str, Any]) -> Dict[str, Any]:
+async def claims_linker_node(state: dict[str, Any]) -> dict[str, Any]:
     """Convert inline [EV:<id>] markers into the machine-readable claims manifest.
 
     Deterministic post-pass over writer output:
@@ -82,9 +79,9 @@ async def claims_linker_node(state: Dict[str, Any]) -> Dict[str, Any]:
         if e.get("evidence_id")
     }
 
-    updates: Dict[str, Any] = {}
-    review_claims: List[Dict[str, Any]] = []
-    unresolved_claims: List[Dict[str, Any]] = []
+    updates: dict[str, Any] = {}
+    review_claims: list[dict[str, Any]] = []
+    unresolved_claims: list[dict[str, Any]] = []
 
     for section in LINKED_PROSE_SECTIONS:
         prose = str(state.get(section) or "")
@@ -97,13 +94,13 @@ async def claims_linker_node(state: Dict[str, Any]) -> Dict[str, Any]:
         prose = re.sub(r"([.?!])[ \t]+(?=\[\s*ev:)", r"\1", prose, flags=re.IGNORECASE)
 
         sentences = re.split(r"(?<=[.?!])\s+", prose)
-        pending_ids: List[str] = []
-        last_claim_index: Optional[int] = None
+        pending_ids: list[str] = []
+        last_claim_index: int | None = None
         for sentence in sentences:
             marker_ids = EV_MARKER_RE.findall(sentence)
             if not marker_ids:
                 continue
-            resolved_ids: List[str] = []
+            resolved_ids: list[str] = []
             for mid in marker_ids:
                 if mid in evidence_by_id:
                     if mid not in resolved_ids:
@@ -158,7 +155,7 @@ async def claims_linker_node(state: Dict[str, Any]) -> Dict[str, Any]:
     return updates
 
 
-def _format_evidence_context(state: Dict[str, Any], max_items: int = 12) -> str:
+def _format_evidence_context(state: dict[str, Any], max_items: int = 12) -> str:
     """Format structured evidence records into Markdown context for writers."""
     ev_dicts = state.get("evidence_records") or []
     if not ev_dicts:
@@ -184,10 +181,9 @@ def _format_evidence_context(state: Dict[str, Any], max_items: int = 12) -> str:
     return "\n---\n".join(lines)
 
 
-async def literature_review_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+async def literature_review_agent(state: dict[str, Any]) -> dict[str, Any]:
     """Writer 1: Writes exhaustive, thematic Literature Review grounded in evidence records."""
     ps = state.get("problem_statement", "")
-    taxonomy = state.get("taxonomy") or {}
     evidence_ctx = _format_evidence_context(state, max_items=15)
     papers = state.get("paper_records") or state.get("screened_papers") or []
     
@@ -218,7 +214,7 @@ Instructions:
     return {"literature_review": _strip_preamble(raw)}
 
 
-async def research_design_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+async def research_design_agent(state: dict[str, Any]) -> dict[str, Any]:
     """Writer 2: Formulates proposed research design (explicitly framed as proposed future study)."""
     ps = state.get("problem_statement", "")
     hypotheses = state.get("hypotheses", [])
@@ -241,7 +237,7 @@ Structure the section in Markdown:
     return {"research_design": _strip_preamble(raw)}
 
 
-async def data_collection_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+async def data_collection_agent(state: dict[str, Any]) -> dict[str, Any]:
     """Writer 3: Formulates proposed data collection protocol & instruments."""
     ps = state.get("problem_statement", "")
     design = state.get("research_design", "")
@@ -264,9 +260,8 @@ Detail:
     return {"data_collection_plan": _strip_preamble(raw)}
 
 
-async def data_analysis_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+async def data_analysis_agent(state: dict[str, Any]) -> dict[str, Any]:
     """Writer 4: Formulates proposed statistical analysis pipeline."""
-    ps = state.get("problem_statement", "")
     hypotheses = state.get("hypotheses", [])
     llm = get_llm_for("planner", state, temperature=0.2)
 
@@ -285,7 +280,7 @@ Detail:
     return {"data_analysis_plan": _strip_preamble(raw)}
 
 
-async def results_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+async def results_agent(state: dict[str, Any]) -> dict[str, Any]:
     """Writer 5: Synthesizes empirical evidence and maps findings against formulated hypotheses."""
     ps = state.get("problem_statement", "")
     hypotheses = state.get("hypotheses", [])
@@ -313,7 +308,7 @@ Provide a detailed Results Section in Markdown:
     return {"results": _strip_preamble(raw)}
 
 
-async def discussion_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+async def discussion_agent(state: dict[str, Any]) -> dict[str, Any]:
     """Writer 6: Synthesizes theoretical & practical implications."""
     ps = state.get("problem_statement", "")
     results = _strip_ev_markers(state.get("results", ""))
@@ -340,7 +335,7 @@ Provide:
     }
 
 
-async def limitations_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+async def limitations_agent(state: dict[str, Any]) -> dict[str, Any]:
     """Writer 7: Evaluates limitations across the evidence base and review methodology."""
     ps = state.get("problem_statement", "")
     ev_dicts = state.get("evidence_records") or []
@@ -366,7 +361,7 @@ Address:
     return {"limitations": _strip_preamble(raw)}
 
 
-async def conclusion_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+async def conclusion_agent(state: dict[str, Any]) -> dict[str, Any]:
     """Writer 8: Formulates authoritative conclusion summarizing research contributions."""
     ps = state.get("problem_statement", "")
     results = _strip_ev_markers(state.get("results", ""))
@@ -383,7 +378,7 @@ Synthesized Results Findings:
     return {"conclusion": _strip_preamble(raw)}
 
 
-async def future_scope_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+async def future_scope_agent(state: dict[str, Any]) -> dict[str, Any]:
     """Writer 9: Outlines future research directions."""
     ps = state.get("problem_statement", "")
     gaps = state.get("research_gap", "")
@@ -411,17 +406,17 @@ Return ONLY a bulleted list of 4-5 items.
     return {"future_scope": lines[:5]}
 
 
-async def references_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+async def references_agent(state: dict[str, Any]) -> dict[str, Any]:
     """Writer 10: Formats APA 7th edition bibliography from included paper records."""
     paper_dicts = state.get("paper_records") or state.get("screened_papers") or []
     references = [format_apa(p) for p in paper_dicts if p.get("screening_status") == "included" or not p.get("screening_status")]
     if not references:
         references = [format_apa(p) for p in paper_dicts[:15]]
-    references = sorted(list(set(references)), key=lambda r: r.lower())
+    references = sorted(set(references), key=lambda r: r.lower())
     return {"references": references}
 
 
-async def appendices_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+async def appendices_agent(state: dict[str, Any]) -> dict[str, Any]:
     """Writer 11: Compiles search protocol, evidence tables, and claim traceability matrix."""
     protocol = state.get("search_protocol") or {}
     tracker = state.get("prisma_tracker") or {}
@@ -477,7 +472,7 @@ async def appendices_agent(state: Dict[str, Any]) -> Dict[str, Any]:
     return {"appendices": app_text}
 
 
-async def introduction_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+async def introduction_agent(state: dict[str, Any]) -> dict[str, Any]:
     """Writer 12: Synthesizes comprehensive Introduction with problem context and contributions."""
     ps = state.get("problem_statement", "")
     objs = state.get("research_objectives", [])
@@ -499,7 +494,7 @@ Structure:
     return {"introduction": _strip_preamble(raw)}
 
 
-async def abstract_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+async def abstract_agent(state: dict[str, Any]) -> dict[str, Any]:
     """Writer 13: Synthesizes structured abstract."""
     ps = state.get("problem_statement", "")
     results = _strip_ev_markers(state.get("results", ""))
@@ -517,7 +512,7 @@ Write a structured Academic Abstract (250-300 words) summarizing:
     return {"abstract": _strip_preamble(raw)}
 
 
-async def title_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+async def title_agent(state: dict[str, Any]) -> dict[str, Any]:
     """Writer 14: Finalizes concise academic title."""
     ps = state.get("problem_statement", "")
     llm = get_llm_for("planner", state, temperature=0.2)
@@ -536,7 +531,7 @@ Return ONLY the single title string without quotes.
     }
 
 
-async def figures_node(state: Dict[str, Any]) -> Dict[str, Any]:
+async def figures_node(state: dict[str, Any]) -> dict[str, Any]:
     """Renders PRISMA flow chart and evidence mapping figures."""
     figures_dir = os.getenv("FIGURES_DIR", "./data/figures")
     thread_id = state.get("thread_id", "default")
@@ -550,7 +545,7 @@ async def figures_node(state: Dict[str, Any]) -> Dict[str, Any]:
     prisma_path = str(out_dir / "prisma.png")
     evidence_path = str(out_dir / "evidence.png")
 
-    fig_map: Dict[str, str] = {}
+    fig_map: dict[str, str] = {}
     try:
         # Prefer the deterministic PRISMA tracker; fall back to raw corpus_stats.
         # Pass the dict through as-is so render_prisma_diagram can filter the
@@ -560,7 +555,7 @@ async def figures_node(state: Dict[str, Any]) -> Dict[str, Any]:
         p_res = render_prisma_diagram(tracker_arg, prisma_path)
         if p_res and os.path.exists(p_res):
             fig_map["prisma"] = p_res
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"PRISMA diagram rendering failed: {e}")
 
     try:
@@ -569,7 +564,7 @@ async def figures_node(state: Dict[str, Any]) -> Dict[str, Any]:
         e_res = render_evidence_table(papers, hyps, evidence_path)
         if e_res and os.path.exists(e_res):
             fig_map["evidence"] = e_res
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"Evidence table rendering failed: {e}")
 
     return {"figures": fig_map}

@@ -11,7 +11,7 @@ import os
 import re
 import time
 import xml.etree.ElementTree as ET
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 
@@ -27,7 +27,7 @@ _pubmed_schedule_lock = asyncio.Lock()
 _last_pubmed_request_time = 0.0
 
 
-async def _rate_limited_get(client: httpx.AsyncClient, url: str, params: Dict[str, Any]) -> httpx.Response:
+async def _rate_limited_get(client: httpx.AsyncClient, url: str, params: dict[str, Any]) -> httpx.Response:
     global _last_pubmed_request_time
     async with _pubmed_semaphore:
         # Serialize the elapsed-time check, sleep, and timestamp update so
@@ -46,9 +46,9 @@ async def _rate_limited_get(client: httpx.AsyncClient, url: str, params: Dict[st
 async def search_pubmed(
     query: str,
     limit: int = 15,
-    email: Optional[str] = None,
-    tool: Optional[str] = None
-) -> List[PaperRecord]:
+    email: str | None = None,
+    tool: str | None = None
+) -> list[PaperRecord]:
     """Search PubMed via NCBI E-utilities, populating abstracts via efetch.fcgi.
 
     NCBI requires a real, registered contact email and tool name on every
@@ -75,7 +75,7 @@ async def search_pubmed(
 
     # Step 1: ESearch to obtain PMIDs
     esearch_url = f"{NCBI_BASE_URL}/esearch.fcgi"
-    esearch_params: Dict[str, Any] = {
+    esearch_params: dict[str, Any] = {
         "db": "pubmed",
         "term": query,
         "retmax": min(limit, 30),
@@ -101,7 +101,7 @@ async def search_pubmed(
 
             # Step 2: ESummary to get paper metadata
             esummary_url = f"{NCBI_BASE_URL}/esummary.fcgi"
-            esummary_params: Dict[str, Any] = {
+            esummary_params: dict[str, Any] = {
                 "db": "pubmed",
                 "id": ",".join(id_list),
                 "retmode": "json",
@@ -118,9 +118,9 @@ async def search_pubmed(
             summary_data = summary_resp.json().get("result", {})
 
             # Step 3: EFetch XML to extract abstracts
-            abstracts_map: Dict[str, str] = {}
+            abstracts_map: dict[str, str] = {}
             efetch_url = f"{NCBI_BASE_URL}/efetch.fcgi"
-            efetch_params: Dict[str, Any] = {
+            efetch_params: dict[str, Any] = {
                 "db": "pubmed",
                 "id": ",".join(id_list),
                 "retmode": "xml",
@@ -148,10 +148,10 @@ async def search_pubmed(
                                 ]
                                 full_abs = " ".join(s for s in segments if s)
                                 abstracts_map[pmid_val] = full_abs
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.debug(f"PubMed efetch abstract extraction fallback: {e}")
 
-            records: List[PaperRecord] = []
+            records: list[PaperRecord] = []
 
             for pmid in id_list:
                 item = summary_data.get(pmid)
@@ -207,6 +207,6 @@ async def search_pubmed(
             logger.info(f"PubMed returned {len(records)} papers for: {query[:40]!r}")
             return records
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"PubMed search failed for {query[:40]!r}: {e}")
         return []

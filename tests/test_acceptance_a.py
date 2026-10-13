@@ -34,7 +34,7 @@ async def main():
     for idx, (title, excerpt) in enumerate(excerpts.items()):
         print(f"\n[{idx+1}] Title: {title}")
         print(f"     Length: {len(excerpt)} characters")
-        print(f"     Snippet: {repr(excerpt[:150])}")
+        print(f"     Snippet: {excerpt[:150]!r}")
 
 if __name__ == "__main__":
     asyncio.run(main())

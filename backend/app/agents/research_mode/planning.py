@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any, Dict, List
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -17,21 +17,21 @@ logger = logging.getLogger(__name__)
 
 class ScopeDefinitionOutput(BaseModel):
     refined_problem_statement: str = Field(description="Formal academic problem statement")
-    research_objectives: List[str] = Field(default_factory=list, description="List of 3-5 research objectives")
-    research_questions: List[str] = Field(default_factory=list, description="List of 3-5 research questions")
+    research_objectives: list[str] = Field(default_factory=list, description="List of 3-5 research objectives")
+    research_questions: list[str] = Field(default_factory=list, description="List of 3-5 research questions")
 
 
 class KeywordOutput(BaseModel):
-    keywords: List[str] = Field(default_factory=list, description="List of 6-8 diverse academic search queries")
+    keywords: list[str] = Field(default_factory=list, description="List of 6-8 diverse academic search queries")
 
 
 class ScopeRevisionOutput(BaseModel):
     problem_statement: str = Field(description="Updated problem statement incorporating user feedback")
-    research_objectives: List[str] = Field(default_factory=list, description="Updated objectives")
-    keywords: List[str] = Field(default_factory=list, description="Updated search queries")
+    research_objectives: list[str] = Field(default_factory=list, description="Updated objectives")
+    keywords: list[str] = Field(default_factory=list, description="Updated search queries")
 
 
-async def scope_definition_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+async def scope_definition_agent(state: dict[str, Any]) -> dict[str, Any]:
     """Agent 1: Refines user problem statement and extracts research objectives and questions."""
     ps = state.get("problem_statement", "")
     llm = get_llm_for("planner", state, temperature=0.2)
@@ -52,7 +52,7 @@ Topic:
             "research_questions": data.research_questions or [f"What are the empirical impacts of {ps}?"],
             "status": "in_progress"
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"scope_definition structured invocation failed: {e}. Using fallback.")
         return {
             "problem_statement": ps,
@@ -62,7 +62,7 @@ Topic:
         }
 
 
-async def protocol_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+async def protocol_agent(state: dict[str, Any]) -> dict[str, Any]:
     """Agent 2: Formulates PICOC framework, inclusion/exclusion criteria, and search strategy."""
     ps = state.get("problem_statement", "")
     objs = state.get("research_objectives", [])
@@ -82,7 +82,7 @@ Objectives:
             llm, schema=SearchProtocol, prompt=prompt, strict=False, max_retries=2
         )
         return {"search_protocol": protocol.model_dump()}
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"protocol_agent structured invocation failed: {e}. Using default protocol.")
         protocol = SearchProtocol(
             population=ps,
@@ -94,7 +94,7 @@ Objectives:
         return {"search_protocol": protocol.model_dump()}
 
 
-async def keyword_extractor_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+async def keyword_extractor_agent(state: dict[str, Any]) -> dict[str, Any]:
     """Agent 3: Generates targeted academic search keywords and Boolean search queries."""
     ps = state.get("problem_statement", "")
     protocol = state.get("search_protocol") or {}
@@ -114,7 +114,7 @@ Target Intervention: {protocol.get('intervention', '')}
             clean_kws = [str(k).strip() for k in out.keywords if str(k).strip()][:8]
             if clean_kws:
                 return {"keywords": clean_kws, "hitl_checkpoint": "checkpoint_1", "status": "awaiting_approval"}
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"keyword_extractor structured invocation failed: {e}")
 
     words = re.findall(r"\w+", ps)
@@ -124,7 +124,7 @@ Target Intervention: {protocol.get('intervention', '')}
     return {"keywords": fallback_kws[:6], "hitl_checkpoint": "checkpoint_1", "status": "awaiting_approval"}
 
 
-async def scope_reviser_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+async def scope_reviser_agent(state: dict[str, Any]) -> dict[str, Any]:
     """Agent 4: Incorporates user feedback at Checkpoint 1 to revise scope, protocol, and keywords."""
     feedback = state.get("user_feedback", "")
     ps = state.get("problem_statement", "")
@@ -152,7 +152,7 @@ Revise the research plan incorporating the user's specific feedback.
             "hitl_checkpoint": "checkpoint_1",
             "status": "awaiting_approval"
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"scope_reviser structured invocation failed: {e}")
         return {
             "problem_statement": ps,

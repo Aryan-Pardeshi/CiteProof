@@ -30,7 +30,7 @@ def init_llm_cache():
         cache_path.parent.mkdir(parents=True, exist_ok=True)
         set_llm_cache(LoggingSQLiteCache(database_path=str(cache_path)))
         logger.info(f"LLM cache initialized at {cache_path}")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"Failed to initialize SQLite LLM cache: {e}")
 
 
@@ -122,7 +122,7 @@ def invoke_structured(base_llm, schema, prompt):
                 logger.info(f"Structured output via '{method}' for {model} at {base}")
                 _structured_method_cache[key] = method
             return result
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             last_error = e
             logger.debug(f"Structured output method '{method}' failed for {model}: {e}")
 
@@ -166,7 +166,7 @@ async def ainvoke_structured_with_retry(
                         _structured_method_cache[key] = method
                     return result
                 last_error = ValueError(f"{method} returned empty structured output")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 last_error = e
                 logger.debug(f"Structured attempt {attempt+1}/{max_retries+1} ({method}) failed: {e}")
                 err_str = str(e).lower()

@@ -6,21 +6,19 @@ with Swiss Modernism 2.0 aesthetics and high-DPI rasterization.
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 import matplotlib
 
 matplotlib.use("Agg")
-import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 
-from backend.app.models.evidence import EvidenceRecord, PaperRecord, PRISMATracker
+from backend.app.models.evidence import PaperRecord, PRISMATracker
 
 
 def render_prisma_diagram(
-    tracker_or_stats: Union[PRISMATracker, Dict[str, Any]],
+    tracker_or_stats: PRISMATracker | dict[str, Any],
     output_path: str
 ) -> str:
     """Render an accurate, publication-quality PRISMA 2020 flow diagram.
@@ -59,10 +57,10 @@ def render_prisma_diagram(
     ax.axis("off")
 
     # Swiss Modernism color palette
-    box_style = dict(boxstyle="round,pad=0.5", facecolor="#F8FAFC", edgecolor="#1E3A5F", linewidth=1.5)
-    side_box_style = dict(boxstyle="round,pad=0.4", facecolor="#F1F5F9", edgecolor="#64748B", linewidth=1.2)
-    arrow_props = dict(arrowstyle="->", color="#1E3A5F", lw=1.5, mutation_scale=15)
-    side_arrow_props = dict(arrowstyle="->", color="#64748B", lw=1.2, mutation_scale=12)
+    box_style = {"boxstyle": "round,pad=0.5", "facecolor": "#F8FAFC", "edgecolor": "#1E3A5F", "linewidth": 1.5}
+    side_box_style = {"boxstyle": "round,pad=0.4", "facecolor": "#F1F5F9", "edgecolor": "#64748B", "linewidth": 1.2}
+    arrow_props = {"arrowstyle": "->", "color": "#1E3A5F", "lw": 1.5, "mutation_scale": 15}
+    side_arrow_props = {"arrowstyle": "->", "color": "#64748B", "lw": 1.2, "mutation_scale": 12}
 
     boxes = [
         (4.2, 9.0, f"Identification\nRecords identified from databases{source_breakdown}\n(n = {retrieved})"),
@@ -120,12 +118,12 @@ def render_prisma_diagram(
 
 
 def render_evidence_table(
-    papers_or_records: List[Union[PaperRecord, Dict[str, Any]]],
-    hypotheses: List[str],
+    papers_or_records: list[PaperRecord | dict[str, Any]],
+    hypotheses: list[str],
     output_path: str
 ) -> str:
     """Render an evidence mapping table figure mapping papers to hypothesis support."""
-    papers: List[Dict[str, Any]] = [
+    papers: list[dict[str, Any]] = [
         p.model_dump() if isinstance(p, PaperRecord) else dict(p)
         for p in papers_or_records
     ]

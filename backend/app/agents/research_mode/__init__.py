@@ -53,7 +53,7 @@ from backend.app.agents.research_mode.writing import (
     title_agent,
 )
 
-__all__ = [
+__all__ = [  # noqa: RUF022 - exports remain grouped by pipeline phase.
     # Planning
     "scope_definition_agent",
     "protocol_agent",

@@ -3,7 +3,6 @@ from backend.app.agents.research_mode.validation import (
     extract_numerical_claims,
     validate_citations_in_text,
 )
-from backend.app.models.evidence import PaperRecord, PRISMATracker, ValidationReport
 
 
 def test_citation_pattern_regex():

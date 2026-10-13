@@ -9,9 +9,6 @@ from backend.app.models.evidence import (
     PaperRecord,
     PRISMATracker,
     ReviewClaim,
-    SearchProtocol,
-    TaxonomyTheme,
-    ValidationReport,
     make_claim_id,
     make_evidence_id,
     make_paper_id,
@@ -94,7 +91,7 @@ def test_review_claim_status_vocabulary_has_no_verified():
 
     A claim whose claim -> evidence -> paper -> locator chain resolves is 'resolved'.
     """
-    kwargs = dict(claim_id="results_cl001", claim_text="A claim.", target_section="results")
+    kwargs = {"claim_id": "results_cl001", "claim_text": "A claim.", "target_section": "results"}
     assert ReviewClaim(**kwargs, validation_status="resolved").validation_status == "resolved"
     with pytest.raises(ValidationError):
         ReviewClaim(**kwargs, validation_status="verified")
@@ -102,7 +99,7 @@ def test_review_claim_status_vocabulary_has_no_verified():
 
 def test_evidence_record_verification_status_means_resolution_only():
     """'resolved' = quote located and chain complete; it makes no claim about support."""
-    base = dict(evidence_id="p_ev001", paper_id="p", claim_summary="Any finding.")
+    base = {"evidence_id": "p_ev001", "paper_id": "p", "claim_summary": "Any finding."}
     assert EvidenceRecord(**base).verification_status == "unresolved"
     assert EvidenceRecord(**base, verification_status="resolved").verification_status == "resolved"
     for legacy in ("verified", "unverified"):
@@ -111,7 +108,7 @@ def test_evidence_record_verification_status_means_resolution_only():
 
 
 def test_claim_verification_status_means_resolution_only():
-    base = dict(text="A claim.", paper_id="p", evidence_span_id="p_sp001")
+    base = {"text": "A claim.", "paper_id": "p", "evidence_span_id": "p_sp001"}
     assert Claim(**base).verification_status == "unresolved"
     assert Claim(**base, verification_status="resolved").verification_status == "resolved"
     with pytest.raises(ValidationError):

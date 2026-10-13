@@ -4,7 +4,7 @@ import sys
 from enum import Enum
 from pathlib import Path
 from types import SimpleNamespace
-from typing import List, get_args, get_origin
+from typing import get_args, get_origin
 from unittest.mock import patch
 
 repo_root = Path(__file__).resolve().parent.parent
@@ -31,7 +31,7 @@ from backend.app.models.evidence import (
     SearchProtocol,
 )
 
-CONF_BASIS_VAL = list(ConfidenceBasis)[0].value
+CONF_BASIS_VAL = next(iter(ConfidenceBasis)).value
 
 
 DEFAULT_QUOTE = "Artificial intelligence has demonstrated applications in healthcare."
@@ -40,23 +40,23 @@ DEFAULT_QUOTE = "Artificial intelligence has demonstrated applications in health
 def _get_item_class(annotation):
     origin = get_origin(annotation)
     args = get_args(annotation)
-    if origin is list or origin is List:
+    if origin is list or origin is list:
         return args[0] if args else None
     for arg in args:
         sub_origin = get_origin(arg)
         sub_args = get_args(arg)
-        if sub_origin is list or sub_origin is List:
+        if sub_origin is list or sub_origin is list:
             return sub_args[0] if sub_args else None
     return None
 
 
 def _get_enum_value(annotation):
     if isinstance(annotation, type) and issubclass(annotation, Enum):
-        return list(annotation)[0]
+        return next(iter(annotation))
     args = get_args(annotation)
     for arg in args:
         if isinstance(arg, type) and issubclass(arg, Enum):
-            return list(arg)[0]
+            return next(iter(arg))
     return None
 
 
@@ -196,12 +196,7 @@ class FakeStructuredLLM:
                 values[name] = "theme_1"
             elif name in ("is_quantitative", "passed_all_gates", "prisma_invariants_valid", "passed"):
                 values[name] = True
-            elif (
-                name.startswith("total_")
-                or name.startswith("verified_")
-                or name.startswith("resolved_")
-                or name.startswith("grounded_")
-            ):
+            elif name.startswith(("total_", "verified_", "resolved_", "grounded_")):
                 values[name] = 1
             elif field.default is not None:
                 values[name] = field.default

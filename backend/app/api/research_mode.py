@@ -2,13 +2,12 @@ import asyncio
 import json
 import logging
 import re
-import sys
 import time
 import uuid
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
-from fastapi import APIRouter, BackgroundTasks, Header, HTTPException
+from fastapi import APIRouter, Header, HTTPException
 from fastapi.responses import FileResponse, StreamingResponse
 from langgraph.types import Command
 from pydantic import BaseModel
@@ -51,11 +50,11 @@ def _validate_thread_id(thread_id: str) -> str:
     return thread_id
 
 # Active streaming tasks per thread_id
-active_research_tasks: Dict[str, asyncio.Task] = {}
+active_research_tasks: dict[str, asyncio.Task] = {}
 
 # Per-thread event buffer for SSE reconnects
 # Structure: {thread_id: {"events": [], "task": task, "updated_at": timestamp, "completed": bool, "listeners": set()}}
-thread_buffers: Dict[str, Dict[str, Any]] = {}
+thread_buffers: dict[str, dict[str, Any]] = {}
 
 BUFFER_TTL_SECONDS = 3600  # 1 hour TTL for inactive thread buffers
 
@@ -74,22 +73,22 @@ def prune_old_buffers():
 
 class ResearchModeStartRequest(BaseModel):
     problem_statement: str
-    research_objectives: List[str] = []
-    research_questions: List[str] = []
-    models: Dict[str, str] = {}
+    research_objectives: list[str] = []
+    research_questions: list[str] = []
+    models: dict[str, str] = {}
 
 
 class ResearchModeApproveRequest(BaseModel):
     thread_id: str
     message: str = ""
-    from_seq: Optional[int] = None
+    from_seq: int | None = None
 
 
 class ResearchModeCancelRequest(BaseModel):
     thread_id: str
 
 
-async def _broadcast_event(thread_id: str, payload: Dict[str, Any], is_node_event: bool = True):
+async def _broadcast_event(thread_id: str, payload: dict[str, Any], is_node_event: bool = True):
     buf = thread_buffers.get(thread_id)
     if not buf:
         return
@@ -104,11 +103,11 @@ async def _broadcast_event(thread_id: str, payload: Dict[str, Any], is_node_even
     for q in listeners:
         try:
             q.put_nowait(payload)
-        except Exception:
+        except asyncio.QueueFull:
             pass
 
 
-def _resolve_checkpoint_state(state) -> tuple[bool, Optional[str]]:
+def _resolve_checkpoint_state(state) -> tuple[bool, str | None]:
     """Accurately resolves whether the graph is at an HITL checkpoint, and which checkpoint."""
     if not state:
         return False, None
@@ -296,7 +295,7 @@ async def _execute_research_graph(thread_id: str, message: str):
             buf["completed"] = is_completed
 
     except Exception as e:
-        logger.error(f"SSE Error in Research Mode approve: {e}", exc_info=True)
+        logger.exception("SSE Error in Research Mode approve")
         error_payload = {
             "event": "error",
             "message": str(e)
@@ -313,7 +312,7 @@ async def _execute_research_graph(thread_id: str, message: str):
             for q in listeners:
                 try:
                     q.put_nowait(None)
-                except Exception:
+                except asyncio.QueueFull:
                     pass
 
 
@@ -365,11 +364,11 @@ async def start_research_mode(request: ResearchModeStartRequest):
             "error": values.get("error")
         }
     except Exception as e:
-        logger.error(f"Error starting Research Mode: {e}", exc_info=True)
+        logger.exception("Error starting Research Mode")
         return {
             "thread_id": thread_id,
             "status": "error",
-            "error": f"Failed to start Research Mode: {str(e)}"
+            "error": f"Failed to start Research Mode: {e!s}"
         }
 
 
@@ -379,7 +378,7 @@ async def total_papers():
     """Cumulative count of research-mode papers launched (live display)."""
     try:
         return {"total_papers": await get_paper_count()}
-    except Exception:
+    except Exception:  # noqa: BLE001
         return {"total_papers": 0}
 
 
@@ -387,7 +386,7 @@ async def total_papers():
 @router.post("/research/mode/approve")
 async def approve_research_mode(
     request: ResearchModeApproveRequest,
-    last_event_id: Optional[str] = Header(None, alias="Last-Event-ID")
+    last_event_id: str | None = Header(None, alias="Last-Event-ID")
 ):
     prune_old_buffers()
 
@@ -440,7 +439,6 @@ async def approve_research_mode(
             # a hosting proxy's idle-connection timeout (often ~60-90s) is never triggered
             # during long LLM calls where no data frames flow for minutes at a time.
             HEARTBEAT_INTERVAL = 20.0
-            last_activity = time.time()
             task_ref = buf.get("task")
             while True:
                 try:
@@ -449,9 +447,8 @@ async def approve_research_mode(
                         break
                     seq_str = f"id: {evt['seq']}\n" if "seq" in evt else ""
                     yield f"{seq_str}data: {json.dumps(evt)}\n\n"
-                    last_activity = time.time()
                     await asyncio.sleep(0.001)
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     if (task_ref is None or task_ref.done()) and listener_queue.empty():
                         break
                     # PROXY ERROR HANDLING:
@@ -535,8 +532,8 @@ async def export_research_mode_pdf(thread_id: str):
             media_type="application/pdf"
         )
     except Exception as e:
-        logger.error(f"Failed to generate PDF: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"PDF generation failed: {str(e)}")
+        logger.exception("Failed to generate PDF")
+        raise HTTPException(status_code=500, detail=f"PDF generation failed: {e!s}")
 
 
 @router.post("/research-mode/export/docx/{thread_id}")
@@ -561,6 +558,6 @@ async def export_research_mode_docx(thread_id: str):
             media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         )
     except Exception as e:
-        logger.error(f"Failed to generate DOCX: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"DOCX generation failed: {str(e)}")
+        logger.exception("Failed to generate DOCX")
+        raise HTTPException(status_code=500, detail=f"DOCX generation failed: {e!s}")
 

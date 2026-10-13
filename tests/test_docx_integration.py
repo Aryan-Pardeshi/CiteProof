@@ -3,7 +3,6 @@ import os
 import sys
 from pathlib import Path
 
-import httpx
 import pytest
 
 root_dir = Path(__file__).resolve().parent

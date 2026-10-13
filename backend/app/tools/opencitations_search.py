@@ -9,11 +9,8 @@ from __future__ import annotations
 import asyncio
 import logging
 import urllib.parse
-from typing import Any, Dict, List, Optional, Set
 
 import httpx
-
-from backend.app.models.evidence import PaperRecord, make_paper_id
 
 logger = logging.getLogger(__name__)
 
@@ -27,12 +24,11 @@ def _clean_doi(doi: str) -> str:
         return ""
     d = doi.strip().lower()
     for prefix in ("https://doi.org/", "http://doi.org/", "doi:"):
-        if d.startswith(prefix):
-            d = d[len(prefix):]
+        d = d.removeprefix(prefix)
     return d
 
 
-async def get_citations(doi: str, limit: int = 20, client: Optional[httpx.AsyncClient] = None) -> List[str]:
+async def get_citations(doi: str, limit: int = 20, client: httpx.AsyncClient | None = None) -> list[str]:
     """Retrieve list of citing DOIs (forward citations) for a given paper DOI."""
     clean = _clean_doi(doi)
     if not clean:
@@ -56,12 +52,12 @@ async def get_citations(doi: str, limit: int = 20, client: Optional[httpx.AsyncC
                 data = resp.json()
                 citing_dois = [item.get("citing") for item in data if item.get("citing")]
                 return citing_dois[:limit]
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.debug(f"OpenCitations citations query failed for {doi}: {e}")
         return []
 
 
-async def get_references(doi: str, limit: int = 20, client: Optional[httpx.AsyncClient] = None) -> List[str]:
+async def get_references(doi: str, limit: int = 20, client: httpx.AsyncClient | None = None) -> list[str]:
     """Retrieve list of cited reference DOIs (backward references) for a given paper DOI."""
     clean = _clean_doi(doi)
     if not clean:
@@ -85,20 +81,20 @@ async def get_references(doi: str, limit: int = 20, client: Optional[httpx.Async
                 data = resp.json()
                 cited_dois = [item.get("cited") for item in data if item.get("cited")]
                 return cited_dois[:limit]
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.debug(f"OpenCitations references query failed for {doi}: {e}")
         return []
 
 
 async def expand_citation_graph(
-    seed_dois: List[str],
+    seed_dois: list[str],
     max_expansion: int = 25
-) -> Set[str]:
+) -> set[str]:
     """Expand citation graph by traversing 1-hop forward citations and backward references.
     
     Returns a set of discovered new candidate DOIs.
     """
-    discovered_dois: Set[str] = set()
+    discovered_dois: set[str] = set()
     if max_expansion <= 0:
         return discovered_dois
 
@@ -107,7 +103,7 @@ async def expand_citation_graph(
     semaphore = asyncio.Semaphore(4)
 
     async with httpx.AsyncClient(timeout=OPENCITATIONS_TIMEOUT, follow_redirects=True) as client:
-        async def _expand_seed(doi: str) -> List[str]:
+        async def _expand_seed(doi: str) -> list[str]:
             async with semaphore:
                 c_dois = await get_citations(doi, limit=10, client=client)
                 r_dois = await get_references(doi, limit=10, client=client)

@@ -1,7 +1,7 @@
 import logging
 import re
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import docx
 from docx.enum.table import WD_TABLE_ALIGNMENT
@@ -16,7 +16,7 @@ def _set_cell_background(cell, fill_hex: str):
     shading_elm = parse_xml(f'<w:shd {nsdecls("w")} w:fill="{fill_hex}"/>')
     cell._tc.get_or_add_tcPr().append(shading_elm)
 
-def generate_paper_docx(state: Dict[str, Any], output_path: str) -> str:
+def generate_paper_docx(state: dict[str, Any], output_path: str) -> str:
     """Generates a styled academic Word document (.docx) from ResearchModeState."""
     doc = docx.Document()
 
@@ -101,9 +101,7 @@ def generate_paper_docx(state: Dict[str, Any], output_path: str) -> str:
                 run.bold = True
                 if marker == "***":
                     run.italic = True
-            elif marker == "*":
-                run.italic = True
-            elif marker == "_":
+            elif marker == "*" or marker == "_":
                 run.italic = True
             elif marker == "`":
                 run.font.name = "Consolas"
@@ -116,7 +114,7 @@ def generate_paper_docx(state: Dict[str, Any], output_path: str) -> str:
         text = (text or "").strip()
         if not text:
             return
-        paragraph_lines: List[str] = []
+        paragraph_lines: list[str] = []
         for raw in text.splitlines():
             line = raw.rstrip()
             stripped = line.strip()
@@ -150,7 +148,7 @@ def generate_paper_docx(state: Dict[str, Any], output_path: str) -> str:
             paragraph_lines.append(stripped)
         _flush_paragraph_buffer(paragraph_lines)
 
-    def _flush_paragraph_buffer(lines: List[str]):
+    def _flush_paragraph_buffer(lines: list[str]):
         if not lines:
             return
         p = doc.add_paragraph()

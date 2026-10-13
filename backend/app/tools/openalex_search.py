@@ -27,7 +27,7 @@ from __future__ import annotations
 import logging
 import os
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 
@@ -40,16 +40,12 @@ OPENALEX_TIMEOUT = 10.0
 
 # Trimmed payload: only fields this adapter consumes. Keeps responses small and
 # pins the contract so upstream additions can never silently change parsing.
-_OPENALEX_SELECT = ",".join([
-    "id", "doi", "title", "display_name", "publication_year",
-    "authorships", "abstract_inverted_index", "primary_location",
-    "open_access", "best_oa_location", "cited_by_count", "biblio", "ids",
-])
+_OPENALEX_SELECT = "id,doi,title,display_name,publication_year,authorships,abstract_inverted_index,primary_location,open_access,best_oa_location,cited_by_count,biblio,ids"
 
 _PMID_URL_RE = re.compile(r"pubmed\.ncbi\.nlm\.nih\.gov/(\d+)")
 
 
-def _normalize_doi(doi: Optional[str]) -> str:
+def _normalize_doi(doi: str | None) -> str:
     """Canonicalize OpenAlex's full-URL DOI form ('https://doi.org/10.x/y') to bare '10.x/y'."""
     if not doi:
         return ""
@@ -58,11 +54,11 @@ def _normalize_doi(doi: Optional[str]) -> str:
     return doi.strip()
 
 
-def reconstruct_abstract(inverted_index: Optional[Dict[str, List[int]]]) -> str:
+def reconstruct_abstract(inverted_index: dict[str, list[int]] | None) -> str:
     """Reconstruct plain text from OpenAlex's word -> [position] inverted index."""
     if not inverted_index or not isinstance(inverted_index, dict):
         return ""
-    word_pos: List[Any] = []
+    word_pos: list[Any] = []
     for word, positions in inverted_index.items():
         for pos in positions or []:
             word_pos.append((pos, word))
@@ -70,7 +66,7 @@ def reconstruct_abstract(inverted_index: Optional[Dict[str, List[int]]]) -> str:
     return " ".join(wp[1] for wp in word_pos)
 
 
-def _extract_pmid(ids: Any) -> Optional[str]:
+def _extract_pmid(ids: Any) -> str | None:
     """Pull the bare PMID out of ids.pmid ('https://pubmed.ncbi.nlm.nih.gov/1234/')."""
     if not ids or not isinstance(ids, dict):
         return None
@@ -81,9 +77,9 @@ def _extract_pmid(ids: Any) -> Optional[str]:
 async def search_openalex(
     query: str,
     limit: int = 15,
-    email: Optional[str] = None,
-    client: Optional[httpx.AsyncClient] = None,
-) -> List[PaperRecord]:
+    email: str | None = None,
+    client: httpx.AsyncClient | None = None,
+) -> list[PaperRecord]:
     """Search OpenAlex works for academic literature matching the query.
 
     Reuses OPENALEX_EMAIL (shared with the Unpaywall resolver in
@@ -96,7 +92,7 @@ async def search_openalex(
         or ""
     ).strip()
 
-    params: Dict[str, Any] = {
+    params: dict[str, Any] = {
         "search": query,
         "per-page": min(limit, 50),
         "select": _OPENALEX_SELECT,
@@ -119,7 +115,7 @@ async def search_openalex(
 
         data = resp.json()
         items = data.get("results", [])
-        records: List[PaperRecord] = []
+        records: list[PaperRecord] = []
 
         for item in items:
             if not isinstance(item, dict):
@@ -174,6 +170,6 @@ async def search_openalex(
         logger.info(f"OpenAlex returned {len(records)} papers for: {query[:40]!r}")
         return records
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"OpenAlex search failed for {query[:40]!r}: {e}")
         return []

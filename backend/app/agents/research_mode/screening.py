@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, Dict, List
+from typing import Any
 
 from langchain_core.messages import HumanMessage
 
@@ -19,7 +19,7 @@ from backend.app.tools.fulltext_fetcher import fetch_fulltexts
 logger = logging.getLogger(__name__)
 
 
-async def paper_screener_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+async def paper_screener_agent(state: dict[str, Any]) -> dict[str, Any]:
     """Agent 8: Screens candidate corpus based on title and abstract relevance."""
     raw_papers = state.get("paper_records") or state.get("raw_papers") or []
     ps = state.get("problem_statement", "")
@@ -46,7 +46,7 @@ async def paper_screener_agent(state: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-async def fulltext_eligibility_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+async def fulltext_eligibility_agent(state: dict[str, Any]) -> dict[str, Any]:
     """Agent 9: Retrieves full-text PDFs and JATS XML to assess full-text eligibility."""
     screened_papers = state.get("paper_records") or state.get("screened_papers") or []
     if not screened_papers:
@@ -65,12 +65,12 @@ async def fulltext_eligibility_agent(state: Dict[str, Any]) -> Dict[str, Any]:
             "paper_records": enriched_all,
             "screened_papers": enriched_all,
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"Full-text fetching encountered error: {e}")
         return {}
 
 
-async def quality_appraisal_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+async def quality_appraisal_agent(state: dict[str, Any]) -> dict[str, Any]:
     """Agent 10: Evaluates study methodological rigor, study design, and risk of bias."""
     paper_dicts = state.get("paper_records") or state.get("screened_papers") or []
     if not paper_dicts:
@@ -106,8 +106,7 @@ Return a valid JSON array with schema:
         clean = raw
         if "```" in clean:
             clean = clean.split("```")[1]
-            if clean.startswith("json"):
-                clean = clean[4:]
+            clean = clean.removeprefix("json")
         evaluations = json.loads(clean.strip())
         eval_map = {item["id"]: item for item in evaluations if isinstance(item, dict) and "id" in item}
 
@@ -118,7 +117,7 @@ Return a valid JSON array with schema:
                 p["quality_rating"] = ev.get("quality_rating", "Medium")
                 p["quality_rubric"] = {"appraisal_notes": ev.get("quality_notes", "")}
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"quality_appraisal JSON parse defaulted: {e}")
         # Only the assessed sample receives defaults; unassessed papers are left
         # untouched instead of getting synthetic study_type / quality values.

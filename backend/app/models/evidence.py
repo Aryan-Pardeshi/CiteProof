@@ -9,9 +9,9 @@ from __future__ import annotations
 
 import hashlib
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Dict, List, Literal, Optional, Tuple
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -54,7 +54,7 @@ _RESOLUTION_STATUS_DESCRIPTION = (
 )
 
 
-def make_paper_id(doi: Optional[str], title: str, year: Optional[str] = None) -> str:
+def make_paper_id(doi: str | None, title: str, year: str | None = None) -> str:
     """Generate a deterministic 16-character SHA-256 hash paper ID.
     
     DOI is canonical; normalized title is used as fallback.
@@ -125,15 +125,15 @@ def confidence_label(confidence: float) -> Literal["high", "medium", "low"]:
 _WHITESPACE_RE = re.compile(r"\s+")
 
 
-def _normalize_with_index_map(document: str) -> Tuple[str, List[int]]:
+def _normalize_with_index_map(document: str) -> tuple[str, list[int]]:
     """Lowercase and collapse whitespace, remembering each output char's origin.
 
     Returns (normalized_text, index_map) where index_map[i] is the offset in the
     original document that produced normalized_text[i]. Form-feed page markers
     participate in whitespace collapsing but stay countable via the original doc.
     """
-    out: List[str] = []
-    idx_map: List[int] = []
+    out: list[str] = []
+    idx_map: list[int] = []
     prev_space = True
     for i, ch in enumerate(document):
         if ch.isspace():
@@ -156,9 +156,9 @@ def _normalize_with_index_map(document: str) -> Tuple[str, List[int]]:
 
 
 def locate_quote(
-    document: Optional[str],
+    document: str | None,
     quote: str,
-) -> Optional[Tuple[int, int, Optional[int]]]:
+) -> tuple[int, int, int | None] | None:
     """Find a whitespace/case-insensitive verbatim match inside document text.
 
     Returns (char_offset_start, char_offset_end, page) where the offsets index
@@ -188,8 +188,8 @@ class PaperSection(BaseModel):
 
     name: str
     text: str = ""
-    page_start: Optional[int] = None
-    page_end: Optional[int] = None
+    page_start: int | None = None
+    page_end: int | None = None
 
 
 class ProvenanceInfo(BaseModel):
@@ -197,7 +197,7 @@ class ProvenanceInfo(BaseModel):
 
     source_provider: str
     retrieval_method: str = "api_search"
-    fetched_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    fetched_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     url: str = ""
 
 
@@ -208,9 +208,9 @@ class EvidenceSpan(BaseModel):
     paper_id: str = Field(..., description="Foreign key to PaperRecord.paper_id")
     text: str = Field(..., description="Exact quoted span from the source document")
     section: str = UNKNOWN_SECTION
-    page: Optional[int] = None
-    char_offset_start: Optional[int] = None
-    char_offset_end: Optional[int] = None
+    page: int | None = None
+    char_offset_start: int | None = None
+    char_offset_end: int | None = None
 
 
 class Claim(BaseModel):
@@ -230,7 +230,7 @@ class Claim(BaseModel):
     paper_id: str = Field(..., description="FK to PaperRecord.paper_id")
     evidence_span_id: str = Field(..., description="FK to EvidenceSpan.span_id")
     section: str = UNKNOWN_SECTION
-    page: Optional[int] = None
+    page: int | None = None
     confidence: float = Field(default=0.4, ge=0.0, le=1.0)
     confidence_basis: ConfidenceBasis = ConfidenceBasis.PARAPHRASE
     verification_status: Literal["resolved", "unresolved"] = Field(
@@ -238,7 +238,7 @@ class Claim(BaseModel):
         description=_RESOLUTION_STATUS_DESCRIPTION,
     )
     source_url: str = ""
-    doi: Optional[str] = None
+    doi: str | None = None
 
 
 class PaperRecord(BaseModel):
@@ -248,35 +248,35 @@ class PaperRecord(BaseModel):
         ...,
         description="Deterministic 16-hex hash of DOI or normalized title"
     )
-    doi: Optional[str] = None
-    pmid: Optional[str] = None
-    arxiv_id: Optional[str] = None
+    doi: str | None = None
+    pmid: str | None = None
+    arxiv_id: str | None = None
     title: str
-    authors: List[str] = Field(default_factory=list)
+    authors: list[str] = Field(default_factory=list)
     year: str = "n.d."
-    venue: Optional[str] = None
+    venue: str | None = None
     abstract: str = ""
     source_url: str = ""
-    pdf_url: Optional[str] = None
-    fulltext_excerpt: Optional[str] = None
-    full_text: Optional[str] = Field(
+    pdf_url: str | None = None
+    fulltext_excerpt: str | None = None
+    full_text: str | None = Field(
         None,
         description="Complete extracted document text with \\f page markers when available"
     )
-    sections: List[PaperSection] = Field(default_factory=list)
-    provenance: Optional[ProvenanceInfo] = None
+    sections: list[PaperSection] = Field(default_factory=list)
+    provenance: ProvenanceInfo | None = None
     retrieval_source: str = "unknown"  # openalex, semantic_scholar, arxiv, crossref, pubmed, tavily
     citation_count: int = 0
-    relevance_score: Optional[float] = None
-    study_type: Optional[Literal["empirical", "benchmark", "review", "theoretical", "survey", "meta-analysis", "other"]] = "empirical"
-    quality_rating: Optional[Literal["High", "Medium", "Low", "Unclear"]] = "Unclear"
-    quality_rubric: Optional[Dict[str, Any]] = None
+    relevance_score: float | None = None
+    study_type: Literal["empirical", "benchmark", "review", "theoretical", "survey", "meta-analysis", "other"] | None = "empirical"
+    quality_rating: Literal["High", "Medium", "Low", "Unclear"] | None = "Unclear"
+    quality_rubric: dict[str, Any] | None = None
     screening_status: Literal["retrieved", "screened", "included", "excluded"] = "retrieved"
-    exclusion_reason: Optional[str] = None
-    hypothesis_support: Dict[str, str] = Field(default_factory=dict)
+    exclusion_reason: str | None = None
+    hypothesis_support: dict[str, str] = Field(default_factory=dict)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> PaperRecord:
+    def from_dict(cls, data: dict[str, Any]) -> PaperRecord:
         """Create a PaperRecord from raw paper dictionary with auto-generated paper_id."""
         d = dict(data)
         if "paper_id" not in d or not d["paper_id"]:
@@ -299,11 +299,11 @@ class EvidenceRecord(BaseModel):
         ...,
         description="Concise description of the specific factual claim or finding"
     )
-    exact_quote: Optional[str] = Field(
+    exact_quote: str | None = Field(
         None,
         description="Verbatim text from the source paper demonstrating provenance"
     )
-    source_section: Optional[str] = Field(
+    source_section: str | None = Field(
         None,
         description="Legacy alias for section; populated alongside section"
     )
@@ -311,16 +311,16 @@ class EvidenceRecord(BaseModel):
         UNKNOWN_SECTION,
         description="Canonical section name; 'unknown' when not derivable from the source"
     )
-    evidence_span_id: Optional[str] = Field(
+    evidence_span_id: str | None = Field(
         None,
         description="Foreign key to EvidenceSpan.span_id anchoring this record"
     )
-    page: Optional[int] = Field(
+    page: int | None = Field(
         None,
         description="Exact page number in the source document; None when unavailable"
     )
-    char_offset_start: Optional[int] = None
-    char_offset_end: Optional[int] = None
+    char_offset_start: int | None = None
+    char_offset_end: int | None = None
     confidence: float = Field(
         default=CONFIDENCE_BASE[ConfidenceBasis.PARAPHRASE],
         ge=0.0,
@@ -333,20 +333,20 @@ class EvidenceRecord(BaseModel):
         description=_RESOLUTION_STATUS_DESCRIPTION,
     )
     source_url: str = ""
-    doi: Optional[str] = None
-    task_or_domain: Optional[str] = None
-    dataset: Optional[str] = None
-    model_or_method: Optional[str] = None
-    sample_size: Optional[str] = None
-    metric_name: Optional[str] = None
-    baseline_value: Optional[float] = None
-    reported_value: Optional[float] = None
-    unit_or_scale: Optional[str] = None
-    effect_direction: Optional[Literal["positive", "negative", "neutral", "mixed", "unclear"]] = "unclear"
-    confidence_interval_or_p: Optional[str] = None
-    limitations: Optional[str] = None
+    doi: str | None = None
+    task_or_domain: str | None = None
+    dataset: str | None = None
+    model_or_method: str | None = None
+    sample_size: str | None = None
+    metric_name: str | None = None
+    baseline_value: float | None = None
+    reported_value: float | None = None
+    unit_or_scale: str | None = None
+    effect_direction: Literal["positive", "negative", "neutral", "mixed", "unclear"] | None = "unclear"
+    confidence_interval_or_p: str | None = None
+    limitations: str | None = None
     reproducibility_available: bool = False
-    hypothesis_relevance: Dict[str, Literal["Supports", "Refutes", "Neutral", "Partial", "Not Applicable"]] = Field(
+    hypothesis_relevance: dict[str, Literal["Supports", "Refutes", "Neutral", "Partial", "Not Applicable"]] = Field(
         default_factory=dict
     )
 
@@ -366,13 +366,13 @@ class ReviewClaim(BaseModel):
         ...,
         description="Target section: 'literature_review', 'results', 'discussion', etc."
     )
-    supporting_evidence_ids: List[str] = Field(
+    supporting_evidence_ids: list[str] = Field(
         default_factory=list,
         description="List of EvidenceRecord.evidence_id grounding this claim"
     )
     is_quantitative: bool = False
-    quantitative_metric: Optional[str] = None
-    quantitative_value: Optional[float] = None
+    quantitative_metric: str | None = None
+    quantitative_value: float | None = None
     validation_status: Literal["resolved", "unsupported", "flagged", "pending"] = Field(
         default="pending",
         description=(
@@ -383,14 +383,14 @@ class ReviewClaim(BaseModel):
             "performs that check."
         ),
     )
-    integrity_notes: Optional[str] = None
+    integrity_notes: str | None = None
 
 
 class PRISMATracker(BaseModel):
     """Deterministic PRISMA 2020 flow tracker with mathematical invariants."""
     
     records_identified: int = 0
-    records_by_source: Dict[str, int] = Field(default_factory=dict)
+    records_by_source: dict[str, int] = Field(default_factory=dict)
     duplicates_removed: int = 0
     records_after_dedup: int = 0
     records_screened: int = 0
@@ -400,9 +400,9 @@ class PRISMATracker(BaseModel):
     full_text_assessed: int = 0
     excluded_full_text: int = 0
     studies_included: int = 0
-    exclusion_reasons: Dict[str, int] = Field(default_factory=dict)
+    exclusion_reasons: dict[str, int] = Field(default_factory=dict)
 
-    def validate_invariants(self) -> List[str]:
+    def validate_invariants(self) -> list[str]:
         """Validate mathematical conservation laws of the PRISMA flowchart."""
         errors = []
         if self.records_identified - self.duplicates_removed != self.records_after_dedup:
@@ -432,12 +432,12 @@ class SearchProtocol(BaseModel):
     population: str = ""
     intervention: str = ""
     comparison: str = ""
-    outcomes: List[str] = Field(default_factory=list)
+    outcomes: list[str] = Field(default_factory=list)
     context: str = ""
-    inclusion_criteria: List[str] = Field(default_factory=list)
-    exclusion_criteria: List[str] = Field(default_factory=list)
-    boolean_queries: List[str] = Field(default_factory=list)
-    search_keywords: List[str] = Field(default_factory=list)
+    inclusion_criteria: list[str] = Field(default_factory=list)
+    exclusion_criteria: list[str] = Field(default_factory=list)
+    boolean_queries: list[str] = Field(default_factory=list)
+    search_keywords: list[str] = Field(default_factory=list)
 
 
 class TaxonomyTheme(BaseModel):
@@ -446,9 +446,9 @@ class TaxonomyTheme(BaseModel):
     theme_id: str
     theme_name: str
     description: str
-    paper_ids: List[str] = Field(default_factory=list)
-    evidence_ids: List[str] = Field(default_factory=list)
-    subthemes: List[str] = Field(default_factory=list)
+    paper_ids: list[str] = Field(default_factory=list)
+    evidence_ids: list[str] = Field(default_factory=list)
+    subthemes: list[str] = Field(default_factory=list)
 
 
 class ValidationReport(BaseModel):
@@ -459,17 +459,17 @@ class ValidationReport(BaseModel):
     # supports the sentence the citation is attached to.
     total_inline_citations: int = 0
     verified_citations: int = 0
-    unverified_citations: List[str] = Field(default_factory=list)
-    orphan_references: List[str] = Field(default_factory=list)
+    unverified_citations: list[str] = Field(default_factory=list)
+    orphan_references: list[str] = Field(default_factory=list)
     total_quantitative_claims: int = 0
     grounded_quantitative_claims: int = 0
-    unsupported_quantitative_claims: List[str] = Field(default_factory=list)
+    unsupported_quantitative_claims: list[str] = Field(default_factory=list)
     # ReviewClaim manifest audit: rendered prose claims resolving the full
     # claim_id -> evidence_id -> paper_id -> source_url/doi chain.
     total_review_claims: int = 0
     resolved_review_claims: int = 0
-    unresolved_review_claims: List[str] = Field(default_factory=list)
-    integrity_flags: List[str] = Field(default_factory=list)
+    unresolved_review_claims: list[str] = Field(default_factory=list)
+    integrity_flags: list[str] = Field(default_factory=list)
     prisma_invariants_valid: bool = True
     passed_all_gates: bool = True
 
@@ -484,7 +484,7 @@ class ValidationReport(BaseModel):
 # unresolved with a deterministically reduced confidence score.
 
 
-def _basis_of(record: Dict[str, Any]) -> ConfidenceBasis:
+def _basis_of(record: dict[str, Any]) -> ConfidenceBasis:
     raw = record.get("confidence_basis") or ConfidenceBasis.PARAPHRASE
     try:
         return ConfidenceBasis(raw)
@@ -493,9 +493,9 @@ def _basis_of(record: Dict[str, Any]) -> ConfidenceBasis:
 
 
 def resolve_record_chain(
-    record: Dict[str, Any],
-    paper_records: List[Dict[str, Any]],
-) -> Dict[str, Any]:
+    record: dict[str, Any],
+    paper_records: list[dict[str, Any]],
+) -> dict[str, Any]:
     """Resolve Claim -> EvidenceSpan -> Paper -> location -> locator for one record.
 
     Returns the machine-readable evidence-chain dict attached alongside
@@ -505,7 +505,7 @@ def resolve_record_chain(
     papers_by_id = {p.get("paper_id"): p for p in paper_records if p.get("paper_id")}
     paper = papers_by_id.get(record.get("paper_id"))
 
-    missing_links: List[str] = []
+    missing_links: list[str] = []
     if paper is None:
         missing_links.append("paper_not_in_corpus")
 
@@ -565,9 +565,9 @@ def resolve_record_chain(
 
 
 def apply_chain_downgrade(
-    record: Dict[str, Any],
-    chain: Dict[str, Any],
-) -> Dict[str, Any]:
+    record: dict[str, Any],
+    chain: dict[str, Any],
+) -> dict[str, Any]:
     """Write resolved chain verdicts back onto an evidence record dict."""
     record["confidence"] = chain["confidence"]
     record["confidence_label"] = chain["confidence_label"]
@@ -578,23 +578,23 @@ def apply_chain_downgrade(
 
 
 def build_evidence_chains(
-    evidence_records: List[Dict[str, Any]],
-    paper_records: List[Dict[str, Any]],
-) -> List[Dict[str, Any]]:
+    evidence_records: list[dict[str, Any]],
+    paper_records: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
     """Resolve the traceability chain for every evidence record."""
     return [resolve_record_chain(r, paper_records) for r in evidence_records]
 
 
 def build_claims(
-    evidence_records: List[Dict[str, Any]],
-    paper_records: List[Dict[str, Any]],
-) -> List[Claim]:
+    evidence_records: list[dict[str, Any]],
+    paper_records: list[dict[str, Any]],
+) -> list[Claim]:
     """Materialize validated Claim objects from anchored evidence records.
 
     Records without an evidence span cannot form a traceable claim and are
     skipped rather than emitted as free-text assertions.
     """
-    claims: List[Claim] = []
+    claims: list[Claim] = []
     for r in evidence_records:
         if not r.get("evidence_span_id"):
             continue

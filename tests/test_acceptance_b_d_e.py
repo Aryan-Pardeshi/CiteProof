@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import os
 import sys
 import time
 import uuid
@@ -79,13 +78,12 @@ async def run():
         }
 
         pipeline_start = time.time()
-        fulltext_node_start = None
         fulltext_node_duration = None
 
         # Step 1: Start graph
         logger.info("Initializing graph streaming...")
         async for event in graph.astream(input_val, config=config):
-            for node_name, node_output in event.items():
+            for node_name in event:
                 logger.info(f"Node completed: {node_name}")
 
         # Step 2: Loop while checkpoints remain
@@ -102,7 +100,7 @@ async def run():
             
             t0 = time.time()
             async for event in graph.astream(cmd, config=config):
-                for node_name, node_output in event.items():
+                for node_name in event:
                     t1 = time.time()
                     elapsed_node = t1 - t0
                     logger.info(f"Node completed: {node_name} (took {elapsed_node:.2f}s)")
@@ -169,7 +167,7 @@ async def run():
         generate_paper_pdf(values, str(pdf_path))
 
         pdf_size = pdf_path.stat().st_size
-        print(f"\nPDF Export Successful!")
+        print("\nPDF Export Successful!")
         print(f"  File: {pdf_path}")
         print(f"  Size: {pdf_size} bytes ({pdf_size / 1024:.2f} KB)")
 

@@ -9,7 +9,6 @@ if str(root_dir) not in sys.path:
 
 import concurrent.futures
 import logging
-from typing import List
 
 from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 from pydantic import BaseModel, Field
@@ -72,7 +71,7 @@ Only include URLs that appeared in the search results."""
 
 class ResearchResult(BaseModel):
     result: str = Field(description="Comprehensive research summary based on search results")
-    citations: List[str] = Field(description="List of source URLs from search results")
+    citations: list[str] = Field(description="List of source URLs from search results")
 
 
 def researcher_node(state: ResearchState) -> dict:
@@ -121,8 +120,8 @@ def researcher_node(state: ResearchState) -> dict:
                     try:
                         tool_output = search_web.invoke(args)
                         search_count += 1
-                    except Exception as e:
-                        tool_output = f"Search failed: {str(e)}"
+                    except Exception as e:  # noqa: BLE001
+                        tool_output = f"Search failed: {e!s}"
                         logger.warning(f"Search failed: {e}")
 
                     messages.append(
@@ -146,11 +145,10 @@ def researcher_node(state: ResearchState) -> dict:
             # Strip markdown code fences if present
             if raw.startswith("```"):
                 raw = raw.split("```")[1]
-                if raw.startswith("json"):
-                    raw = raw[4:]
+                raw = raw.removeprefix("json")
             data = json.loads(raw)
             final_result = ResearchResult(**data)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Structured output parsing failed: {e}")
             return {"results": [final_response.content], "citations": []}
 
@@ -160,9 +158,9 @@ def researcher_node(state: ResearchState) -> dict:
             "citations": final_result.citations
         }
     except Exception as e:
-        logger.error(f"Error in researcher node for task '{query}': {e}", exc_info=True)
+        logger.exception("Error in researcher node for task '%s'", query)
         return {
-            "results": [f"Research failed for this task due to an error: {str(e)}"],
+            "results": [f"Research failed for this task due to an error: {e!s}"],
             "citations": []
         }
 

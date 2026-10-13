@@ -2,14 +2,14 @@
 
 import pytest
 
-from backend.app.models.evidence import PaperRecord, PRISMATracker
+from backend.app.models.evidence import PaperRecord
 from backend.app.tools.academic_search import (
     _normalize_doi,
     _normalize_title,
     _select_candidates,
     format_apa,
 )
-from backend.app.tools.crossref_search import _clean_abstract, search_crossref
+from backend.app.tools.crossref_search import _clean_abstract
 from backend.app.tools.opencitations_search import _clean_doi
 
 

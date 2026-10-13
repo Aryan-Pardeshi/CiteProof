@@ -154,7 +154,7 @@ async def _download_and_extract(client: httpx.AsyncClient, url: str, title: str)
         # with page markers intact; callers slice prompt-sized excerpts.
         anchored_text = _skip_cover_page(title, full_text)
         return anchored_text[:FULLTEXT_ANCHOR_CHAR_BUDGET]
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"Failed to fetch/extract fulltext PDF for '{title}' from {url}: {e}")
         return None
 
@@ -189,7 +189,7 @@ async def _fetch_single_pdf(paper: dict, semaphore: asyncio.Semaphore) -> tuple[
                         return (pid, excerpt)
 
                 return (pid, None)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Error processing PDF for '{title}': {e}")
             return (pid, None)
 
@@ -214,7 +214,7 @@ async def fetch_fulltext_excerpts(papers: list[dict]) -> dict[str, str]:
             if isinstance(res, tuple) and res[1] is not None:
                 pid, excerpt = res
                 results[pid] = excerpt
-    except (asyncio.TimeoutError, asyncio.CancelledError):
+    except (TimeoutError, asyncio.CancelledError):
         logger.warning(f"Batch full-text fetch timed out or cancelled after {FULLTEXT_TOTAL_BUDGET_SECONDS}s")
         for t in tasks:
             if not t.done():
@@ -226,8 +226,8 @@ async def fetch_fulltext_excerpts(papers: list[dict]) -> dict[str, str]:
                         if isinstance(res, tuple) and res[1] is not None:
                             results[res[0]] = res[1]
                 except Exception:
-                    pass
-    except Exception as e:
+                    logger.debug("A full-text task failed while collecting completed results.", exc_info=True)
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"Error in fetch_fulltext_excerpts batch: {e}")
 
     logger.info(f"fetched full text for {len(results)}/{FULLTEXT_TOP_N} papers")

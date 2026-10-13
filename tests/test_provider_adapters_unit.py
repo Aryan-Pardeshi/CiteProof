@@ -570,7 +570,7 @@ async def test_fanout_survives_raising_providers(monkeypatch):
         return []  # provider up but yields nothing
 
     async def timeout_epmc(q, limit=15):
-        raise asyncio.TimeoutError("europe pmc timed out")
+        raise TimeoutError("europe pmc timed out")
 
     async def malformed_doaj(q, limit=15):
         raise ValueError("malformed response body")

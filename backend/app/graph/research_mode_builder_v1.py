@@ -1,6 +1,5 @@
 """Legacy Research Mode Graph Builder (v1) for backward compatibility."""
 
-import asyncio
 import logging
 import sys
 from pathlib import Path
@@ -47,7 +46,6 @@ from backend.app.agents.research_mode.writing import (
     title_agent,
 )
 from backend.app.graph.research_mode_state import ResearchModeState
-from backend.app.llm import get_llm
 
 logger = logging.getLogger(__name__)
 APPROVAL_WORDS = ["", "approve", "approved", "ok", "yes", "looks good", "continue"]

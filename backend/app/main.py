@@ -1,5 +1,4 @@
 import os
-import re
 import secrets
 import sys
 from contextlib import asynccontextmanager
@@ -192,7 +191,7 @@ def _apply_config_update(body: ConfigUpdate):
         llm_pro.reset()
 
         return {"ok": True, "updated": updated, "message": "Applied configuration changes successfully"}
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/config/setup")

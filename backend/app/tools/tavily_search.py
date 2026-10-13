@@ -1,6 +1,6 @@
 # Tavily tool wrapper
 import os
-from typing import List, Literal, Optional
+from typing import Literal
 
 from dotenv import load_dotenv
 from langchain_core.tools import tool
@@ -14,8 +14,8 @@ tavily_client = TavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
 @tool
 def search_web(
     query: str,
-    search_topic: Optional[List[str]] = None,
-    time_range: Optional[Literal["day", "month", "week", "year"]] = None,
+    search_topic: list[str] | None = None,
+    time_range: Literal["day", "month", "week", "year"] | None = None,
 ) -> str:
     """Use Tavily search to search the web for the given query."""
     if search_topic:
@@ -31,5 +31,5 @@ def search_web(
         )
         return str(response)
 
-    except Exception as e:
-        return f"Error using Tavily search: {str(e)}"
+    except Exception as e:  # noqa: BLE001
+        return f"Error using Tavily search: {e!s}"

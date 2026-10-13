@@ -8,7 +8,6 @@ if str(root_dir) not in sys.path:
     sys.path.insert(0, str(root_dir))
 
 import logging
-from typing import List, Optional
 
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
@@ -78,11 +77,11 @@ Return ONLY valid JSON:
 
 
 class ResearchPlan(BaseModel):
-    ps: Optional[str] = Field(
+    ps: str | None = Field(
         default=None,
         description="Detailed Problem Statement of the research plan. Omit if not revising.",
     )
-    sub_tasks: Optional[List[str]] = Field(
+    sub_tasks: list[str] | None = Field(
         default=None,
         description="Ordered list of independent research sub-tasks. Omit if not revising.",
         min_length=1,
@@ -113,7 +112,7 @@ def planner_node(state: ResearchState) -> dict:
         return {"ps": new_ps, "plan": new_plan, "status": "awaiting_approval"}
     except Exception as e:
         error_msg = str(e)
-        logger.error(f"Error generating research plan: {e}", exc_info=True)
+        logger.exception("Error generating research plan")
 
         error_lower = error_msg.lower()
         if any(

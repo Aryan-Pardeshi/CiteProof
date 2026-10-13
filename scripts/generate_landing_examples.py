@@ -8,11 +8,10 @@ Run from the repo root: python scripts/generate_landing_examples.py
 """
 import asyncio
 import json
-import os
 import sys
 import uuid
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 repo_root = Path(__file__).resolve().parent.parent
 if str(repo_root) not in sys.path:
@@ -30,7 +29,7 @@ DB_PATH = repo_root / "data" / "landing_examples.db"
 OUTPUT_PATH = repo_root / "frontend" / "assets" / "examples.json"
 MAX_CHECKPOINTS = 6  # 3 real checkpoints + safety margin
 
-EXAMPLES: List[Dict[str, str]] = [
+EXAMPLES: list[dict[str, str]] = [
     {
         "id": "hallucination",
         "topic": "AI hallucination mitigation",
@@ -49,7 +48,7 @@ EXAMPLES: List[Dict[str, str]] = [
 ]
 
 
-async def run_to_completion(graph, problem_statement: str) -> Dict[str, Any]:
+async def run_to_completion(graph, problem_statement: str) -> dict[str, Any]:
     """Starts a Research Mode run and auto-approves every checkpoint until it completes."""
     thread_id = str(uuid.uuid4())
     config = {"configurable": {"thread_id": thread_id}}
@@ -85,12 +84,12 @@ async def run_to_completion(graph, problem_statement: str) -> Dict[str, Any]:
     raise RuntimeError(f"Run for {problem_statement!r} did not complete within {MAX_CHECKPOINTS} checkpoints")
 
 
-def _source_breakdown(records_by_source: Dict[str, int]) -> str:
+def _source_breakdown(records_by_source: dict[str, int]) -> str:
     parts = [f"{name} ({count})" for name, count in sorted(records_by_source.items(), key=lambda kv: -kv[1])]
     return " · ".join(parts) if parts else "Multiple academic indexes"
 
 
-def _study_label(paper: Dict[str, Any]) -> str:
+def _study_label(paper: dict[str, Any]) -> str:
     authors = paper.get("authors") or []
     year = paper.get("year") or "n.d."
     if not authors:
@@ -100,7 +99,7 @@ def _study_label(paper: Dict[str, Any]) -> str:
     return f"{surname}{suffix} ({year})"
 
 
-def _evidence_level(record: Dict[str, Any]) -> str:
+def _evidence_level(record: dict[str, Any]) -> str:
     confidence = record.get("confidence", 0.4)
     # "verified" is the legacy status value from runs saved before the rename to "resolved".
     resolved = record.get("verification_status") in ("resolved", "verified")
@@ -111,7 +110,7 @@ def _evidence_level(record: Dict[str, Any]) -> str:
     return "Moderate"
 
 
-def extract_example(meta: Dict[str, str], values: Dict[str, Any]) -> Dict[str, Any]:
+def extract_example(meta: dict[str, str], values: dict[str, Any]) -> dict[str, Any]:
     prisma = values.get("prisma_tracker") or {}
     records_identified = prisma.get("records_identified", 0)
     records_screened = prisma.get("records_screened", 0)

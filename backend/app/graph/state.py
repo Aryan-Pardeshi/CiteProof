@@ -1,5 +1,5 @@
 import operator
-from typing import Annotated, List, Literal, Optional, TypedDict
+from typing import Annotated, Literal, TypedDict
 
 
 class ResearchState(TypedDict):
@@ -7,13 +7,13 @@ class ResearchState(TypedDict):
 
     query: str 
     ps: str
-    plan: List[str]
+    plan: list[str]
     plan_approved: bool
-    user_feedback: Optional[str]
+    user_feedback: str | None
     status: Literal["planning", "awaiting_approval", "researching", "reviewing", "completed", "error"]
     #append the previous value form the previous state type do not overwrite existing values
-    results: Annotated[List[str], operator.add] 
-    final_answer: Optional[str]
-    citations: Annotated[List[str], operator.add]
-    error: Optional[str]
-    search_topic: List[Literal["all", "news", "academic", "finance", "patent"]]
+    results: Annotated[list[str], operator.add]
+    final_answer: str | None
+    citations: Annotated[list[str], operator.add]
+    error: str | None
+    search_topic: list[Literal["all", "news", "academic", "finance", "patent"]]

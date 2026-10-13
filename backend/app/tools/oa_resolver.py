@@ -48,7 +48,7 @@ async def resolve_unpaywall(client: httpx.AsyncClient, paper: dict) -> str:
                 u = loc.get("url_for_pdf") or loc.get("url")
                 if u:
                     return u
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.debug(f"Unpaywall resolver error for DOI {doi}: {e}")
     return ""
 
@@ -74,7 +74,7 @@ async def resolve_europe_pmc(client: httpx.AsyncClient, paper: dict) -> str:
                     # The fullTextPDF endpoint 404s for these records; fullTextXML is
                     # the one Europe PMC actually serves, and it carries the whole body.
                     return f"https://www.ebi.ac.uk/europepmc/webservices/rest/{pmcid}/fullTextXML"
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.debug(f"Europe PMC resolver error for DOI {doi}: {e}")
     return ""
 
@@ -105,7 +105,7 @@ async def resolve_core(client: httpx.AsyncClient, paper: dict) -> str:
             if results and isinstance(results, list):
                 download_url = results[0].get("downloadUrl") or results[0].get("download_url") or ""
                 return download_url
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.debug(f"CORE resolver error for paper '{title}': {e}")
     return ""
 

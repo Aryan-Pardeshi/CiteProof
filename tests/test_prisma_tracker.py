@@ -2,8 +2,6 @@
 
 import os
 
-import pytest
-
 from backend.app.models.evidence import PaperRecord, PRISMATracker
 from backend.app.tools.figures import render_evidence_table, render_prisma_diagram
 

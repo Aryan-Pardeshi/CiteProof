@@ -26,7 +26,7 @@ from __future__ import annotations
 import logging
 import re
 import urllib.parse
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 
@@ -38,7 +38,7 @@ DOAJ_API_BASE = "https://doaj.org/api/search/articles"
 DOAJ_TIMEOUT = 12.0
 
 
-def _normalize_doi(doi: Optional[str]) -> str:
+def _normalize_doi(doi: str | None) -> str:
     """Canonicalize a DOI string to bare lowercase form."""
     if not doi:
         return ""
@@ -47,19 +47,19 @@ def _normalize_doi(doi: Optional[str]) -> str:
     return doi.strip()
 
 
-def _extract_identifiers(bibjson: Dict[str, Any]) -> Dict[str, str]:
+def _extract_identifiers(bibjson: dict[str, Any]) -> dict[str, str]:
     """Flatten bibjson.identifier[] ({id, type}) into {type: id}."""
-    out: Dict[str, str] = {}
+    out: dict[str, str] = {}
     for ident in bibjson.get("identifier") or []:
         if isinstance(ident, dict) and ident.get("type") and ident.get("id"):
             out[ident["type"]] = str(ident["id"]).strip()
     return out
 
 
-def _extract_links(bibjson: Dict[str, Any]) -> tuple:
+def _extract_links(bibjson: dict[str, Any]) -> tuple:
     """Return (source_url, pdf_url) from bibjson.link[] entries."""
     source_url = ""
-    pdf_url: Optional[str] = None
+    pdf_url: str | None = None
     for link in bibjson.get("link") or []:
         if not isinstance(link, dict) or not link.get("url"):
             continue
@@ -75,8 +75,8 @@ def _extract_links(bibjson: Dict[str, Any]) -> tuple:
 async def search_doaj(
     query: str,
     limit: int = 15,
-    client: Optional[httpx.AsyncClient] = None,
-) -> List[PaperRecord]:
+    client: httpx.AsyncClient | None = None,
+) -> list[PaperRecord]:
     """Search DOAJ open-access articles matching the query.
 
     Returns structured PaperRecord objects; failures yield [].
@@ -84,7 +84,7 @@ async def search_doaj(
     # The query is a path segment on the v2 article-search endpoint.
     url = f"{DOAJ_API_BASE}/{urllib.parse.quote(query, safe='')}"
 
-    params: Dict[str, Any] = {
+    params: dict[str, Any] = {
         "pageSize": min(limit, 50),
         "page": 1,
     }
@@ -104,7 +104,7 @@ async def search_doaj(
 
         data = resp.json()
         items = data.get("results", [])
-        records: List[PaperRecord] = []
+        records: list[PaperRecord] = []
 
         for item in items:
             if not isinstance(item, dict):
@@ -149,6 +149,6 @@ async def search_doaj(
         logger.info(f"DOAJ returned {len(records)} papers for: {query[:40]!r}")
         return records
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"DOAJ search failed for {query[:40]!r}: {e}")
         return []

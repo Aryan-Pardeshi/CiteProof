@@ -1,7 +1,5 @@
 import os
 
-import pytest
-
 from backend.app.tools.figures import render_evidence_table, render_prisma_diagram
 
 

@@ -9,7 +9,6 @@ if str(root_dir) not in sys.path:
     sys.path.insert(0, str(root_dir))
 
 import logging
-from typing import List
 
 from langchain_core.prompts import ChatPromptTemplate
 from langgraph.types import interrupt

@@ -9,7 +9,7 @@ if str(root_dir) not in sys.path:
 # LangGraph graph definition
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
-from langgraph.types import Command, interrupt
+from langgraph.types import Command
 
 from backend.app.agents.aggregator import aggregator_node
 from backend.app.agents.plan_approve import plan_approval

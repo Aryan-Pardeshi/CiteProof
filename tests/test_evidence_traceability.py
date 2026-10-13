@@ -266,7 +266,7 @@ def test_complete_chain_resolves():
     }
     chains = build_evidence_chains([record], [PAPER])
     chain = chains[0]
-    assert set(["claim", "paper_id", "evidence", "section", "page", "confidence"]).issubset(chain)
+    assert {"claim", "paper_id", "evidence", "section", "page", "confidence"}.issubset(chain)
     assert chain["verification_status"] == "resolved"
     assert chain["missing_links"] == []
     assert chain["evidence"]["exact_quote"] or chain["evidence"]["span_id"]

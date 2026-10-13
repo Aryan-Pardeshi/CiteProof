@@ -8,7 +8,6 @@ from __future__ import annotations
 import logging
 import os
 import re
-from typing import Any, Dict, List, Optional
 
 import httpx
 
@@ -31,8 +30,8 @@ def _clean_abstract(raw: str) -> str:
 async def search_crossref(
     query: str,
     limit: int = 15,
-    email: Optional[str] = None
-) -> List[PaperRecord]:
+    email: str | None = None
+) -> list[PaperRecord]:
     """Search Crossref for academic literature matching the query.
     
     Returns a list of structured PaperRecord objects.
@@ -57,7 +56,7 @@ async def search_crossref(
             
             data = resp.json()
             items = data.get("message", {}).get("items", [])
-            records: List[PaperRecord] = []
+            records: list[PaperRecord] = []
 
             for item in items:
                 # Title
@@ -121,6 +120,6 @@ async def search_crossref(
             logger.info(f"Crossref returned {len(records)} papers for: {query[:40]!r}")
             return records
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"Crossref search failed for {query[:40]!r}: {e}")
         return []

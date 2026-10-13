@@ -33,7 +33,7 @@ def generate_matplotlib_chart(python_code: str) -> str:
             "matplotlib": matplotlib,
             "__builtins__": __builtins__
         }
-        exec(python_code, exec_globals, local_vars)
+        exec(python_code, exec_globals, local_vars)  # noqa: S102 - executes generated chart code.
         
         # Save the figure
         static_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "static", "graphs"))
@@ -48,5 +48,5 @@ def generate_matplotlib_chart(python_code: str) -> str:
         # Return the Markdown image syntax
         url = f"http://localhost:8000/static/graphs/{filename}"
         return f"![Generated Chart]({url})"
-    except Exception as e:
-        return f"Error executing matplotlib code: {str(e)}"
+    except Exception as e:  # noqa: BLE001
+        return f"Error executing matplotlib code: {e!s}"

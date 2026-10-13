@@ -13,8 +13,7 @@ from __future__ import annotations
 
 import json
 import logging
-import re
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from langchain_core.messages import HumanMessage
 
@@ -54,7 +53,7 @@ KNOWN_SECTIONS = (
 )
 
 
-def _clean_section_label(label: Optional[str]) -> str:
+def _clean_section_label(label: str | None) -> str:
     """Map a raw LLM section label onto a known section or 'unknown'."""
     low = (label or "").strip().lower()
     if not low:
@@ -66,10 +65,10 @@ def _clean_section_label(label: Optional[str]) -> str:
 
 
 def anchor_quote_to_paper(
-    paper: Dict[str, Any],
+    paper: dict[str, Any],
     quote: str,
-    section_label: Optional[str],
-) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    section_label: str | None,
+) -> tuple[dict[str, Any], dict[str, Any]]:
     """Anchor one claim to its paper via deterministic quote location.
 
     Returns the record-extras dict (span fields, confidence, provenance).
@@ -86,9 +85,9 @@ def anchor_quote_to_paper(
     basis = ConfidenceBasis.PARAPHRASE
     span_text = (quote or "").strip()
     section = _clean_section_label(section_label)
-    page: Optional[int] = None
-    start_off: Optional[int] = None
-    end_off: Optional[int] = None
+    page: int | None = None
+    start_off: int | None = None
+    end_off: int | None = None
 
     loc_full = locate_quote(text, quote)
     loc_abs = locate_quote(abstract, quote) if not loc_full else None
@@ -131,9 +130,9 @@ def anchor_quote_to_paper(
 def build_span(
     paper_id: str,
     span_seq: int,
-    extras: Dict[str, Any],
-    span_id: Optional[str] = None,
-) -> Dict[str, Any]:
+    extras: dict[str, Any],
+    span_id: str | None = None,
+) -> dict[str, Any]:
     """Materialize the EvidenceSpan dict for anchored record extras."""
     return EvidenceSpan(
         span_id=span_id or make_span_id(paper_id, span_seq),
@@ -146,18 +145,18 @@ def build_span(
     ).model_dump()
 
 
-async def evidence_extractor_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+async def evidence_extractor_agent(state: dict[str, Any]) -> dict[str, Any]:
     """Agent 11: Extracts structured factual findings as anchored evidence records."""
     paper_dicts = state.get("paper_records") or state.get("screened_papers") or []
     if not paper_dicts:
         return {"evidence_records": [], "evidence_spans": []}
 
     llm = get_llm_for("researcher", state, temperature=0.1)
-    evidence_records: List[Dict[str, Any]] = []
-    evidence_spans: List[Dict[str, Any]] = []
+    evidence_records: list[dict[str, Any]] = []
+    evidence_spans: list[dict[str, Any]] = []
     # Evidence and span IDs are numbered per paper so ev00N and sp00N stay in
     # 1:1 correspondence within each paper.
-    ev_seq_by_paper: Dict[str, int] = {}
+    ev_seq_by_paper: dict[str, int] = {}
 
     # Process top 10 included papers
     for p_idx, p in enumerate(paper_dicts[:10]):
@@ -202,8 +201,7 @@ Return a valid JSON array of objects:
             clean = raw
             if "```" in clean:
                 clean = clean.split("```")[1]
-                if clean.startswith("json"):
-                    clean = clean[4:]
+                clean = clean.removeprefix("json")
             items = json.loads(clean.strip())
 
             for item in items:
@@ -230,7 +228,7 @@ Return a valid JSON array of objects:
                 evidence_records.append(ev.model_dump())
                 evidence_spans.append(span)
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"evidence_extractor failed for paper '{title[:30]}': {e}")
 
         # Fallback only if no records were extracted for this paper AND valid abstract quote exists
@@ -262,7 +260,7 @@ Return a valid JSON array of objects:
     }
 
 
-async def quantitative_extractor_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+async def quantitative_extractor_agent(state: dict[str, Any]) -> dict[str, Any]:
     """Agent 12: Enriches evidence records with quantitative benchmarks, baseline vs reported numbers, effect directions."""
     ev_dicts = state.get("evidence_records") or []
     if not ev_dicts:
@@ -297,8 +295,7 @@ Return a valid JSON array of objects:
         clean = raw
         if "```" in clean:
             clean = clean.split("```")[1]
-            if clean.startswith("json"):
-                clean = clean[4:]
+            clean = clean.removeprefix("json")
         items = json.loads(clean.strip())
         item_map = {it["id"]: it for it in items if isinstance(it, dict) and "id" in it}
 
@@ -320,13 +317,13 @@ Return a valid JSON array of objects:
                 if q.get("unit_or_scale"):
                     e["unit_or_scale"] = str(q["unit_or_scale"])
                 e["effect_direction"] = q.get("effect_direction", "unclear")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"quantitative_extractor parsing defaulted: {e}")
 
     return {"evidence_records": ev_dicts}
 
 
-async def methodology_extractor_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+async def methodology_extractor_agent(state: dict[str, Any]) -> dict[str, Any]:
     """Agent 13: Extracts benchmark datasets, sample sizes, and experimental baselines."""
     ev_dicts = state.get("evidence_records") or []
     paper_dicts = state.get("paper_records") or []
@@ -338,14 +335,14 @@ async def methodology_extractor_agent(state: Dict[str, Any]) -> Dict[str, Any]:
     return {"evidence_records": ev_dicts}
 
 
-async def limitation_extractor_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+async def limitation_extractor_agent(state: dict[str, Any]) -> dict[str, Any]:
     """Agent 14: Extracts empirical caveats, boundary conditions, and threats to validity."""
     ev_dicts = state.get("evidence_records") or []
     # Leave limitations empty when absent from source rather than injecting synthetic text
     return {"evidence_records": ev_dicts}
 
 
-async def provenance_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+async def provenance_agent(state: dict[str, Any]) -> dict[str, Any]:
     """Agent 15: Resolves the full traceability chain for every evidence record.
 
     Chain: Claim -> EvidenceSpan -> Paper -> exact location -> URL/DOI.
@@ -363,7 +360,7 @@ async def provenance_agent(state: Dict[str, Any]) -> Dict[str, Any]:
     valid_paper_ids = {p.get("paper_id") for p in paper_dicts if p.get("paper_id")}
     papers_by_id = {p.get("paper_id"): p for p in paper_dicts if p.get("paper_id")}
 
-    validated: List[Dict[str, Any]] = []
+    validated: list[dict[str, Any]] = []
     if not valid_paper_ids:
         # No corpus available to anchor against: keep the evidence rather than
         # discarding every record because upstream state was empty.
@@ -405,11 +402,11 @@ async def provenance_agent(state: Dict[str, Any]) -> Dict[str, Any]:
                         target["full_text"] = p["full_text"]
                     if p.get("fulltext_excerpt"):
                         target["fulltext_excerpt"] = p["fulltext_excerpt"]
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"provenance_agent full-text backfill skipped: {e}")
 
     # --- Re-anchor paraphrase records once backfilled text is available ---
-    span_seq_by_paper: Dict[str, int] = {}
+    span_seq_by_paper: dict[str, int] = {}
     for r in validated:
         if r.get("confidence_basis") != ConfidenceBasis.PARAPHRASE.value:
             continue
@@ -435,7 +432,7 @@ async def provenance_agent(state: Dict[str, Any]) -> Dict[str, Any]:
     # Always rebuild from the record: re-anchoring/backfill may have upgraded
     # page/section/quote after the original span was emitted, so reusing a
     # stale span would make evidence_records and evidence_spans disagree.
-    final_spans: List[Dict[str, Any]] = []
+    final_spans: list[dict[str, Any]] = []
     for r in validated:
         sid = r.get("evidence_span_id")
         if not sid:
