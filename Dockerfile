@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 # PYTHONUNBUFFERED matters here: buffered stdout stalls SSE streaming.
 ENV PYTHONUNBUFFERED=1 \
