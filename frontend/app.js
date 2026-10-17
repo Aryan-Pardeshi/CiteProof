@@ -97,7 +97,7 @@ const RM_STAGES = [
     // ── Phase 2: Retrieval & Screening ────────────────────────────────────────
     { id: 'paper_fetcher',         name: '4. Multi-Source Retrieval', role: 'fetcher'   },
     { id: 'citation_expander',     name: '5. Citation Graph Expand',  role: 'expander'  },
-    { id: 'metadata_validator',    name: '6. Metadata Validation',    role: 'validator' },
+    { id: 'metadata_validator',    name: '6. Metadata Cleanup',    role: 'validator' },
     { id: 'paper_screener',        name: '7. Title/Abstract Screen',  role: 'screener'  },
     { id: 'fulltext_eligibility',  name: '8. Full-Text Eligibility',  role: 'screener'  },
     { id: 'quality_appraisal',     name: '9. Quality Appraisal',      role: 'appraiser' },
@@ -173,7 +173,7 @@ const RM_HIDDEN_STAGES = {
     fulltext_fetcher: { label: 'Fetching Full Text', anchor: 'paper_screener' },
     evidence_auditor: { label: 'Handing Evidence to Synthesis', anchor: 'provenance_agent' },
     citation_validator: { label: 'Validating Citations', anchor: 'references' },
-    claim_validator: { label: 'Validating Claims', anchor: 'references' },
+    claim_validator: { label: 'Checking Numbers', anchor: 'references' },
     integrity_auditor: { label: 'Research Integrity Pass', anchor: 'references' },
     figures: { label: 'Generating Figures', anchor: 'results' },
     future_scope: { label: 'Future Scope', anchor: 'conclusion' },
@@ -2022,7 +2022,7 @@ const RM_CHECKPOINT_TRANSITIONS = {
             { icon: 'sparkles', label: 'Formulating testable directional hypotheses' },
             { icon: 'layout', label: 'Specifying proposed research design and analysis plans' },
             { icon: 'book-open', label: 'Synthesizing evidence-grounded literature review & results' },
-            { icon: 'shield-check', label: 'Running citation & claim integrity verification' },
+            { icon: 'shield-check', label: 'Running citation resolution and number checks' },
             { icon: 'file-check', label: 'Rendering APA references, PRISMA figures & appendices' }
         ]
     }
