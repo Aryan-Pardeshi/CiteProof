@@ -86,6 +86,31 @@ def test_validate_citations_normalizes_diacritics_and_particles():
     assert (total, verified, unverified) == (2, 2, [])
 
 
+def test_validate_citations_splits_semicolon_groups():
+    papers = [
+        {"authors": ["Smith, A."], "year": "2020", "title": "Smith Study"},
+        {"authors": ["Jones, B."], "year": "2021", "title": "Jones Study"},
+        {"authors": ["Smith, C."], "year": "2021", "title": "Other Smith Study"},
+    ]
+    prose = "Both effects were reported (Smith, 2020; Jones, 2021)."
+
+    assert CITATION_PATTERN.findall(prose) == [("Smith", "2020"), ("Jones", "2021")]
+    total, verified, unverified, orphans = validate_citations_in_text(prose, papers)
+
+    assert (total, verified, unverified) == (2, 2, [])
+    assert orphans == ["Other Smith Study"]
+
+
+def test_validate_citations_keeps_locator_entries_in_groups():
+    papers = [{"authors": ["Jones, B."], "year": "2021", "title": "Jones Study"}]
+    prose = "Claimed elsewhere (FakeAuthor, 2020, p. 4; Jones, 2021)."
+
+    assert CITATION_PATTERN.findall(prose) == [("FakeAuthor", "2020"), ("Jones", "2021")]
+    total, verified, unverified, _ = validate_citations_in_text(prose, papers)
+
+    assert (total, verified, unverified) == (2, 1, ["(FakeAuthor, 2020)"])
+
+
 def test_numerical_claim_regex():
     """Verify quantitative sentence extractor matches percentage and benchmark sentences."""
     text = "Our model achieves 94.2% accuracy on ImageNet. Previous approaches scored 88.5 BLEU. Qualitative behavior is sound."

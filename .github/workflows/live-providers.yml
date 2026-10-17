@@ -19,6 +19,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -38,9 +40,9 @@ jobs:
           set -euo pipefail
           # The PubMed adapter intentionally makes no request without both
           # identifiers. Report it as skipped instead of a passing live check.
-          if [[ -n "$NCBI_EMAIL" && -n "$NCBI_TOOL_NAME" ]]; then
+          if [[ "$NCBI_EMAIL" =~ [^[:space:]] && "$NCBI_EMAIL" == *"@"* && "$NCBI_TOOL_NAME" =~ [^[:space:]] ]]; then
             python -m pytest tests/test_live_providers.py -o addopts='' -m live -q
           else
-            echo '::notice::NCBI_EMAIL or NCBI_TOOL_NAME is missing; skipping PubMed live check.'
+            echo '::notice::NCBI_EMAIL or NCBI_TOOL_NAME is missing or invalid; skipping PubMed live check.'
             python -m pytest tests/test_live_providers.py -o addopts='' -m live -k 'not pubmed' -q
           fi
