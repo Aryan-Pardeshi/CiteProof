@@ -101,6 +101,16 @@ def test_validate_citations_splits_semicolon_groups():
     assert orphans == []
 
 
+def test_validate_citations_keeps_locator_entries_in_groups():
+    papers = [{"authors": ["Jones, B."], "year": "2021", "title": "Jones Study"}]
+    prose = "Claimed elsewhere (FakeAuthor, 2020, p. 4; Jones, 2021)."
+
+    assert CITATION_PATTERN.findall(prose) == [("FakeAuthor", "2020"), ("Jones", "2021")]
+    total, verified, unverified, _ = validate_citations_in_text(prose, papers)
+
+    assert (total, verified, unverified) == (2, 1, ["(FakeAuthor, 2020)"])
+
+
 def test_numerical_claim_regex():
     """Verify quantitative sentence extractor matches percentage and benchmark sentences."""
     text = "Our model achieves 94.2% accuracy on ImageNet. Previous approaches scored 88.5 BLEU. Qualitative behavior is sound."
