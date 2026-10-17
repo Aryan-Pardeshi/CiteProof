@@ -28,7 +28,6 @@ from backend.app.agents.research_mode.synthesis import (
     gap_analysis_agent,
     conceptual_framework_agent,
     hypotheses_agent,
-    evidence_auditor_agent,
 )
 from backend.app.agents.research_mode.writing import (
     literature_review_agent,
@@ -79,7 +78,6 @@ __all__ = [
     "gap_analysis_agent",
     "conceptual_framework_agent",
     "hypotheses_agent",
-    "evidence_auditor_agent",
     # Writing
     "literature_review_agent",
     "research_design_agent",

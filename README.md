@@ -16,7 +16,7 @@ An AI-powered multi-agent research workspace with **two modes**: fast web resear
 |---|---|---|
 | **Goal** | Answer a question from the live web | Write a full, evidence-grounded academic paper |
 | **Sources** | Tavily web search | OpenAlex · Semantic Scholar · Crossref · PubMed · arXiv · Europe PMC · DOAJ · DataCite · OpenCitations |
-| **Agents** | 5 (fan-out parallel researchers) | 25 specialized agents across 5 evidence phases |
+| **Agents** | 5 (fan-out parallel researchers) | 24 specialized agents across 5 evidence phases |
 | **HITL Checkpoints** | 1 (plan approval) | 3 Quality Gates (Protocol, Evidence Corpus, Hypotheses) |
 | **Data Invariant** | LLM web summary | Deterministic `EvidenceRecord` store (quotes, metrics, baselines) |
 | **PRISMA Tracking** | N/A | Deterministic PRISMA 2020 flow counts & assertions |
@@ -39,7 +39,7 @@ flowchart TB
     UI <-->|"Server-Sent<br/>Events"| API
 
     API --> DS["🔎 DeepSearch<br/>Graph"]
-    API --> RM["📚 Research Mode<br/>25-Agent Graph"]
+    API --> RM["📚 Research Mode<br/>24-Agent Graph"]
 
     DS --> TAV["🌐 Tavily<br/>Web Search"]
     RM --> ACAD["🎓 Multi-Source Academic APIs<br/>8 discovery providers · citation expansion<br/>author enrichment · full-text resolution"]
@@ -68,7 +68,7 @@ flowchart TB
 
 **Research question → Scope & protocol → Literature retrieval → Evidence extraction → Synthesis → Validation & export**
 
-`25 specialized agents · 5 phases · 3 human approval gates`
+`24 specialized agents · 5 phases · 3 human approval gates`
 
 ---
 

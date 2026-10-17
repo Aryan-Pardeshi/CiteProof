@@ -171,7 +171,6 @@ const RM_PHASES = [
 const RM_HIDDEN_STAGES = {
     scope_reviser: { label: 'Revising Scope', anchor: 'checkpoint_1' },
     fulltext_fetcher: { label: 'Fetching Full Text', anchor: 'paper_screener' },
-    evidence_auditor: { label: 'Handing Evidence to Synthesis', anchor: 'provenance_agent' },
     citation_validator: { label: 'Validating Citations', anchor: 'references' },
     claim_validator: { label: 'Checking Numbers', anchor: 'references' },
     integrity_auditor: { label: 'Research Integrity Pass', anchor: 'references' },
