@@ -1,0 +1,46 @@
+name: Weekly live provider checks
+
+on:
+  schedule:
+    # One low-volume check each Monday at 05:00 UTC.
+    - cron: '0 5 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-provider-checks
+  cancel-in-progress: false
+
+jobs:
+  live-providers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install application and test dependencies
+        run: python -m pip install -r requirements.txt pytest pytest-asyncio
+      - name: Run provider smoke checks
+        env:
+          # Optional: public providers are tested even without API keys.
+          OPENALEX_EMAIL: ${{ secrets.OPENALEX_EMAIL }}
+          SEMANTIC_SCHOLAR_API_KEY: ${{ secrets.SEMANTIC_SCHOLAR_API_KEY }}
+          NCBI_EMAIL: ${{ secrets.NCBI_EMAIL }}
+          NCBI_TOOL_NAME: ${{ secrets.NCBI_TOOL_NAME }}
+          NCBI_API_KEY: ${{ secrets.NCBI_API_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The PubMed adapter intentionally makes no request without both
+          # identifiers. Report it as skipped instead of a passing live check.
+          if [[ -n "$NCBI_EMAIL" && -n "$NCBI_TOOL_NAME" ]]; then
+            python -m pytest tests/test_live_providers.py -o addopts='' -m live -q
+          else
+            echo '::notice::NCBI_EMAIL or NCBI_TOOL_NAME is missing; skipping PubMed live check.'
+            python -m pytest tests/test_live_providers.py -o addopts='' -m live -k 'not pubmed' -q
+          fi
