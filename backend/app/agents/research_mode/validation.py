@@ -20,8 +20,9 @@ from backend.app.models.evidence import ValidationReport, PRISMATracker, PaperRe
 logger = logging.getLogger(__name__)
 
 # Regular expressions for identifying in-text APA citations
+# Semicolons delimit grouped citations, e.g. (Smith, 2020; Jones, 2021).
 CITATION_PATTERN = re.compile(
-    r"\(([^()]+?),\s*((?:19|20)\d{2}[a-z]?)\)",
+    r"(?<=[(;])\s*([^();]+?),\s*((?:19|20)\d{2}[a-z]?)\s*(?=[);])",
     re.IGNORECASE,
 )
 
