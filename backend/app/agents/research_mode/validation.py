@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import logging
 import re
+import unicodedata
 from typing import Any, Dict, List, Set, Tuple
 
 from backend.app.models.evidence import ValidationReport, PRISMATracker, PaperRecord
@@ -20,7 +21,8 @@ logger = logging.getLogger(__name__)
 
 # Regular expressions for identifying in-text APA citations
 CITATION_PATTERN = re.compile(
-    r"\(([A-Za-z\s\-&.,]+?),\s*(19\d\d|20\d\d)\)"
+    r"\(([^()]+?),\s*((?:19|20)\d{2}[a-z]?)\)",
+    re.IGNORECASE,
 )
 
 METRIC_KEYWORD_PATTERN = re.compile(
@@ -97,74 +99,133 @@ def validate_claim_chains(
     return total, resolved, unresolved, details
 
 
+def _name_variants(value: str) -> Set[str]:
+    """Return comparable surname spellings with diacritics normalized."""
+    raw = str(value or "").strip().casefold()
+    if not raw:
+        return set()
+    expanded = raw.translate(str.maketrans({"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss"}))
+    variants = set()
+    for candidate in (raw, expanded):
+        ascii_name = "".join(
+            ch for ch in unicodedata.normalize("NFKD", candidate)
+            if not unicodedata.combining(ch)
+        )
+        normalized = re.sub(r"[^a-z0-9]+", " ", ascii_name).strip()
+        if normalized:
+            variants.add(normalized)
+    return variants
+
+
+def _author_surname(author: str) -> str:
+    """Extract a family name while retaining common surname particles."""
+    value = str(author or "").strip()
+    if not value:
+        return ""
+    if "," in value:
+        return value.split(",", 1)[0].strip()
+
+    tokens = value.split()
+    if not tokens:
+        return ""
+    particles = {"da", "de", "del", "della", "di", "dos", "du", "la", "le", "van", "von"}
+    start = len(tokens) - 1
+    while start > 0 and tokens[start - 1].casefold().strip(".") in particles:
+        start -= 1
+    return " ".join(tokens[start:])
+
+
+def _citation_authors(author_str: str) -> List[str]:
+    """Extract the author surnames explicitly present in an APA citation."""
+    cleaned = re.sub(r"\bet\s+al\.?", "", author_str, flags=re.IGNORECASE).strip(" ,")
+    parts = re.split(r"\s*(?:&|\band\b)\s*", cleaned, maxsplit=1, flags=re.IGNORECASE)
+    return [_author_surname(part) for part in parts if _author_surname(part)]
+
+
+def _year_parts(value: Any) -> Tuple[str, str]:
+    match = re.search(r"((?:19|20)\d{2})([a-z]?)", str(value or ""), re.IGNORECASE)
+    if not match:
+        return "", ""
+    return match.group(1), match.group(2).lower()
+
+
 def validate_citations_in_text(
     text: str,
     paper_records: List[Dict[str, Any]]
 ) -> Tuple[int, int, List[str], List[str]]:
-    """Resolve all inline author-year citations against the PaperRecord store.
-
-    A citation counts as verified when its (first-author surname, year) matches a
-    PaperRecord. That is a resolution check: it does not test that the matched paper
-    supports the sentence the citation is attached to.
-    """
+    """Resolve inline author-year citations without accepting ambiguous matches."""
     if not text:
         return 0, 0, [], []
 
-    # Build lookup index of (normalized_author, year) from paper records
-    known_papers: Set[Tuple[str, str]] = set()
+    records = []
     for p in paper_records:
-        year = str(p.get("year", "n.d."))
-        authors = p.get("authors") or []
-        for a in authors:
-            if not a or not str(a).strip():
-                continue
-            tokens = str(a).split(",")[0].strip().split()
-            if tokens:
-                surname = tokens[-1].lower().strip()
-                if len(surname) > 1:
-                    known_papers.add((surname, year))
+        authors = [str(a) for a in (p.get("authors") or []) if str(a).strip()]
+        if not authors:
+            continue
+        base_year, suffix = _year_parts(p.get("year"))
+        if not base_year:
+            continue
+        records.append({
+            "paper": p,
+            "year": base_year,
+            "suffix": suffix,
+            "first": _name_variants(_author_surname(authors[0])),
+            "second": _name_variants(_author_surname(authors[1])) if len(authors) > 1 else set(),
+            "title": re.sub(r"\W+", " ", str(p.get("title") or "").casefold()).strip(),
+        })
 
     matches = CITATION_PATTERN.findall(text)
-    total_citations = len(matches)
     verified = 0
     unverified: List[str] = []
+    cited_surnames: Set[str] = set()
 
-    # Shortest surname in the corpus: a citation surname shorter than this cannot
-    # match any known record, so it must never be accepted on a year match alone.
-    min_known_surname_len = min((len(k[0]) for k in known_papers), default=0)
-
-    for author_str, year in matches:
-        # Split on "and" only as a standalone word so surnames such as Rand,
-        # Chandra, and Hollande survive intact.
-        first_author = re.split(r"\band\b", author_str.split("&")[0])[0]
-        first_author = first_author.replace("et al.", "").replace("et al", "").strip()
-        tokens = first_author.split()
-        if not tokens:
-            unverified.append(f"({author_str}, {year})")
+    for author_str, cited_year in matches:
+        cited_authors = _citation_authors(author_str)
+        base_year, suffix = _year_parts(cited_year)
+        citation_label = f"({author_str}, {cited_year})"
+        if not cited_authors or not base_year:
+            unverified.append(citation_label)
             continue
-        surname = tokens[-1].lower().strip()
 
-        # Require an exact (surname, year) match. The previous substring test
-        # verified any citation whose surname merely contained (or was contained
-        # by) a known surname with the same year.
-        if len(surname) >= min_known_surname_len and (surname, year) in known_papers:
+        first_variants = _name_variants(cited_authors[0])
+        cited_surnames.update(first_variants)
+        candidates = [
+            r for r in records
+            if r["year"] == base_year and first_variants.intersection(r["first"])
+        ]
+
+        if len(cited_authors) > 1:
+            second_variants = _name_variants(cited_authors[1])
+            candidates = [
+                r for r in candidates
+                if second_variants.intersection(r["second"])
+            ]
+
+        if suffix:
+            exact = [r for r in candidates if r["suffix"] == suffix]
+            if exact:
+                candidates = exact
+            else:
+                unsuffixed = [r for r in candidates if not r["suffix"]]
+                ordered = sorted(unsuffixed, key=lambda r: r["title"])
+                index = ord(suffix) - ord("a")
+                candidates = [ordered[index]] if 0 <= index < len(ordered) else []
+
+        if len(candidates) == 1:
             verified += 1
         else:
-            unverified.append(f"({author_str}, {year})")
+            unverified.append(citation_label)
 
-    # Check for orphan references (papers never cited)
-    orphan_references: List[str] = []
-    text_lower = text.lower()
+    orphan_references = []
     for p in paper_records:
         authors = p.get("authors") or []
-        if authors and authors[0] and str(authors[0]).strip():
-            tokens = str(authors[0]).split(",")[0].strip().split()
-            if tokens:
-                surname = tokens[-1].lower().strip()
-                if len(surname) > 2 and surname not in text_lower:
-                    orphan_references.append(p.get("title", "Untitled"))
+        if not authors:
+            continue
+        first_variants = _name_variants(_author_surname(str(authors[0])))
+        if first_variants and not first_variants.intersection(cited_surnames):
+            orphan_references.append(p.get("title", "Untitled"))
 
-    return total_citations, verified, unverified, orphan_references
+    return len(matches), verified, unverified, orphan_references
 
 
 async def citation_validator_node(state: Dict[str, Any]) -> Dict[str, Any]:

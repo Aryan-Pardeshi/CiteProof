@@ -33,6 +33,59 @@ def test_validate_citations_in_text():
     assert "Unused Reference Paper" in orphans[0]
 
 
+def test_validate_citations_rejects_ambiguous_same_author_same_year():
+    papers = [
+        {"authors": ["Smith, A.", "Jones, B."], "year": "2024", "title": "Alpha Study"},
+        {"authors": ["Smith, A.", "Brown, C."], "year": "2024", "title": "Beta Study"},
+    ]
+
+    total, verified, unverified, _ = validate_citations_in_text(
+        "Prior work (Smith et al., 2024) reported the effect.", papers
+    )
+
+    assert total == 1
+    assert verified == 0
+    assert unverified == ["(Smith et al., 2024)"]
+
+
+def test_validate_citations_uses_second_author_to_disambiguate():
+    papers = [
+        {"authors": ["Smith, A.", "Jones, B."], "year": "2024", "title": "Alpha Study"},
+        {"authors": ["Smith, A.", "Brown, C."], "year": "2024", "title": "Beta Study"},
+    ]
+
+    total, verified, unverified, _ = validate_citations_in_text(
+        "Prior work (Smith & Brown, 2024) reported the effect.", papers
+    )
+
+    assert (total, verified, unverified) == (1, 1, [])
+
+
+def test_validate_citations_supports_year_suffixes():
+    papers = [
+        {"authors": ["Smith, A.", "Jones, B."], "year": "2024", "title": "Alpha Study"},
+        {"authors": ["Smith, A.", "Jones, B."], "year": "2024", "title": "Beta Study"},
+    ]
+
+    total, verified, unverified, _ = validate_citations_in_text(
+        "The later paper (Smith et al., 2024b) extends the result.", papers
+    )
+
+    assert (total, verified, unverified) == (1, 1, [])
+
+
+def test_validate_citations_normalizes_diacritics_and_particles():
+    papers = [
+        {"authors": ["Müller, A."], "year": "2021", "title": "Umlaut Study"},
+        {"authors": ["de la Cruz, M."], "year": "2022", "title": "Particle Study"},
+    ]
+    prose = "Results agree with (Mueller, 2021) and (de la Cruz et al., 2022)."
+
+    total, verified, unverified, _ = validate_citations_in_text(prose, papers)
+
+    assert (total, verified, unverified) == (2, 2, [])
+
+
 def test_numerical_claim_regex():
     """Verify quantitative sentence extractor matches percentage and benchmark sentences."""
     text = "Our model achieves 94.2% accuracy on ImageNet. Previous approaches scored 88.5 BLEU. Qualitative behavior is sound."
