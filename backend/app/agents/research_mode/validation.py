@@ -180,6 +180,7 @@ def validate_citations_in_text(
     verified = 0
     unverified: List[str] = []
     cited_surnames: Set[str] = set()
+    cited_papers: Set[int] = set()
 
     for author_str, cited_year in matches:
         cited_authors = _citation_authors(author_str)
@@ -213,15 +214,23 @@ def validate_citations_in_text(
                 index = ord(suffix) - ord("a")
                 candidates = [ordered[index]] if 0 <= index < len(ordered) else []
 
+        cited_papers.update(id(r["paper"]) for r in candidates)
         if len(candidates) == 1:
             verified += 1
         else:
             unverified.append(citation_label)
 
+    # A reference counts as cited only when a citation's author/year points at it.
+    # Records without a parseable year cannot be matched, so fall back to surname.
+    matchable = {id(r["paper"]) for r in records}
     orphan_references = []
     for p in paper_records:
         authors = p.get("authors") or []
         if not authors:
+            continue
+        if id(p) in matchable:
+            if id(p) not in cited_papers:
+                orphan_references.append(p.get("title", "Untitled"))
             continue
         first_variants = _name_variants(_author_surname(str(authors[0])))
         if first_variants and not first_variants.intersection(cited_surnames):

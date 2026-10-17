@@ -98,7 +98,7 @@ def test_validate_citations_splits_semicolon_groups():
     total, verified, unverified, orphans = validate_citations_in_text(prose, papers)
 
     assert (total, verified, unverified) == (2, 2, [])
-    assert orphans == []
+    assert orphans == ["Other Smith Study"]
 
 
 def test_validate_citations_keeps_locator_entries_in_groups():
