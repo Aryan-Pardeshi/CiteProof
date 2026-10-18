@@ -14,7 +14,7 @@ Thanks for looking. Small fixes and big features are both welcome. If you are un
 |---|---|
 | `backend/app/api/` | FastAPI routes and SSE streaming |
 | `backend/app/graph/` | LangGraph state machines for DeepSearch and Research Mode |
-| `backend/app/agents/` | Agent nodes (`research_mode/` holds the 25-agent pipeline) |
+| `backend/app/agents/` | Agent nodes (`research_mode/` holds the 24-agent pipeline) |
 | `backend/app/tools/` | One module per external source or exporter (OpenAlex, PubMed, DOCX, PDF, ...) |
 | `backend/app/models/` | Pydantic schemas (`PaperRecord`, `EvidenceRecord`, `ReviewClaim`, ...) |
 | `frontend/` | Vanilla JS + CSS, no build step |

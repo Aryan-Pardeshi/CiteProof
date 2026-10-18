@@ -1,4 +1,4 @@
-"""Evidence-First 25-Agent LangGraph State Machine for Research Mode.
+"""Evidence-First 24-Agent LangGraph State Machine for Research Mode.
 
 Features:
 - 5-Phase pipeline (Planning & Protocol -> Retrieval & Screening -> Evidence Extraction -> Theoretical Framing -> Methodology & Synthesis)
@@ -49,7 +49,6 @@ from backend.app.agents.research_mode import (
     gap_analysis_agent,
     conceptual_framework_agent,
     hypotheses_agent,
-    evidence_auditor_agent,
     # Writing & Rendering
     literature_review_agent,
     research_design_agent,
@@ -146,15 +145,15 @@ async def checkpoint_2_node(state: ResearchModeState) -> dict:
     return {
         "user_feedback": None,
         "hitl_checkpoint": "checkpoint_2_approved",
-        "status": "auditing_evidence"
+        "status": "synthesizing"
     }
 
 
 def route_after_checkpoint_2(state: ResearchModeState) -> str:
-    """Loops back to evidence extraction if revision requested, else continues to evidence auditor."""
+    """Loops back to evidence extraction if revision requested, else continues to taxonomy."""
     if state.get("hitl_checkpoint") == "checkpoint_2_revising":
         return "evidence_extractor"
-    return "evidence_auditor"
+    return "taxonomy_agent"
 
 
 async def checkpoint_3_node(state: ResearchModeState) -> dict:
@@ -191,7 +190,7 @@ def route_after_checkpoint_3(state: ResearchModeState) -> str:
     return "research_design"
 
 
-# --- Build 25-Agent StateGraph ---
+# --- Build 24-Agent StateGraph ---
 
 builder = StateGraph(ResearchModeState)
 
@@ -219,7 +218,6 @@ builder.add_node("methodology_extractor", methodology_extractor_agent)
 builder.add_node("limitation_extractor", limitation_extractor_agent)
 builder.add_node("provenance_agent", provenance_agent)
 builder.add_node("checkpoint_2", checkpoint_2_node)
-builder.add_node("evidence_auditor", evidence_auditor_agent)
 
 # Phase 5: Synthesis & Theoretical Framing
 builder.add_node("taxonomy_agent", taxonomy_agent)
@@ -284,11 +282,10 @@ builder.add_edge("provenance_agent", "checkpoint_2")
 builder.add_conditional_edges(
     "checkpoint_2",
     route_after_checkpoint_2,
-    {"evidence_extractor": "evidence_extractor", "evidence_auditor": "evidence_auditor"}
+    {"evidence_extractor": "evidence_extractor", "taxonomy_agent": "taxonomy_agent"}
 )
 
 # Phase 5: Synthesis
-builder.add_edge("evidence_auditor", "taxonomy_agent")
 builder.add_edge("taxonomy_agent", "gap_analysis")
 builder.add_edge("gap_analysis", "framework")
 builder.add_edge("framework", "hypotheses")

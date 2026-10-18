@@ -432,6 +432,37 @@ def fake_papers():
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "message, checkpoint, status, next_node",
+    [
+        ("approve", "checkpoint_2_approved", "synthesizing", "taxonomy_agent"),
+        ("Extract more evidence", "checkpoint_2_revising", "revising_evidence", "evidence_extractor"),
+    ],
+)
+async def test_checkpoint_2_routes_approval_to_synthesis_and_revision_to_extraction(
+    monkeypatch, message, checkpoint, status, next_node
+):
+    from backend.app.graph import research_mode_builder
+
+    monkeypatch.setattr(research_mode_builder, "interrupt", lambda payload: {"message": message})
+
+    result = await research_mode_builder.checkpoint_2_node({})
+
+    assert result["hitl_checkpoint"] == checkpoint
+    assert result["status"] == status
+    assert research_mode_builder.route_after_checkpoint_2(result) == next_node
+    assert result["user_feedback"] == (None if message == "approve" else message)
+
+
+def test_research_graph_connects_checkpoint_2_directly_to_synthesis():
+    graph = get_research_mode_graph().get_graph()
+    destinations = {edge.target for edge in graph.edges if edge.source == "checkpoint_2"}
+
+    assert destinations == {"evidence_extractor", "taxonomy_agent"}
+    assert "evidence_auditor" not in graph.nodes
+
+
+@pytest.mark.asyncio
 async def test_research_mode_runs_offline_from_problem_to_final_paper():
     papers = fake_papers()
 
