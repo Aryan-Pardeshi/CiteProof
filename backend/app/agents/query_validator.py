@@ -1,13 +1,15 @@
 # query validator node
 import logging
+
 from backend.app.graph.state import ResearchState
 
 logger = logging.getLogger(__name__)
 
-from typing import Optional
-from pydantic import BaseModel, Field
+
 from langchain_core.prompts import ChatPromptTemplate
-from backend.app.llm import llm_fast, invoke_structured
+from pydantic import BaseModel, Field
+
+from backend.app.llm import invoke_structured, llm_fast
 
 # System prompt for query validation
 VALIDATOR_SYSTEM_PROMPT = """You are an input validation assistant for a specialized Research Bot.
@@ -35,7 +37,7 @@ class QueryValidation(BaseModel):
     is_valid: bool = Field(
         description="True if the input query contains a specific research topic and is safe/appropriate to process. False if it is a greeting, chatbot meta-question, generic conversational filler, or inappropriate/unsafe/restricted content."
     )
-    error_message: Optional[str] = Field(
+    error_message: str | None = Field(
         default=None,
         description="If is_valid is False, provide a friendly error message explaining why (e.g. 'Query contains inappropriate or restricted content.' for unsafe queries) and ask the user to provide a specific research topic. Otherwise, leave empty."
     )
@@ -67,7 +69,7 @@ def query_validator(state: ResearchState) -> dict:
             logger.warning(f"Query validation failed (LLM): {error_msg}")
             return {"status": "error", "error": error_msg}
             
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         error_msg = str(e).lower()
         logger.error(f"Error during query validation LLM call: {e}")
         if any(kw in error_msg for kw in ["api key", "authentication", "unauthorized", "401", "403", "invalid key", "missing credentials", "not set"]):

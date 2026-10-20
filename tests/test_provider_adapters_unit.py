@@ -17,11 +17,10 @@ if str(root_dir) not in sys.path:
     sys.path.insert(0, str(root_dir))
 
 from backend.app.models.evidence import PaperRecord
-from backend.app.tools.openalex_search import search_openalex, reconstruct_abstract
-from backend.app.tools.semantic_scholar_search import search_semantic_scholar
-from backend.app.tools.europe_pmc_search import search_europe_pmc
-from backend.app.tools.doaj_search import search_doaj
 from backend.app.tools.datacite_search import search_datacite
+from backend.app.tools.doaj_search import search_doaj
+from backend.app.tools.europe_pmc_search import search_europe_pmc
+from backend.app.tools.openalex_search import reconstruct_abstract, search_openalex
 from backend.app.tools.orcid_search import (
     AuthorIdentity,
     _confident_match,
@@ -29,6 +28,7 @@ from backend.app.tools.orcid_search import (
     fetch_orcid_profile,
     resolve_orcid_authors,
 )
+from backend.app.tools.semantic_scholar_search import search_semantic_scholar
 
 
 def _mock_client(handler) -> httpx.AsyncClient:
@@ -570,7 +570,7 @@ async def test_fanout_survives_raising_providers(monkeypatch):
         return []  # provider up but yields nothing
 
     async def timeout_epmc(q, limit=15):
-        raise asyncio.TimeoutError("europe pmc timed out")
+        raise TimeoutError("europe pmc timed out")
 
     async def malformed_doaj(q, limit=15):
         raise ValueError("malformed response body")

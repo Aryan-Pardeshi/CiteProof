@@ -16,25 +16,23 @@ Contract under test (Academic Evidence Layer, Task 1):
     text. Any claim without a resolvable evidence_id fails the gates.
 """
 
-import json
 
 import pytest
 
+from backend.app.agents.research_mode.validation import (
+    citation_validator_node,
+    claim_validator_node,
+    integrity_auditor_node,
+    validate_claim_chains,
+)
+from backend.app.agents.research_mode.writing import (
+    EV_MARKER_RE,
+    claims_linker_node,
+)
 from backend.app.models.evidence import (
     EvidenceRecord,
     make_paper_id,
 )
-from backend.app.agents.research_mode.writing import (
-    claims_linker_node,
-    EV_MARKER_RE,
-)
-from backend.app.agents.research_mode.validation import (
-    validate_claim_chains,
-    citation_validator_node,
-    claim_validator_node,
-    integrity_auditor_node,
-)
-
 
 # ---------------------------------------------------------------------------
 # Fixtures: a simulated completed research-mode corpus
@@ -250,7 +248,7 @@ def test_chain_validation_flags_empty_support_and_missing_locator():
     papers_no_locator = [{
         "paper_id": PAPER_A["paper_id"], "title": "Alpha", "doi": None, "source_url": "",
     }]
-    total, resolved, unresolved, details = validate_claim_chains(
+    _total, resolved, unresolved, details = validate_claim_chains(
         [no_support, broken_locator], EVIDENCE, papers_no_locator
     )
     assert resolved == 0

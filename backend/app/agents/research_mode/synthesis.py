@@ -4,21 +4,20 @@ from __future__ import annotations
 
 import json
 import logging
-import re
-from typing import Any, Dict, List
+from typing import Any
+
 from langchain_core.messages import HumanMessage
 
 from backend.app.agents.research_mode._common import (
-    get_llm_for,
     _safe_invoke_llm,
     _strip_preamble,
+    get_llm_for,
 )
-from backend.app.models.evidence import TaxonomyTheme
 
 logger = logging.getLogger(__name__)
 
 
-async def taxonomy_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+async def taxonomy_agent(state: dict[str, Any]) -> dict[str, Any]:
     """Agent 16: Synthesizes evidence records into a multi-dimensional thematic taxonomy."""
     ev_dicts = state.get("evidence_records") or []
     ps = state.get("problem_statement", "")
@@ -48,8 +47,7 @@ Return a valid JSON array with schema:
         clean = raw
         if "```" in clean:
             clean = clean.split("```")[1]
-            if clean.startswith("json"):
-                clean = clean[4:]
+            clean = clean.removeprefix("json")
         themes_data = json.loads(clean.strip())
         # Reject mappings, strings, and any other JSON value: the prompt schema is
         # an array of theme objects.
@@ -58,7 +56,7 @@ Return a valid JSON array with schema:
         if not themes_data:
             raise ValueError("taxonomy payload contained no themes")
         return {"taxonomy": {"themes": themes_data}}
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"taxonomy_agent JSON parse defaulted: {e}")
         default_themes = [
             {"theme_id": "theme_1", "theme_name": "Foundational Architectures", "description": "Core algorithmic and structural foundations.", "subthemes": []},
@@ -68,11 +66,10 @@ Return a valid JSON array with schema:
         return {"taxonomy": {"themes": default_themes}}
 
 
-async def gap_analysis_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+async def gap_analysis_agent(state: dict[str, Any]) -> dict[str, Any]:
     """Agent 17: Synthesizes empirical contradictions and identifies critical research gaps."""
     ps = state.get("problem_statement", "")
     ev_dicts = state.get("evidence_records") or []
-    taxonomy = state.get("taxonomy") or {}
     llm = get_llm_for("researcher", state, temperature=0.2)
 
     ev_text = "\n".join(f"- {e.get('claim_summary')} (Limitations: {e.get('limitations')})" for e in ev_dicts[:10])
@@ -94,7 +91,7 @@ Include specific subsections:
     return {"research_gap": _strip_preamble(raw)}
 
 
-async def conceptual_framework_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+async def conceptual_framework_agent(state: dict[str, Any]) -> dict[str, Any]:
     """Agent 18: Constructs theoretical framework mapping independent, dependent, and moderating constructs."""
     ps = state.get("problem_statement", "")
     gap = state.get("research_gap", "")
@@ -116,7 +113,7 @@ Provide a detailed Conceptual Framework in Markdown format including:
     return {"conceptual_framework": _strip_preamble(raw)}
 
 
-async def hypotheses_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+async def hypotheses_agent(state: dict[str, Any]) -> dict[str, Any]:
     """Agent 19: Formulates directional, testable hypotheses H1..H5 grounded in extracted evidence."""
     ps = state.get("problem_statement", "")
     framework = state.get("conceptual_framework", "")
@@ -139,19 +136,18 @@ Return a valid JSON array of strings:
 ]
 """
     raw = await _safe_invoke_llm(llm, [HumanMessage(content=prompt)])
-    hyp_list: List[str] = []
+    hyp_list: list[str] = []
     try:
         clean = raw
         if "```" in clean:
             clean = clean.split("```")[1]
-            if clean.startswith("json"):
-                clean = clean[4:]
+            clean = clean.removeprefix("json")
         parsed = json.loads(clean.strip())
         if not isinstance(parsed, list):
-            raise ValueError(f"hypotheses payload is not a list (got {type(parsed).__name__})")
+            raise TypeError(f"hypotheses payload is not a list (got {type(parsed).__name__})")
         # Normalize object entries to their text value; anything else is rejected
         # so downstream writers always receive a list of strings.
-        normalized: List[str] = []
+        normalized: list[str] = []
         for item in parsed:
             if isinstance(item, str):
                 text = item.strip()
@@ -170,13 +166,13 @@ Return a valid JSON array of strings:
         if not normalized:
             raise ValueError("hypotheses payload contained no usable statements")
         hyp_list = normalized
-    except Exception:
+    except Exception:  # noqa: BLE001
         # Fallback regex extraction of H1..H5
         lines = [line.strip() for line in raw.split("\n") if line.strip().startswith(("H1", "H2", "H3", "H4", "H5", "1.", "2.", "3.", "4.", "5."))]
         hyp_list = lines if lines else [
             f"H1: Architectural optimization improves accuracy across domain tasks in {ps[:40]}.",
-            f"H2: Scaling parameter capacity yields non-linear performance gains.",
-            f"H3: Multi-source data synthesis reduces empirical error rates."
+            "H2: Scaling parameter capacity yields non-linear performance gains.",
+            "H3: Multi-source data synthesis reduces empirical error rates."
         ]
 
     # Copy papers cleanly without injecting synthetic modulo ratings

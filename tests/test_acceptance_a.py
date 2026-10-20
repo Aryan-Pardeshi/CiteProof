@@ -1,6 +1,6 @@
-import sys
 import asyncio
 import logging
+import sys
 from pathlib import Path
 
 root_dir = Path(__file__).resolve().parent.parent
@@ -14,6 +14,7 @@ logging.basicConfig(level=logging.INFO)
 
 from backend.app.tools.academic_search import search_academic_papers
 from backend.app.tools.fulltext_fetcher import fetch_fulltext_excerpts
+
 
 async def main():
     print("=== FETCHING REAL PAPERS FROM ACADEMIC SEARCH ===")
@@ -33,7 +34,7 @@ async def main():
     for idx, (title, excerpt) in enumerate(excerpts.items()):
         print(f"\n[{idx+1}] Title: {title}")
         print(f"     Length: {len(excerpt)} characters")
-        print(f"     Snippet: {repr(excerpt[:150])}")
+        print(f"     Snippet: {excerpt[:150]!r}")
 
 if __name__ == "__main__":
     asyncio.run(main())

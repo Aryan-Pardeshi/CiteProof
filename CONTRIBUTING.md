@@ -30,6 +30,7 @@ cd DeepResearch_AI
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
+pip install ruff
 cp .env.example .env             # only needed to run the app, not the tests
 uvicorn backend.app.main:app --reload --port 8000
 ```
@@ -43,6 +44,14 @@ pytest
 ```
 
 The default run is offline and fast. Tests that hit real external APIs are marked `live` and deselected; run them on purpose with `pytest -m live`. Please do not add tests that need a real API key to pass by default.
+
+## Linting
+
+Run Ruff before opening a pull request:
+
+```bash
+ruff check .
+```
 
 ## Making a change
 

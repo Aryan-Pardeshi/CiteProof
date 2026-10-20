@@ -3,14 +3,11 @@
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import re
-from typing import Any, Dict, List, Optional
-from langchain_core.messages import SystemMessage, HumanMessage
+from typing import Any
 
-from backend.app.llm import get_llm, invoke_structured, ainvoke_structured_with_retry
-from backend.app.models.evidence import PaperRecord, EvidenceRecord, PRISMATracker
+from backend.app.llm import get_llm
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +22,7 @@ EVIDENCE_BASIS_NOTE = (
 )
 
 
-def get_llm_for(role: str, state: Dict[str, Any], temperature: float = 0.0):
+def get_llm_for(role: str, state: dict[str, Any], temperature: float = 0.0):
     """Retrieve an LLM instance with optional user model override from state."""
     model_overrides = state.get("model_overrides") or {}
     model = model_overrides.get(role)
@@ -47,7 +44,7 @@ def _strip_preamble(text: str) -> str:
 
 async def _safe_invoke_llm(
     llm,
-    messages: List[Any],
+    messages: list[Any],
     max_retries: int = 4,
     base_backoff: float = 2.0
 ) -> str:
@@ -58,7 +55,7 @@ async def _safe_invoke_llm(
             res = await asyncio.to_thread(llm.invoke, messages)
             content = res.content if hasattr(res, "content") else str(res)
             return _strip_preamble(str(content))
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             last_err = e
             logger.warning(f"LLM invocation attempt {attempt+1}/{max_retries+1} failed: {e}")
             if attempt < max_retries:

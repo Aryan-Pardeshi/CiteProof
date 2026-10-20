@@ -22,14 +22,13 @@ if str(root_dir) not in sys.path:
 
 from backend.app.models.evidence import PaperRecord
 from backend.app.tools.crossref_search import search_crossref
-from backend.app.tools.pubmed_search import search_pubmed
-from backend.app.tools.openalex_search import search_openalex
-from backend.app.tools.semantic_scholar_search import search_semantic_scholar
-from backend.app.tools.europe_pmc_search import search_europe_pmc
-from backend.app.tools.doaj_search import search_doaj
 from backend.app.tools.datacite_search import search_datacite
+from backend.app.tools.doaj_search import search_doaj
+from backend.app.tools.europe_pmc_search import search_europe_pmc
+from backend.app.tools.openalex_search import search_openalex
 from backend.app.tools.orcid_search import resolve_orcid_authors
-
+from backend.app.tools.pubmed_search import search_pubmed
+from backend.app.tools.semantic_scholar_search import search_semantic_scholar
 
 QUERY = "machine learning"
 

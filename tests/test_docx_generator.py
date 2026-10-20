@@ -9,6 +9,7 @@ if str(repo_root) not in sys.path:
 
 from backend.app.tools.docx_generator import generate_paper_docx
 
+
 def test_docx_generation():
     dummy_state = {
         "problem_statement": "Autonomous Multi-Agent Search and Rescue in Subterranean Environments",

@@ -2,20 +2,23 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
-from typing import Any, Dict, List
-import asyncio
+from typing import Any
 
-from backend.app.models.evidence import PaperRecord, PRISMATracker
-from backend.app.tools.academic_search import search_academic_papers_structured, _normalize_doi
+from backend.app.models.evidence import PaperRecord
+from backend.app.tools.academic_search import (
+    _normalize_doi,
+    search_academic_papers_structured,
+)
 from backend.app.tools.crossref_search import search_crossref
 from backend.app.tools.opencitations_search import expand_citation_graph
 
 logger = logging.getLogger(__name__)
 
 
-async def paper_fetcher_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+async def paper_fetcher_agent(state: dict[str, Any]) -> dict[str, Any]:
     """Agent 5: Orchestrates concurrent multi-source retrieval across OpenAlex, S2, ArXiv, Crossref, PubMed."""
     keywords = state.get("keywords", [])
     logger.info(f"paper_fetcher_agent executing with {len(keywords)} search keywords...")
@@ -37,7 +40,7 @@ async def paper_fetcher_agent(state: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-async def _resolve_dois_via_crossref(dois: List[str]) -> List[PaperRecord]:
+async def _resolve_dois_via_crossref(dois: list[str]) -> list[PaperRecord]:
     """Resolve DOIs to real Crossref metadata, dropping any that cannot be resolved.
 
     Keeps only records whose returned DOI matches the requested DOI so the
@@ -51,7 +54,7 @@ async def _resolve_dois_via_crossref(dois: List[str]) -> List[PaperRecord]:
         return_exceptions=True
     )
 
-    resolved: List[PaperRecord] = []
+    resolved: list[PaperRecord] = []
     for requested_doi, res in zip(dois, results):
         if not isinstance(res, list):
             continue
@@ -68,7 +71,7 @@ async def _resolve_dois_via_crossref(dois: List[str]) -> List[PaperRecord]:
     return resolved
 
 
-async def citation_expander_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+async def citation_expander_agent(state: dict[str, Any]) -> dict[str, Any]:
     """Agent 6: Traverses 1-hop forward/backward citation graph for seed papers."""
     paper_dicts = state.get("paper_records") or []
     if not paper_dicts:
@@ -97,13 +100,13 @@ async def citation_expander_agent(state: Dict[str, Any]) -> Dict[str, Any]:
                 "paper_records": all_records,
                 "raw_papers": all_records
             }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"Citation graph expansion encountered non-critical error: {e}")
 
     return {}
 
 
-async def metadata_validator_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+async def metadata_validator_agent(state: dict[str, Any]) -> dict[str, Any]:
     """Agent 7: Normalizes paper metadata; optionally canonicalizes author names via ORCID.
 
     Collapses whitespace in titles (dropping a trailing period) and strips blank
@@ -116,7 +119,7 @@ async def metadata_validator_agent(state: Dict[str, Any]) -> Dict[str, Any]:
     against a registry: DOIs and venues pass through unchanged.
     """
     paper_dicts = state.get("paper_records") or []
-    cleaned_records: List[Dict[str, Any]] = []
+    cleaned_records: list[dict[str, Any]] = []
 
     orcid_enrichment = os.getenv("ORCID_AUTHOR_ENRICHMENT", "").strip().lower() in {"1", "true", "yes"}
     if orcid_enrichment:
@@ -125,7 +128,7 @@ async def metadata_validator_agent(state: Dict[str, Any]) -> Dict[str, Any]:
     for p in paper_dicts:
         item = dict(p)
         # Clean title whitespace
-        if "title" in item and item["title"]:
+        if item.get("title"):
             item["title"] = " ".join(item["title"].split()).rstrip(".")
         # Clean authors
         authors = item.get("authors") or []
@@ -139,7 +142,7 @@ async def metadata_validator_agent(state: Dict[str, Any]) -> Dict[str, Any]:
             enriched = await enrich_records_authors(records)
             cleaned_records = [r.model_dump() for r in enriched]
             logger.info("ORCID author enrichment applied to corpus.")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"ORCID author enrichment skipped (non-fatal): {e}")
 
     return {

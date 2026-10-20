@@ -1,9 +1,8 @@
-import sys
-import os
-import time
 import asyncio
-import uuid
 import logging
+import sys
+import time
+import uuid
 from pathlib import Path
 
 root_dir = Path(__file__).resolve().parent
@@ -21,7 +20,11 @@ logger = logging.getLogger("test_acceptance_b_d_e")
 
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 from langgraph.types import Command
-from backend.app.graph.research_mode_builder import set_checkpointer, get_research_mode_graph
+
+from backend.app.graph.research_mode_builder import (
+    get_research_mode_graph,
+    set_checkpointer,
+)
 from backend.app.tools.pdf_generator import generate_paper_pdf
 
 PROBLEM_STATEMENT = "Autonomous Multi-Agent Robotics in Subterranean Search and Rescue Operations 2026"
@@ -75,13 +78,12 @@ async def run():
         }
 
         pipeline_start = time.time()
-        fulltext_node_start = None
         fulltext_node_duration = None
 
         # Step 1: Start graph
         logger.info("Initializing graph streaming...")
         async for event in graph.astream(input_val, config=config):
-            for node_name, node_output in event.items():
+            for node_name in event:
                 logger.info(f"Node completed: {node_name}")
 
         # Step 2: Loop while checkpoints remain
@@ -98,7 +100,7 @@ async def run():
             
             t0 = time.time()
             async for event in graph.astream(cmd, config=config):
-                for node_name, node_output in event.items():
+                for node_name in event:
                     t1 = time.time()
                     elapsed_node = t1 - t0
                     logger.info(f"Node completed: {node_name} (took {elapsed_node:.2f}s)")
@@ -165,7 +167,7 @@ async def run():
         generate_paper_pdf(values, str(pdf_path))
 
         pdf_size = pdf_path.stat().st_size
-        print(f"\nPDF Export Successful!")
+        print("\nPDF Export Successful!")
         print(f"  File: {pdf_path}")
         print(f"  Size: {pdf_size} bytes ({pdf_size / 1024:.2f} KB)")
 
