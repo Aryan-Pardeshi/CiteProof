@@ -2,7 +2,7 @@
 
 ## Our pledge
 
-We want DeepResearch to be a welcoming project for everyone, whatever their experience level, background, or identity.
+We want CiteProof to be a welcoming project for everyone, whatever their experience level, background, or identity.
 
 ## Expected behaviour
 

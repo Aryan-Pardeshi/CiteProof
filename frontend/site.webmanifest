@@ -1,6 +1,6 @@
 {
-  "name": "DeepResearch — AI Multi-Agent Research Assistant",
-  "short_name": "DeepResearch",
+  "name": "CiteProof — AI Multi-Agent Research Assistant",
+  "short_name": "CiteProof",
   "description": "Autonomous multi-agent research workspace driven by LangGraph, OpenAlex, Semantic Scholar, and arXiv.",
   "start_url": "/",
   "display": "standalone",

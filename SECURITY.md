@@ -2,13 +2,13 @@
 
 ## Supported versions
 
-DeepResearch is under active development. Security fixes land on `main` only; there are no maintained release branches. If you run a fork or a pinned commit, update to the latest `main` to get fixes.
+CiteProof is under active development. Security fixes land on `main` only; there are no maintained release branches. If you run a fork or a pinned commit, update to the latest `main` to get fixes.
 
 ## Reporting a vulnerability
 
 Please do not open a public issue, pull request, or discussion for a security problem.
 
-1. Use GitHub's private reporting: open the [Security tab](https://github.com/Aryan-Pardeshi/DeepResearch_AI/security/advisories/new) and choose **Report a vulnerability**.
+1. Use GitHub's private reporting: open the [Security tab](https://github.com/Aryan-Pardeshi/CiteProof/security/advisories/new) and choose **Report a vulnerability**.
 2. If that option is not available, contact the maintainer through the links on the [author's GitHub profile](https://github.com/Aryan-Pardeshi) and ask for a private channel. Do not include exploit details in the first message.
 
 A useful report includes:

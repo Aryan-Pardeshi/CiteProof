@@ -1,4 +1,4 @@
-# robots.txt for DeepResearch AI Research Assistant & Academic Lab
+# robots.txt for CiteProof AI Research Assistant & Academic Lab
 User-agent: *
 Allow: /
 Allow: /app
