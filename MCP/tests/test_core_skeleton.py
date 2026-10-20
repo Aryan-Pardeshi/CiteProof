@@ -24,6 +24,50 @@ async def test_review_create_rejects_bad_input():
     assert (await call("review_create", title="T", question="Q", year_min=2020, year_max=2010))["ok"] is False
 
 
+@pytest.mark.asyncio
+async def test_review_list_query_matches_title():
+    await call("review_create", title="Asthma outcomes", question="Q1")
+    diabetes = await call("review_create", title="Diabetes outcomes", question="Q2")
+
+    listed = await call("review_list", query="diabetes")
+    assert [r["review_id"] for r in listed["reviews"]] == [diabetes["review_id"]]
+
+
+@pytest.mark.asyncio
+async def test_review_list_query_matches_question():
+    target = await call("review_create", title="Cardiology", question="How does diabetes affect outcomes?")
+    await call("review_create", title="Oncology", question="What improves survival?")
+
+    listed = await call("review_list", query="affect outcomes")
+    assert [r["review_id"] for r in listed["reviews"]] == [target["review_id"]]
+
+
+@pytest.mark.asyncio
+async def test_review_list_query_is_case_insensitive():
+    target = await call("review_create", title="Metabolic Health", question="Type 2 diabetes prevalence")
+
+    listed = await call("review_list", query="DIABETES")
+    assert [r["review_id"] for r in listed["reviews"]] == [target["review_id"]]
+
+
+@pytest.mark.asyncio
+async def test_review_list_query_no_matches():
+    await call("review_create", title="Hypertension", question="Q")
+    listed = await call("review_list", query="diabetes")
+    assert listed["reviews"] == []
+    assert listed["count"] == 0
+
+
+@pytest.mark.asyncio
+async def test_review_list_applies_limit_after_query_filtering():
+    expected = await call("review_create", title="Diabetes care pathways", question="Q1")
+    await call("review_create", title="Cardiology methods", question="Q2")
+
+    listed = await call("review_list", limit=1, query="diabetes")
+    assert [r["review_id"] for r in listed["reviews"]] == [expected["review_id"]]
+    assert listed["count"] == 1
+
+
 def test_review_id_is_validated_before_it_becomes_a_path():
     for bad in ("../x", "a/b", "ab", "UPPERCASE1", "x" * 41):
         with pytest.raises(store.StoreError):

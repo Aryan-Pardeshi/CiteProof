@@ -194,13 +194,25 @@ def review_create(
 @safe_tool
 def review_list(
     limit: Annotated[int, Field(description="Maximum reviews to return, 1 to 200.")] = 50,
+    query: Annotated[
+        str | None,
+        Field(description="Optional case-insensitive substring filter over review title and question."),
+    ] = None,
 ) -> dict[str, Any]:
     """List existing reviews, newest first, to recover a review_id.
 
     Returns: reviews (review_id, title, question, created_at, year_min, year_max), count.
     """
     n = int_arg(limit, "limit", min_value=1, max_value=200)
-    reviews = store.list_reviews(n)
+    needle = query.strip().lower() if isinstance(query, str) else ""
+    if needle:
+        reviews = [
+            r
+            for r in store.list_reviews(None)
+            if needle in (r.get("title") or "").lower() or needle in (r.get("question") or "").lower()
+        ][:n]
+    else:
+        reviews = store.list_reviews(n)
     for r in reviews:
         r["question"] = (r.get("question") or "")[:300]
     return {"ok": True, "reviews": reviews, "count": len(reviews)}

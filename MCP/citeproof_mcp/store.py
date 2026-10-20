@@ -226,7 +226,7 @@ def get_meta(review_id: str) -> dict[str, Any]:
         return read_meta(conn)
 
 
-def list_reviews(limit: int = 50) -> list[dict[str, Any]]:
+def list_reviews(limit: int | None = 50) -> list[dict[str, Any]]:
     """Most recently created first."""
     out: list[dict[str, Any]] = []
     for path in (data_dir() / "reviews").glob("*.db"):
@@ -235,7 +235,7 @@ def list_reviews(limit: int = 50) -> list[dict[str, Any]]:
         except (StoreError, sqlite3.Error):
             continue
     out.sort(key=lambda m: m.get("created_at") or "", reverse=True)
-    return out[:limit]
+    return out if limit is None else out[:limit]
 
 
 # ---------------------------------------------------------------------------
