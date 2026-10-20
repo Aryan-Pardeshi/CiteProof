@@ -30,7 +30,7 @@ cd DeepResearch_AI
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-pip install ruff
+pip install ruff==0.17.1
 cp .env.example .env             # only needed to run the app, not the tests
 uvicorn backend.app.main:app --reload --port 8000
 ```

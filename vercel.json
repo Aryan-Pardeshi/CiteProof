@@ -1,5 +1,11 @@
 {
   "outputDirectory": "frontend",
   "cleanUrls": true,
-  "framework": null
+  "framework": null,
+  "git": {
+    "deploymentEnabled": {
+      "**": false,
+      "main": true
+    }
+  }
 }
