@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use CiteProof in your work, please cite it as below."
+type: software
+title: "CiteProof"
+abstract: "Audit tools for AI literature reviews. CiteProof checks that a review's citations, quotes, counts and risk-of-bias judgements hold up. It includes an MCP server for research agents and a research assistant app that writes evidence-grounded papers."
+authors:
+  - family-names: "Pardeshi"
+    given-names: "Aryan"
+repository-code: "https://github.com/Aryan-Pardeshi/CiteProof-AI-MCP"
+license: MIT
+keywords:
+  - literature review
+  - citation verification
+  - MCP
+  - research assistant
+  - PRISMA
