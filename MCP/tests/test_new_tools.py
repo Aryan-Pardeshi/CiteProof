@@ -177,6 +177,38 @@ async def test_dedup_papers_batches_never_overwrite_the_review_total() -> None:
 
 
 @pytest.mark.asyncio
+async def test_changing_the_search_log_clears_a_stale_dedup_record() -> None:
+    """Regression: a dedup count belongs to one set of records; a changed search log must not reuse it."""
+    rid = await _review()
+    search = {"review_id": rid, "source": "PubMed", "query": "x", "date_run": "2026-01-01"}
+    await call("prisma_record_search", hits=5, **search)
+    await call("prisma_record_search", review_id=rid, source="Embase", query="x", date_run="2026-01-01", hits=3)
+    assert (await call("dedup_papers", papers=PAPERS, review_id=rid))["recorded"] is True
+    assert (await call("prisma_status", review_id=rid))["duplicates_removed"] == 3
+
+    # Re-sending the same search with the same hits changes nothing
+    same = await call("prisma_record_search", hits=5, **search)
+    assert same["dedup_cleared"] is False
+    assert (await call("prisma_status", review_id=rid))["dedup_recorded"] is True
+
+    # A changed hit count clears the dedup record and says so
+    changed = await call("prisma_record_search", hits=6, **search)
+    assert changed["dedup_cleared"] is True
+    assert any("dedup_papers" in w for w in changed["warnings"])
+    status = await call("prisma_status", review_id=rid)
+    assert status["dedup_recorded"] is False and status["duplicates_removed"] == 0
+    assert status["records_after_dedup"] == 9
+    assert any("dedup" in step.lower() for step in status["next_steps"])
+
+    # Deduplicating the complete new set records again; a new search clears it again
+    assert (await call("dedup_papers", papers=PAPERS + PAPERS[:1], review_id=rid))["recorded"] is True
+    assert (await call("prisma_status", review_id=rid))["dedup_recorded"] is True
+    added = await call("prisma_record_search", review_id=rid, source="Scopus", query="y", date_run="2026-01-02", hits=1)
+    assert added["dedup_cleared"] is True
+    assert (await call("prisma_status", review_id=rid))["dedup_recorded"] is False
+
+
+@pytest.mark.asyncio
 async def test_dedup_papers_result_tells_the_agent_to_keep_removed_metadata() -> None:
     res = await call("dedup_papers", papers=PAPERS)
     assert "copy any field" in res["note"]

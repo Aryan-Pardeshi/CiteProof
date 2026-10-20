@@ -478,9 +478,15 @@ def prisma_record_search(
     so a retried call cannot double-count records. Source names are matched
     case-insensitively ('pubmed' joins 'PubMed').
 
+    Adding a search, or changing a search's hit count, clears the review's
+    deduplication record, because that count belonged to the old set of records.
+    Run dedup_papers (or prisma_record_dedup) again afterwards. Re-sending a
+    search with the same hit count changes nothing.
+
     Returns: search_id, updated (true when an existing search was replaced),
     records_identified (sum of hits over all searches), records_by_source,
-    searches_recorded, warnings.
+    searches_recorded, dedup_cleared (true when an earlier dedup record was
+    cleared), warnings.
 
     Does NOT run the search or check the hit count; it records what you report.
     """
@@ -505,9 +511,10 @@ def prisma_record_search(
         if same:
             source_clean = same[0]
         existing = conn.execute(
-            "SELECT id FROM prisma_searches WHERE source = ? AND query = ? AND date_run = ?",
+            "SELECT id, hits FROM prisma_searches WHERE source = ? AND query = ? AND date_run = ?",
             (source_clean, query_clean, date_clean),
         ).fetchone()
+        search_log_changed = existing is None or existing[1] != hits_clean
         if existing:
             conn.execute("UPDATE prisma_searches SET hits = ? WHERE id = ?", (hits_clean, existing[0]))
             search_id = existing[0]
@@ -516,6 +523,16 @@ def prisma_record_search(
                 "INSERT INTO prisma_searches (source, query, date_run, hits) VALUES (?, ?, ?, ?)",
                 (source_clean, query_clean, date_clean, hits_clean),
             ).lastrowid
+        # A dedup count belongs to one exact set of exported records. When the search log
+        # changes, the old count is stale, so it is cleared instead of silently reused.
+        dedup_cleared = False
+        if search_log_changed:
+            dedup_cleared = conn.execute("DELETE FROM prisma_dedup").rowcount > 0
+        if dedup_cleared:
+            warnings.append(
+                "The search log changed, so the earlier deduplication record was cleared. "
+                "Run dedup_papers again on every exported record (or prisma_record_dedup with the new count)."
+            )
         identified, by_source, n = search_totals(conn)
     return {
         "ok": True,
@@ -524,6 +541,7 @@ def prisma_record_search(
         "records_identified": identified,
         "records_by_source": by_source,
         "searches_recorded": n,
+        "dedup_cleared": dedup_cleared,
         "warnings": warnings,
     }
 
