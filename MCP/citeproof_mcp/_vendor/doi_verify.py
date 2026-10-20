@@ -39,7 +39,7 @@ DOI_VERIFY_CONCURRENCY = 4
 CROSSREF_PACING_SECONDS = 0.06
 RETRY_AFTER_429_SECONDS = 2.0
 
-_BASE_USER_AGENT = "CiteProof-MCP (+https://github.com/Aryan-Pardeshi/CiteProof)"
+_BASE_USER_AGENT = "CiteProof-MCP (+https://github.com/Aryan-Pardeshi/CiteProof-AI-MCP)"
 # Config-file placeholders are not a real contact address, so they never ride along
 # in the User-Agent.
 _PLACEHOLDER_EMAILS = {"you@example.com", "your_email@example.com"}

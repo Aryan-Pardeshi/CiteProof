@@ -21,7 +21,7 @@ dependencies = [
 test = ["pytest>=8", "pytest-asyncio>=1.0"]
 
 [project.urls]
-Homepage = "https://github.com/Aryan-Pardeshi/CiteProof"
+Homepage = "https://github.com/Aryan-Pardeshi/CiteProof-AI-MCP"
 
 [project.scripts]
 citeproof-mcp = "citeproof_mcp.__main__:main"

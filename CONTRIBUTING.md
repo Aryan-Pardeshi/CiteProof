@@ -4,7 +4,7 @@ Thanks for looking. Small fixes and big features are both welcome. If you are un
 
 ## Where to start
 
-- Browse issues labelled [`good first issue`](https://github.com/Aryan-Pardeshi/CiteProof/labels/good%20first%20issue) (small, well scoped) or [`help wanted`](https://github.com/Aryan-Pardeshi/CiteProof/labels/help%20wanted) (bigger, maintainer wants help).
+- Browse issues labelled [`good first issue`](https://github.com/Aryan-Pardeshi/CiteProof-AI-MCP/labels/good%20first%20issue) (small, well scoped) or [`help wanted`](https://github.com/Aryan-Pardeshi/CiteProof-AI-MCP/labels/help%20wanted) (bigger, maintainer wants help).
 - Comment on the issue before you start so two people do not build the same thing.
 - Have your own idea? Open a feature request and describe the problem before the solution.
 
@@ -26,8 +26,8 @@ A new academic source is usually the easiest meaningful contribution: copy an ex
 ## Dev setup
 
 ```bash
-git clone https://github.com/<your-fork>/CiteProof.git
-cd CiteProof
+git clone https://github.com/<your-fork>/CiteProof-AI-MCP.git
+cd CiteProof-AI-MCP
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements.txt

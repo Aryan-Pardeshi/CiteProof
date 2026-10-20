@@ -4,7 +4,7 @@
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE) ![Python 3.12+](https://img.shields.io/badge/python-3.12+-3776AB?style=flat-square&logo=python&logoColor=white) ![MCP](https://img.shields.io/badge/MCP-24%20tools-5A45FF?style=flat-square) ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white) ![LangGraph](https://img.shields.io/badge/LangGraph-1C3C3C?style=flat-square) ![Pydantic v2](https://img.shields.io/badge/Pydantic-v2-E92063?style=flat-square&logo=pydantic&logoColor=white) ![Docker](https://img.shields.io/badge/Docker-ready-2496ED?style=flat-square&logo=docker&logoColor=white)
 
-[![Live demo](https://img.shields.io/badge/demo-live-2ea44f?style=flat-square)](https://deep-research-ai-xi.vercel.app/) ![Frontend on Vercel](https://img.shields.io/badge/frontend-Vercel-000000?style=flat-square&logo=vercel&logoColor=white) ![Backend on FastAPI Cloud](https://img.shields.io/badge/backend-FastAPI%20Cloud-009688?style=flat-square&logo=fastapi&logoColor=white) [![GitHub stars](https://img.shields.io/github/stars/Aryan-Pardeshi/CiteProof?style=flat-square)](https://github.com/Aryan-Pardeshi/CiteProof/stargazers) ![Last commit](https://img.shields.io/github/last-commit/Aryan-Pardeshi/CiteProof?style=flat-square)
+[![Live demo](https://img.shields.io/badge/demo-live-2ea44f?style=flat-square)](https://deep-research-ai-xi.vercel.app/) ![Frontend on Vercel](https://img.shields.io/badge/frontend-Vercel-000000?style=flat-square&logo=vercel&logoColor=white) ![Backend on FastAPI Cloud](https://img.shields.io/badge/backend-FastAPI%20Cloud-009688?style=flat-square&logo=fastapi&logoColor=white) [![GitHub stars](https://img.shields.io/github/stars/Aryan-Pardeshi/CiteProof-AI-MCP?style=flat-square)](https://github.com/Aryan-Pardeshi/CiteProof-AI-MCP/stargazers) ![Last commit](https://img.shields.io/github/last-commit/Aryan-Pardeshi/CiteProof-AI-MCP?style=flat-square)
 
 **🔗 Live demo of the research app → [deep-research-ai-xi.vercel.app](https://deep-research-ai-xi.vercel.app/)**
 
@@ -252,8 +252,8 @@ Research Mode uses each academic API for a specific stage:
 #### 1. Clone and configure
 
 ```bash
-git clone https://github.com/Aryan-Pardeshi/CiteProof.git
-cd CiteProof
+git clone https://github.com/Aryan-Pardeshi/CiteProof-AI-MCP.git
+cd CiteProof-AI-MCP
 cp .env.example .env
 ```
 
@@ -311,7 +311,7 @@ uvicorn backend.app.main:app --reload --port 8000
 
 ## Contributing
 
-Contributions are welcome, from typo fixes to new academic source adapters and new MCP checks. Start with [CONTRIBUTING.md](CONTRIBUTING.md) for setup and a project map, then pick an issue labelled [`good first issue`](https://github.com/Aryan-Pardeshi/CiteProof/labels/good%20first%20issue) or [`help wanted`](https://github.com/Aryan-Pardeshi/CiteProof/labels/help%20wanted). The test suites run offline with `pytest`: run `pytest --ignore=MCP` from the repository root for the app, and `python -m pytest` inside `MCP/` for the MCP server.
+Contributions are welcome, from typo fixes to new academic source adapters and new MCP checks. Start with [CONTRIBUTING.md](CONTRIBUTING.md) for setup and a project map, then pick an issue labelled [`good first issue`](https://github.com/Aryan-Pardeshi/CiteProof-AI-MCP/labels/good%20first%20issue) or [`help wanted`](https://github.com/Aryan-Pardeshi/CiteProof-AI-MCP/labels/help%20wanted). The test suites run offline with `pytest`: run `pytest --ignore=MCP` from the repository root for the app, and `python -m pytest` inside `MCP/` for the MCP server.
 
 ---
 
@@ -323,10 +323,10 @@ MIT, see [LICENSE](LICENSE). Two files inside the MCP server are adapted from An
 
 ## Star history
 
-<a href="https://www.star-history.com/?repos=aryan-pardeshi%2Fciteproof&type=date&legend=top-left">
+<a href="https://www.star-history.com/?repos=aryan-pardeshi%2Fciteproof-ai-mcp&type=date&legend=top-left">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=aryan-pardeshi/citeproof&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=aryan-pardeshi/citeproof&type=date&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=aryan-pardeshi/citeproof&type=date&legend=top-left" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=aryan-pardeshi/citeproof-ai-mcp&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=aryan-pardeshi/citeproof-ai-mcp&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=aryan-pardeshi/citeproof-ai-mcp&type=date&legend=top-left" />
  </picture>
 </a>

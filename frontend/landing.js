@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
 /* ==========================================================================
    1. LIVE GITHUB STARS FETCHER & CACHE
    ========================================================================== */
-const GITHUB_REPO_API = 'https://api.github.com/repos/Aryan-Pardeshi/CiteProof';
+const GITHUB_REPO_API = 'https://api.github.com/repos/Aryan-Pardeshi/CiteProof-AI-MCP';
 const GITHUB_STARS_CACHE_KEY = 'deepresearch_github_stars_v3';
 const GITHUB_STARS_CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
 
