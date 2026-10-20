@@ -1,3 +1,4 @@
+import logging
 import os
 import secrets
 import sys
@@ -28,6 +29,8 @@ from backend.app.llm import lazy_llm, llm_fast, llm_pro
 from backend.app.stats import init_stats_db
 
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 ENV_PATH = root_dir / ".env"
 
 
@@ -191,8 +194,11 @@ def _apply_config_update(body: ConfigUpdate):
         llm_pro.reset()
 
         return {"ok": True, "updated": updated, "message": "Applied configuration changes successfully"}
-    except Exception as e:  # noqa: BLE001
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        logger.exception("Failed to apply configuration changes")
+        raise HTTPException(
+            status_code=500, detail="Failed to apply configuration changes. Check the server logs for details."
+        ) from None
 
 @app.post("/config/setup")
 @app.post("/health/config")

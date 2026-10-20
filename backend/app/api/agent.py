@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 import re
 import uuid
 from typing import Literal
@@ -12,6 +13,8 @@ from pydantic import BaseModel
 # Resolved per call, not bound at import: lifespan recompiles the graph with the
 # SQLite checkpointer, and an import-time binding would pin the in-memory one.
 from backend.app.graph.builder import get_research_graph
+
+logger = logging.getLogger(__name__)
 
 THREAD_ID_PATTERN = re.compile(r"[a-zA-Z0-9\-_]{1,64}")
 
@@ -65,10 +68,15 @@ async def run_research(request: ResearchStartRequest):
         error = state.values.get("error")
 
         return {"thread_id": id, "ps": ps, "plan": plan, "status": status, "error": error}
-    except Exception as e:
-        import logging
-        logging.getLogger(__name__).exception("Error during run_research")
-        return {"thread_id": id, "ps": None, "plan": None, "status": "error", "error": f"Failed to start research: {e!s}"}
+    except Exception:
+        logger.exception("Error during run_research")
+        return {
+            "thread_id": id,
+            "ps": None,
+            "plan": None,
+            "status": "error",
+            "error": "Failed to start research. Check the server logs for details.",
+        }
 
 
 # SSE
@@ -221,8 +229,10 @@ async def approve_plan(request: ResearchApproveRequest):
                 # Send the complete final state payload to mark completion
                 yield f"data: {json.dumps(final_payload)}\n\n"
 
-            except Exception as e:  # noqa: BLE001
-                yield f"data: {json.dumps({'event': 'error', 'message': str(e)})}\n\n"
+            except Exception:
+                logger.exception("Error while streaming research results")
+                message = "Research failed. Check the server logs for details."
+                yield f"data: {json.dumps({'event': 'error', 'message': message})}\n\n"
         finally:
             if active_tasks.get(request.thread_id) == current_task:
                 active_tasks.pop(request.thread_id, None)

@@ -1,7 +1,9 @@
 import asyncio
 import json
 import logging
+import os
 import re
+import tempfile
 import time
 import uuid
 from pathlib import Path
@@ -11,6 +13,7 @@ from fastapi import APIRouter, Header, HTTPException
 from fastapi.responses import FileResponse, StreamingResponse
 from langgraph.types import Command
 from pydantic import BaseModel
+from starlette.background import BackgroundTask
 
 from backend.app.agents.research_mode.writing import EV_MARKER_RE
 
@@ -294,11 +297,11 @@ async def _execute_research_graph(thread_id: str, message: str):
         if buf:
             buf["completed"] = is_completed
 
-    except Exception as e:
+    except Exception:
         logger.exception("SSE Error in Research Mode approve")
         error_payload = {
             "event": "error",
-            "message": str(e)
+            "message": "Research Mode run failed. Check the server logs for details."
         }
         await _broadcast_event(thread_id, error_payload, is_node_event=True)
         if buf:
@@ -363,12 +366,12 @@ async def start_research_mode(request: ResearchModeStartRequest):
             "papers_total": papers_total,
             "error": values.get("error")
         }
-    except Exception as e:
+    except Exception:
         logger.exception("Error starting Research Mode")
         return {
             "thread_id": thread_id,
             "status": "error",
-            "error": f"Failed to start Research Mode: {e!s}"
+            "error": "Failed to start Research Mode. Check the server logs for details."
         }
 
 
@@ -510,9 +513,19 @@ async def get_research_mode_result(thread_id: str):
     }
 
 
-@router.post("/research-mode/export/{thread_id}")
-@router.post("/research/mode/export/{thread_id}")
-async def export_research_mode_pdf(thread_id: str):
+EXPORT_DIR = Path(__file__).resolve().parent.parent.parent.parent / "data" / "exports"
+
+
+def _remove_quietly(path: Path) -> None:
+    path.unlink(missing_ok=True)
+
+
+async def _export_paper(thread_id: str, generate, suffix: str, media_type: str, label: str) -> FileResponse:
+    """Render a finished paper to a one-off file, send it, then delete it.
+
+    The file name is random rather than derived from the thread id, so no request
+    data reaches the filesystem path, and exports do not pile up on disk.
+    """
     valid_id = _validate_thread_id(thread_id)
     config = {"configurable": {"thread_id": valid_id}}
     graph = get_research_mode_graph()
@@ -520,44 +533,40 @@ async def export_research_mode_pdf(thread_id: str):
     if not state or not state.values:
         raise HTTPException(status_code=404, detail="Research Mode thread not found")
 
-    temp_dir = Path(__file__).resolve().parent.parent.parent.parent / "data" / "exports"
-    temp_dir.mkdir(parents=True, exist_ok=True)
-    pdf_path = temp_dir / f"paper_{valid_id}.pdf"
+    EXPORT_DIR.mkdir(parents=True, exist_ok=True)
+    fd, name = tempfile.mkstemp(prefix="paper_", suffix=suffix, dir=EXPORT_DIR)
+    os.close(fd)
+    out_path = Path(name)
 
     try:
-        generate_paper_pdf(state.values, str(pdf_path))
-        return FileResponse(
-            path=str(pdf_path),
-            filename=f"research_paper_{valid_id[:8]}.pdf",
-            media_type="application/pdf"
-        )
-    except Exception as e:
-        logger.exception("Failed to generate PDF")
-        raise HTTPException(status_code=500, detail=f"PDF generation failed: {e!s}")
+        generate(state.values, str(out_path))
+    except Exception:
+        _remove_quietly(out_path)
+        logger.exception(f"Failed to generate {label}")
+        raise HTTPException(status_code=500, detail=f"{label} generation failed. Check the server logs for details.") from None
+
+    return FileResponse(
+        path=str(out_path),
+        filename=f"research_paper_{valid_id[:8]}{suffix}",
+        media_type=media_type,
+        background=BackgroundTask(_remove_quietly, out_path),
+    )
+
+
+@router.post("/research-mode/export/{thread_id}")
+@router.post("/research/mode/export/{thread_id}")
+async def export_research_mode_pdf(thread_id: str):
+    return await _export_paper(thread_id, generate_paper_pdf, ".pdf", "application/pdf", "PDF")
 
 
 @router.post("/research-mode/export/docx/{thread_id}")
 @router.post("/research/mode/export/docx/{thread_id}")
 async def export_research_mode_docx(thread_id: str):
-    valid_id = _validate_thread_id(thread_id)
-    config = {"configurable": {"thread_id": valid_id}}
-    graph = get_research_mode_graph()
-    state = await graph.aget_state(config)
-    if not state or not state.values:
-        raise HTTPException(status_code=404, detail="Research Mode thread not found")
-
-    temp_dir = Path(__file__).resolve().parent.parent.parent.parent / "data" / "exports"
-    temp_dir.mkdir(parents=True, exist_ok=True)
-    docx_path = temp_dir / f"paper_{valid_id}.docx"
-
-    try:
-        generate_paper_docx(state.values, str(docx_path))
-        return FileResponse(
-            path=str(docx_path),
-            filename=f"research_paper_{valid_id[:8]}.docx",
-            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-        )
-    except Exception as e:
-        logger.exception("Failed to generate DOCX")
-        raise HTTPException(status_code=500, detail=f"DOCX generation failed: {e!s}")
+    return await _export_paper(
+        thread_id,
+        generate_paper_docx,
+        ".docx",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "DOCX",
+    )
 
