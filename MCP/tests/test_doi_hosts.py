@@ -56,3 +56,24 @@ def test_the_default_client_does_not_follow_redirects_and_has_a_timeout() -> Non
     assert doi_verify.DOI_VERIFY_TIMEOUT <= 30
     assert doi_verify.CROSSREF_WORKS_URL.startswith("https://api.crossref.org/")
     assert doi_verify.DOI_RESOLVER_URL.startswith("https://doi.org/")
+
+
+def test_extract_dois_strips_trailing_markup_without_backtracking() -> None:
+    import time
+
+    cases = {
+        "see **10.1000/abc**": ["10.1000/abc"],
+        "10.1000/abc__": ["10.1000/abc"],
+        "[10.1000/abc]": ["10.1000/abc"],
+        "10.1000/abc,;:": ["10.1000/abc"],
+        "10.1000/abc.": ["10.1000/abc"],
+        "10.1000/a(b)": ["10.1000/a(b)"],
+    }
+    for text, expected in cases.items():
+        assert doi_verify.extract_dois(text) == expected, text
+
+    # A long run of markup characters must not cause exponential or polynomial blow-up.
+    hostile = "10.1000/abc" + "*" * 200_000 + "x" * 5
+    started = time.perf_counter()
+    doi_verify.extract_dois(hostile)
+    assert time.perf_counter() - started < 2.0

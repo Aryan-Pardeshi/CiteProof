@@ -332,7 +332,10 @@ def extract_dois(text: str) -> list[str]:
         d = m.split("</")[0]
         if d.count("<") != d.count(">"):
             d = d.split("<")[0]
-        d = re.sub(r"(?:\*\*|__|[_\]\*>`,;:])+$", "", d)
+        # Trailing markdown emphasis and punctuation. rstrip does what the former regex did
+        # (the pair alternatives `**` and `__` only repeated single characters from this set)
+        # without any backtracking on long runs of `*`.
+        d = d.rstrip("_]*>`,;:")
         d = d.removesuffix(".")
         while d.endswith(")") and d.count("(") < d.count(")"):
             d = d[:-1]
