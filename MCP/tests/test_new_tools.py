@@ -432,6 +432,17 @@ async def test_export_bundle_markdown_and_json() -> None:
 
 
 @pytest.mark.asyncio
+async def test_export_bundle_keeps_non_ascii_protocol_amendments_readable() -> None:
+    rid = await _review()
+    await call("protocol_record", review_id=rid, population="Patients à risque élevé")
+    await call("protocol_record", review_id=rid, population="Пациенты с гипертонией 高血压")
+    text = (await call("export_bundle", review_id=rid))["content"]
+    assert "Patients à risque élevé" in text
+    assert "Пациенты с гипертонией 高血压" in text
+    assert "\\u00e0" not in text and "\\u" not in text
+
+
+@pytest.mark.asyncio
 async def test_export_bundle_markdown_escapes_text_outside_tables() -> None:
     evil_title = "Trial <img src=x onerror=alert(1)>\n## Injected heading"
     created = await call("review_create", title=evil_title, question="Q <script>alert(2)</script>?")

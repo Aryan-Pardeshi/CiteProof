@@ -52,8 +52,22 @@ async def test_a_redirect_from_the_registry_is_reported_not_followed() -> None:
     assert result["10.1000/registered"]["ok"] is True
 
 
-def test_the_default_client_does_not_follow_redirects_and_has_a_timeout() -> None:
-    assert doi_verify.DOI_VERIFY_TIMEOUT <= 30
+@pytest.mark.asyncio
+async def test_the_default_client_does_not_follow_redirects_and_has_a_timeout(monkeypatch) -> None:
+    """The client verify_dois builds itself (no client argument) is the one real callers get."""
+    captured: dict = {}
+    real_client = httpx.AsyncClient
+
+    def factory(*args, **kwargs):
+        captured.update(kwargs)
+        kwargs["transport"] = httpx.MockTransport(lambda request: httpx.Response(404))
+        return real_client(*args, **kwargs)
+
+    monkeypatch.setattr(doi_verify.httpx, "AsyncClient", factory)
+    await doi_verify.verify_dois(["10.1000/abc"])
+
+    assert captured["follow_redirects"] is False
+    assert 0 < captured["timeout"] <= 30
     assert doi_verify.CROSSREF_WORKS_URL.startswith("https://api.crossref.org/")
     assert doi_verify.DOI_RESOLVER_URL.startswith("https://doi.org/")
 

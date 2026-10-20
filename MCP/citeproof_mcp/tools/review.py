@@ -280,7 +280,8 @@ def _markdown(b: dict[str, Any]) -> str:
         amended = [c for c in b["protocol_changes"] if c["old"] is not None]
         out += ["", f"Protocol amendments: {len(amended)}"]
         out += [
-            f"- {c['changed_at']} {_t(c['field'], 100)}: {_t(json.dumps(c['old']))} -> {_t(json.dumps(c['new']))}"
+            f"- {c['changed_at']} {_t(c['field'], 100)}: "
+            f"{_t(json.dumps(c['old'], ensure_ascii=False))} -> {_t(json.dumps(c['new'], ensure_ascii=False))}"
             for c in amended[:100]
         ]
     out += ["", "## Searches", ""]
