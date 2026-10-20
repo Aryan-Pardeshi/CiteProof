@@ -15,6 +15,7 @@ import io
 import json
 import re
 import sqlite3
+import unicodedata
 from typing import Annotated, Any
 
 from pydantic import Field
@@ -143,9 +144,17 @@ def to_markdown(rows: list[dict[str, Any]]) -> str:
     return md_table(header, body)
 
 
+_FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
+
+
 def _csv_safe(value: Any) -> Any:
-    """Stop spreadsheet formula injection in text cells (numbers are left as numbers)."""
-    if isinstance(value, str) and value[:1] in ("=", "+", "-", "@", "\t", "\r"):
+    """Stop spreadsheet formula injection in text cells (numbers are left as numbers).
+
+    The first character is compared after Unicode NFKC, so full-width forms such as
+    ``＝``, ``＋``, ``－`` and ``＠`` (which some spreadsheet locales read as formulas)
+    are guarded like their ASCII versions.
+    """
+    if isinstance(value, str) and unicodedata.normalize("NFKC", value[:1]) in _FORMULA_PREFIXES:
         return "'" + value
     return value
 

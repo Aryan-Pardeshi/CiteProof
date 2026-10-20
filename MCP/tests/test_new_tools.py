@@ -257,6 +257,17 @@ async def test_evidence_table_formats_gaps_and_csv_safety() -> None:
     assert j["row_count"] == 1 and j["rows"][0]["quote_verified"] is True
 
 
+def test_csv_formula_guard_covers_full_width_prefixes() -> None:
+    from citeproof_mcp.tools.extraction import _csv_safe
+
+    for prefix in ("=", "+", "-", "@", "\t", "\r", "＝", "＋", "－", "＠"):
+        assert _csv_safe(f"{prefix}SUM(A1)") == f"'{prefix}SUM(A1)", repr(prefix)
+    assert _csv_safe("mortality") == "mortality"
+    assert _csv_safe("") == ""
+    assert _csv_safe(0.82) == 0.82
+    assert _csv_safe(None) is None
+
+
 # --- review_status / export_bundle ---------------------------------------------------------------
 
 
