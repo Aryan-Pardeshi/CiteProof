@@ -1,6 +1,9 @@
 backend:
   - changed-files:
       - any-glob-to-any-file: ['backend/**', 'main.py', 'requirements.txt', 'langgraph.json']
+mcp:
+  - changed-files:
+      - any-glob-to-any-file: ['MCP/**']
 frontend:
   - changed-files:
       - any-glob-to-any-file: ['frontend/**']
