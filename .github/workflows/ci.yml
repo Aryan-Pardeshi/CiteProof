@@ -18,6 +18,20 @@ jobs:
       - run: python -m pip install ruff==0.17.1
       - run: ruff check .
       - run: pip install -r requirements.txt pytest pytest-asyncio
-      - run: pytest -q
+      - run: pytest -q --ignore=MCP
         env:
           LLM_API_KEY: test-key
+  mcp:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: MCP
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: MCP/pyproject.toml
+      - run: pip install -e ".[test]"
+      - run: python -m pytest -q

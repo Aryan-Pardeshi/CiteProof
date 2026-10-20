@@ -171,7 +171,7 @@ def extract_example(meta: dict[str, str], values: dict[str, Any]) -> dict[str, A
         "evidence_rows": evidence_rows,
         "paper": {
             "title": values.get("title") or meta["topic"],
-            "meta": f"DeepResearch Synthesis • {studies_included} Included Studies • Indexed via {', '.join(source_names) if source_names else 'multiple academic indexes'}",
+            "meta": f"CiteProof Synthesis • {studies_included} Included Studies • Indexed via {', '.join(source_names) if source_names else 'multiple academic indexes'}",
             "abstract": values.get("abstract") or "",
             "body": (values.get("literature_review") or "")[:900],
             "citations": (values.get("references") or [])[:5],

@@ -1,10 +1,10 @@
-# Contributing to DeepResearch
+# Contributing to CiteProof
 
 Thanks for looking. Small fixes and big features are both welcome. If you are unsure whether something fits, open an issue first and ask.
 
 ## Where to start
 
-- Browse issues labelled [`good first issue`](https://github.com/Aryan-Pardeshi/DeepResearch_AI/labels/good%20first%20issue) (small, well scoped) or [`help wanted`](https://github.com/Aryan-Pardeshi/DeepResearch_AI/labels/help%20wanted) (bigger, maintainer wants help).
+- Browse issues labelled [`good first issue`](https://github.com/Aryan-Pardeshi/CiteProof-AI-MCP/labels/good%20first%20issue) (small, well scoped) or [`help wanted`](https://github.com/Aryan-Pardeshi/CiteProof-AI-MCP/labels/help%20wanted) (bigger, maintainer wants help).
 - Comment on the issue before you start so two people do not build the same thing.
 - Have your own idea? Open a feature request and describe the problem before the solution.
 
@@ -18,15 +18,16 @@ Thanks for looking. Small fixes and big features are both welcome. If you are un
 | `backend/app/tools/` | One module per external source or exporter (OpenAlex, PubMed, DOCX, PDF, ...) |
 | `backend/app/models/` | Pydantic schemas (`PaperRecord`, `EvidenceRecord`, `ReviewClaim`, ...) |
 | `frontend/` | Vanilla JS + CSS, no build step |
-| `tests/` | pytest suite, offline by default |
+| `tests/` | pytest suite for the app, offline by default |
+| `MCP/` | CiteProof MCP: the `citeproof_mcp` server, its own tests (`MCP/tests/`), docs and install scripts |
 
 A new academic source is usually the easiest meaningful contribution: copy an existing module in `backend/app/tools/` (for example `doaj_search.py`), implement the same interface, add provider unit tests in `tests/test_provider_adapters_unit.py` style, and register it in the discovery step.
 
 ## Dev setup
 
 ```bash
-git clone https://github.com/<your-fork>/DeepResearch_AI.git
-cd DeepResearch_AI
+git clone https://github.com/<your-fork>/CiteProof-AI-MCP.git
+cd CiteProof-AI-MCP
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
@@ -40,7 +41,15 @@ Python 3.12 is the supported version. The frontend needs no build; open `http://
 ## Running tests
 
 ```bash
-pytest
+pytest --ignore=MCP
+```
+
+The MCP server has its own package and tests. Run them from inside `MCP/`:
+
+```bash
+cd MCP
+pip install -e ".[test]"
+python -m pytest
 ```
 
 The default run is offline and fast. Tests that hit real external APIs are marked `live` and deselected; run them on purpose with `pytest -m live`. Please do not add tests that need a real API key to pass by default.
