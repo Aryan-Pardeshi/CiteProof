@@ -1,4 +1,4 @@
-# <img src="frontend/assets/logo.png" width="32" height="32" style="vertical-align: middle; border-radius: 7px;"> CiteProof
+# <img src="frontend/assets/logo.png" alt="" width="32" height="32" style="vertical-align: middle; border-radius: 7px;"> CiteProof
 
 **Audit tools for AI literature reviews.** CiteProof checks that a review's citations, quotes, counts and risk-of-bias judgements hold up. It comes in two parts: an **MCP server** for Claude Science and other research agents, and a full **research assistant app** that writes evidence-grounded papers.
 

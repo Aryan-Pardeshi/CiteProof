@@ -26,6 +26,9 @@ Homepage = "https://github.com/Aryan-Pardeshi/CiteProof"
 [project.scripts]
 citeproof-mcp = "citeproof_mcp.__main__:main"
 
+[tool.setuptools]
+license-files = ["LICENSES/*", "NOTICE.md"]
+
 [tool.setuptools.packages.find]
 include = ["citeproof_mcp*"]
 

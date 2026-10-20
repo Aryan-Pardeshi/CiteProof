@@ -354,3 +354,20 @@ async def test_export_bundle_markdown_and_json() -> None:
     assert data["agreement"][0]["disagreement_count"] == 1
     assert data["claims"][0]["quote_verified"] is True
     assert SOURCE not in js["content"]
+
+
+@pytest.mark.asyncio
+async def test_export_bundle_markdown_escapes_text_outside_tables() -> None:
+    evil_title = "Trial <img src=x onerror=alert(1)>\n## Injected heading"
+    created = await call("review_create", title=evil_title, question="Q <script>alert(2)</script>?")
+    rid = created["review_id"]
+    await call("protocol_record", review_id=rid, population="<b>adults</b>", intervention="Drug X")
+    await call("protocol_record", review_id=rid, population="<i>children</i>")  # an amendment
+    await call("prisma_record_search", review_id=rid, source="PubMed", query="x", date_run="2026-01-01", hits=3)
+    await call("prisma_record_dedup", review_id=rid, duplicates_removed=1, method="<u>manual</u>")
+
+    text = (await call("export_bundle", review_id=rid))["content"]
+    for raw in ("<img", "<script", "<b>", "<i>", "<u>"):
+        assert raw not in text, raw
+    assert "\n## Injected heading" not in text  # the newline in the title cannot open a new heading
+    assert text.splitlines()[0].startswith("# Review audit bundle: Trial &lt;img")

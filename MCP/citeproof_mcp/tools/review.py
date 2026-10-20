@@ -23,7 +23,7 @@ from citeproof_mcp.tools import (
     prisma_render,
     protocol,
 )
-from citeproof_mcp.tools.common import choice_arg, md_table, safe_tool
+from citeproof_mcp.tools.common import choice_arg, md_cell, md_table, safe_tool
 
 ReviewId = Annotated[str, Field(description="The id returned by review_create.")]
 ReviewerOpt = Annotated[
@@ -250,13 +250,18 @@ def _collect(conn: sqlite3.Connection, reviewer: str | None) -> dict[str, Any]:
     }
 
 
+def _t(value: Any, limit: int = 2000) -> str:
+    """Agent text outside a table: one line, escaped like a table cell (no raw HTML, no new headings)."""
+    return md_cell(value, limit)
+
+
 def _markdown(b: dict[str, Any]) -> str:
     meta, proto = b["review"], b["protocol"]
     out: list[str] = [
-        f"# Review audit bundle: {meta.get('title', '')}",
+        f"# Review audit bundle: {_t(meta.get('title', ''), 500)}",
         "",
-        f"- Review id: {meta.get('review_id')}",
-        f"- Question: {meta.get('question')}",
+        f"- Review id: {_t(meta.get('review_id'))}",
+        f"- Question: {_t(meta.get('question'))}",
         f"- Publication years: {proto.get('year_min') or 'any'} to {proto.get('year_max') or 'any'}",
         f"- Created: {meta.get('created_at')}; bundle generated: {b['generated_at']}",
         f"- Phase: {b['status']['phase']}",
@@ -270,26 +275,34 @@ def _markdown(b: dict[str, Any]) -> str:
     for field in protocol.ALL_FIELDS:
         value = proto.get(field)
         shown = "; ".join(value) if isinstance(value, list) else value
-        out.append(f"- **{field}**: {shown or '(not recorded)'}")
+        out.append(f"- **{field}**: {_t(shown) or '(not recorded)'}")
     if b["protocol_changes"]:
         amended = [c for c in b["protocol_changes"] if c["old"] is not None]
         out += ["", f"Protocol amendments: {len(amended)}"]
-        out += [f"- {c['changed_at']} {c['field']}: {json.dumps(c['old'])} -> {json.dumps(c['new'])}" for c in amended[:100]]
+        out += [
+            f"- {c['changed_at']} {_t(c['field'], 100)}: {_t(json.dumps(c['old']))} -> {_t(json.dumps(c['new']))}"
+            for c in amended[:100]
+        ]
     out += ["", "## Searches", ""]
     out.append(
         md_table(["Source", "Date run", "Hits", "Query"], [[s["source"], s["date_run"], s["hits"], s["query"]] for s in b["searches"]], 2000)
         if b["searches"] else "No searches recorded."
     )
     dedup = b["dedup"]
-    out += ["", "## Deduplication", "", f"{dedup['duplicates_removed']} duplicates removed ({dedup['method']})." if dedup else "Not recorded."]
+    out += [
+        "",
+        "## Deduplication",
+        "",
+        f"{dedup['duplicates_removed']} duplicates removed ({_t(dedup['method'], 300)})." if dedup else "Not recorded.",
+    ]
     out += ["", "## PRISMA 2020 flow", ""]
     status = b["prisma"]
     if "error" in status:
-        out.append(f"Counts not computed: {status['error']}")
+        out.append(f"Counts not computed: {_t(status['error'])}")
     else:
         out.append(prisma_render.build_markdown(status))
         out += ["", f"Invariants valid: {status['invariants_valid']}"]
-        out += [f"- {e}" for e in status["invariant_errors"]]
+        out += [f"- {_t(e)}" for e in status["invariant_errors"]]
         out += ["", "```mermaid", b["prisma_flow_mermaid"], "```"]
     out += ["", "## Screening decisions", ""]
     shown = b["screening_decisions"]
@@ -339,8 +352,8 @@ def _markdown(b: dict[str, Any]) -> str:
     else:
         out.append("No DOI checks saved.")
     out += ["", "## Open items", ""]
-    out += [f"- Warning: {w}" for w in b["status"]["warnings"]]
-    out += [f"- Next: {s}" for s in b["status"]["next_steps"]]
+    out += [f"- Warning: {_t(w)}" for w in b["status"]["warnings"]]
+    out += [f"- Next: {_t(s)}" for s in b["status"]["next_steps"]]
     return "\n".join(out) + "\n"
 
 

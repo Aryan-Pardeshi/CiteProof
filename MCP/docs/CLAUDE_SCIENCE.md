@@ -35,7 +35,7 @@ We do not ask you to run `claude-science sandbox setup`. That command changes Wi
    python MCP/scripts/build_claude_science_bundle.py "C:/Users/<you>/.claude-science/orgs/<org-id>/workspaces/_mcp-citeproof/bundle"
    ```
 
-   The script needs only the Python standard library.
+   The script needs only the Python standard library. It writes into an empty folder or replaces a previous bundle. It refuses any folder that holds other files, so passing the connector's workspace folder by mistake cannot delete your `data` folder.
 4. **Point the connector at the bundle.** Remove the placeholder connector and add it again with:
 
    - Name: `citeproof`
