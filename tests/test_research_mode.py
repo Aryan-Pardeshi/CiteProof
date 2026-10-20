@@ -1,7 +1,7 @@
-import sys
-import os
 import argparse
 import asyncio
+import os
+import sys
 import uuid
 from pathlib import Path
 
@@ -13,7 +13,11 @@ if str(repo_root) not in sys.path:
 
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 from langgraph.types import Command
-from backend.app.graph.research_mode_builder import set_checkpointer, get_research_mode_graph
+
+from backend.app.graph.research_mode_builder import (
+    get_research_mode_graph,
+    set_checkpointer,
+)
 
 THREAD_FILE = Path("./data/latest_thread_id.txt")
 

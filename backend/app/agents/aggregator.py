@@ -1,8 +1,10 @@
 # Final report builder
 import logging
-from backend.app.llm import llm_pro
+
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+
 from backend.app.graph.state import ResearchState
-from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
+from backend.app.llm import llm_pro
 
 logger = logging.getLogger(__name__)
 
@@ -48,8 +50,9 @@ async def aggregator_node(state: ResearchState) -> dict:
     ]
 
     try:
-        from backend.app.tools.matplotlib_tool import generate_matplotlib_chart
         from langchain_core.messages import ToolMessage
+
+        from backend.app.tools.matplotlib_tool import generate_matplotlib_chart
         
         llm_with_tools = llm_pro.bind_tools([generate_matplotlib_chart])
         
@@ -82,10 +85,10 @@ async def aggregator_node(state: ResearchState) -> dict:
             
     except Exception as e:
         error_msg = str(e).lower()
-        logger.error(f"Error in aggregator: {e}", exc_info=True)
+        logger.exception("Error in aggregator")
         if any(kw in error_msg for kw in ["api key", "authentication", "unauthorized", "401", "403", "invalid key", "missing credentials", "not set"]):
             return {"status": "error", "error": "API key is missing or invalid. Open settings to configure your API keys."}
-        return {"status": "error", "error": f"Synthesis failed: {str(e)}"}
+        return {"status": "error", "error": f"Synthesis failed: {e!s}"}
     
     # Update the state with the final answer and set status to completed
     return {"final_answer": final_content, "status": "completed"}

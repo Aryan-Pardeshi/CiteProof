@@ -1,5 +1,4 @@
 import asyncio
-import httpx
 import os
 import sys
 from pathlib import Path
@@ -12,6 +11,7 @@ if str(repo_root) not in sys.path:
     sys.path.insert(0, str(repo_root))
 
 from backend.app.graph.research_mode_builder import get_research_mode_graph
+
 
 @pytest.mark.skip(reason="live integration test: runs the real graph against configured LLM/API keys, run manually with `python tests/test_docx_integration.py`")
 async def test_integration():

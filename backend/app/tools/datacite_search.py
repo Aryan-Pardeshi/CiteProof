@@ -27,7 +27,8 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any
+
 import httpx
 
 from backend.app.models.evidence import PaperRecord, make_paper_id
@@ -38,7 +39,7 @@ DATACITE_API_URL = "https://api.datacite.org/dois"
 DATACITE_TIMEOUT = 12.0
 
 
-def _normalize_doi(doi: Optional[str]) -> str:
+def _normalize_doi(doi: str | None) -> str:
     """Canonicalize a DOI string to bare lowercase form."""
     if not doi:
         return ""
@@ -60,9 +61,9 @@ def _pick_title(titles: Any) -> str:
     return plain[0]
 
 
-def _extract_authors(creators: Any) -> List[str]:
+def _extract_authors(creators: Any) -> list[str]:
     """Creator 'name' when present; compose from given/family names otherwise."""
-    authors: List[str] = []
+    authors: list[str] = []
     for c in creators or []:
         if not isinstance(c, dict):
             continue
@@ -78,14 +79,14 @@ def _extract_authors(creators: Any) -> List[str]:
 
 def _extract_abstract(descriptions: Any) -> str:
     """Concatenate description entries typed as Abstract."""
-    parts: List[str] = []
+    parts: list[str] = []
     for d in descriptions or []:
         if isinstance(d, dict) and d.get("descriptionType") == "Abstract" and d.get("description"):
             parts.append(str(d["description"]))
     return re.sub(r"\s+", " ", " ".join(parts)).strip()
 
 
-def _extract_year(attributes: Dict[str, Any]) -> str:
+def _extract_year(attributes: dict[str, Any]) -> str:
     pub_year = attributes.get("publicationYear")
     if pub_year:
         return str(pub_year)
@@ -99,13 +100,13 @@ def _extract_year(attributes: Dict[str, Any]) -> str:
 async def search_datacite(
     query: str,
     limit: int = 15,
-    client: Optional[httpx.AsyncClient] = None,
-) -> List[PaperRecord]:
+    client: httpx.AsyncClient | None = None,
+) -> list[PaperRecord]:
     """Search DataCite DOIs matching the query.
 
     Returns structured PaperRecord objects; failures yield [].
     """
-    params: Dict[str, Any] = {
+    params: dict[str, Any] = {
         "query": query,
         "page[size]": min(limit, 50),
         "page[number]": 1,
@@ -126,7 +127,7 @@ async def search_datacite(
 
         data = resp.json()
         items = data.get("data", [])
-        records: List[PaperRecord] = []
+        records: list[PaperRecord] = []
 
         for item in items:
             if not isinstance(item, dict):
@@ -170,6 +171,6 @@ async def search_datacite(
         logger.info(f"DataCite returned {len(records)} papers for: {query[:40]!r}")
         return records
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"DataCite search failed for {query[:40]!r}: {e}")
         return []

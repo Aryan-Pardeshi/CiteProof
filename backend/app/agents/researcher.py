@@ -1,17 +1,19 @@
 # Worker agent (reused for each sub-question)
 import sys
 from pathlib import Path
+
 # Add workspace root to sys.path so 'backend' is importable
 root_dir = Path(__file__).resolve().parent.parent.parent.parent
 if str(root_dir) not in sys.path:
     sys.path.insert(0, str(root_dir))
 
-import logging
 import concurrent.futures
-from langchain_core.messages import SystemMessage, HumanMessage, ToolMessage
-from backend.app.graph.state import ResearchState
-from typing import List
+import logging
+
+from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 from pydantic import BaseModel, Field
+
+from backend.app.graph.state import ResearchState
 from backend.app.llm import llm
 from backend.app.tools.tavily_search import search_web
 
@@ -69,12 +71,12 @@ Only include URLs that appeared in the search results."""
 
 class ResearchResult(BaseModel):
     result: str = Field(description="Comprehensive research summary based on search results")
-    citations: List[str] = Field(description="List of source URLs from search results")
+    citations: list[str] = Field(description="List of source URLs from search results")
 
 
 def researcher_node(state: ResearchState) -> dict:
-    import time
     import random
+    import time
     query = state["query"]
     logger.info(f"Researcher starting for query: {query}")
 
@@ -118,8 +120,8 @@ def researcher_node(state: ResearchState) -> dict:
                     try:
                         tool_output = search_web.invoke(args)
                         search_count += 1
-                    except Exception as e:
-                        tool_output = f"Search failed: {str(e)}"
+                    except Exception as e:  # noqa: BLE001
+                        tool_output = f"Search failed: {e!s}"
                         logger.warning(f"Search failed: {e}")
 
                     messages.append(
@@ -143,11 +145,10 @@ def researcher_node(state: ResearchState) -> dict:
             # Strip markdown code fences if present
             if raw.startswith("```"):
                 raw = raw.split("```")[1]
-                if raw.startswith("json"):
-                    raw = raw[4:]
+                raw = raw.removeprefix("json")
             data = json.loads(raw)
             final_result = ResearchResult(**data)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Structured output parsing failed: {e}")
             return {"results": [final_response.content], "citations": []}
 
@@ -157,9 +158,9 @@ def researcher_node(state: ResearchState) -> dict:
             "citations": final_result.citations
         }
     except Exception as e:
-        logger.error(f"Error in researcher node for task '{query}': {e}", exc_info=True)
+        logger.exception("Error in researcher node for task '%s'", query)
         return {
-            "results": [f"Research failed for this task due to an error: {str(e)}"],
+            "results": [f"Research failed for this task due to an error: {e!s}"],
             "citations": []
         }
 

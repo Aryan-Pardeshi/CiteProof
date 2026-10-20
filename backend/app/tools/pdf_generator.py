@@ -1,10 +1,11 @@
+import logging
 import os
 import re
-import logging
 from datetime import date
 from pathlib import Path
+from typing import Any
+
 from fpdf import FPDF
-from typing import Dict, Any, Optional, List, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +59,7 @@ SUBSECTION_SIZE = 11
 REFERENCE_SIZE = 9
 
 
-def _register_fonts(pdf: FPDF) -> Optional[str]:
+def _register_fonts(pdf: FPDF) -> str | None:
     """Registers the first available serif TTF with bold and italic faces."""
     for regular, bold, italic in UNICODE_FONT_CANDIDATES:
         if not regular or not Path(regular).is_file():
@@ -75,18 +76,18 @@ def _register_fonts(pdf: FPDF) -> Optional[str]:
             # Bold-italic is requested by subsection headings; without it fpdf2 raises
             pdf.add_font(family, "BI", bold_file)
             return family
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Could not register PDF font {regular}: {e}")
     return None
 
 
-def _split_markdown_blocks(text: str) -> List[Tuple[str, str, int]]:
+def _split_markdown_blocks(text: str) -> list[tuple[str, str, int]]:
     """Parses agent Markdown into (kind, text, level) blocks for the renderer.
 
     Kinds: heading, bullet, numbered, paragraph. Horizontal rules are dropped.
     """
-    blocks: List[Tuple[str, str, int]] = []
-    paragraph: List[str] = []
+    blocks: list[tuple[str, str, int]] = []
+    paragraph: list[str] = []
 
     def flush():
         if paragraph:
@@ -128,7 +129,7 @@ def _split_markdown_blocks(text: str) -> List[Tuple[str, str, int]]:
     return blocks
 
 
-def generate_paper_pdf(state: Dict[str, Any], output_path: str) -> str:
+def generate_paper_pdf(state: dict[str, Any], output_path: str) -> str:
     """Renders a completed ResearchMode paper as a formatted academic PDF."""
     paper_title = (state.get("title") or "Academic Research Paper").strip()
 
@@ -206,7 +207,7 @@ def generate_paper_pdf(state: Dict[str, Any], output_path: str) -> str:
                 body_text(content)
                 pdf.ln(1.5)
 
-    def section(number: Optional[int], heading: str, body: Any, markdown: bool = True):
+    def section(number: int | None, heading: str, body: Any, markdown: bool = True):
         if not body:
             return
         pdf.ln(4)
@@ -282,7 +283,7 @@ def generate_paper_pdf(state: Dict[str, Any], output_path: str) -> str:
 
     figures = state.get("figures") or {}
 
-    def embed_figure(image_path: Optional[str], caption: str):
+    def embed_figure(image_path: str | None, caption: str):
         if not image_path or not Path(image_path).is_file():
             return
         try:
@@ -292,7 +293,7 @@ def generate_paper_pdf(state: Dict[str, Any], output_path: str) -> str:
                 with Image.open(image_path) as img:
                     w_px, h_px = img.size
                 aspect = h_px / w_px
-            except Exception:
+            except Exception:  # noqa: BLE001
                 aspect = 0.7
 
             img_w = col_width
@@ -314,7 +315,7 @@ def generate_paper_pdf(state: Dict[str, Any], output_path: str) -> str:
             pdf.set_text_color(60, 60, 60)
             mc(0, 4.5, clean(caption), align="C")
             pdf.ln(4)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Could not embed figure '{caption}' from {image_path}: {e}")
 
     # --- Body flows on from the abstract, no page break ----------------------

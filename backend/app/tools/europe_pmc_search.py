@@ -31,7 +31,8 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any
+
 import httpx
 
 from backend.app.models.evidence import PaperRecord, make_paper_id
@@ -42,7 +43,7 @@ EUROPE_PMC_API_URL = "https://www.ebi.ac.uk/europepmc/webservices/rest/search"
 EUROPE_PMC_TIMEOUT = 12.0
 
 
-def _normalize_doi(doi: Optional[str]) -> str:
+def _normalize_doi(doi: str | None) -> str:
     """Canonicalize a DOI string to bare lowercase form."""
     if not doi:
         return ""
@@ -51,9 +52,9 @@ def _normalize_doi(doi: Optional[str]) -> str:
     return doi.strip()
 
 
-def _extract_authors(result: Dict[str, Any]) -> List[str]:
+def _extract_authors(result: dict[str, Any]) -> list[str]:
     """Prefer the structured authorList; fall back to comma-splitting authorString."""
-    authors: List[str] = []
+    authors: list[str] = []
     author_list = ((result.get("authorList") or {}).get("author")) or []
     for a in author_list:
         if isinstance(a, dict):
@@ -67,7 +68,7 @@ def _extract_authors(result: Dict[str, Any]) -> List[str]:
     return authors
 
 
-def _extract_pdf_url(full_text_url_list: Any) -> Optional[str]:
+def _extract_pdf_url(full_text_url_list: Any) -> str | None:
     entries = ((full_text_url_list or {}).get("fullTextUrl")) or []
     for entry in entries:
         if isinstance(entry, dict) and entry.get("documentStyle") == "pdf" and entry.get("url"):
@@ -78,13 +79,13 @@ def _extract_pdf_url(full_text_url_list: Any) -> Optional[str]:
 async def search_europe_pmc(
     query: str,
     limit: int = 15,
-    client: Optional[httpx.AsyncClient] = None,
-) -> List[PaperRecord]:
+    client: httpx.AsyncClient | None = None,
+) -> list[PaperRecord]:
     """Search Europe PMC for literature matching the query.
 
     Returns structured PaperRecord objects; failures yield [].
     """
-    params: Dict[str, Any] = {
+    params: dict[str, Any] = {
         "query": query,
         "format": "json",
         "resultType": "core",  # core includes abstract + structured authors
@@ -107,7 +108,7 @@ async def search_europe_pmc(
 
         data = resp.json()
         results = ((data.get("resultList") or {}).get("result")) or []
-        records: List[PaperRecord] = []
+        records: list[PaperRecord] = []
 
         for result in results:
             if not isinstance(result, dict):
@@ -153,6 +154,6 @@ async def search_europe_pmc(
         logger.info(f"Europe PMC returned {len(records)} papers for: {query[:40]!r}")
         return records
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"Europe PMC search failed for {query[:40]!r}: {e}")
         return []

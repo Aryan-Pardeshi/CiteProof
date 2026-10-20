@@ -9,12 +9,13 @@ single provider never aborts the fan-out.
 
 from __future__ import annotations
 
+import asyncio
+import json
+import logging
 import os
 import re
-import json
-import asyncio
-import logging
-from typing import List, Dict, Any, Optional, Tuple
+from typing import Any
+
 import httpx
 
 try:
@@ -25,12 +26,12 @@ except ImportError:
 from backend.app.llm import get_llm
 from backend.app.models.evidence import PaperRecord, PRISMATracker, make_paper_id
 from backend.app.tools.crossref_search import search_crossref
-from backend.app.tools.pubmed_search import search_pubmed
-from backend.app.tools.openalex_search import search_openalex
-from backend.app.tools.semantic_scholar_search import search_semantic_scholar
-from backend.app.tools.europe_pmc_search import search_europe_pmc
-from backend.app.tools.doaj_search import search_doaj
 from backend.app.tools.datacite_search import search_datacite
+from backend.app.tools.doaj_search import search_doaj
+from backend.app.tools.europe_pmc_search import search_europe_pmc
+from backend.app.tools.openalex_search import search_openalex
+from backend.app.tools.pubmed_search import search_pubmed
+from backend.app.tools.semantic_scholar_search import search_semantic_scholar
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +48,7 @@ SCREEN_BATCH_SIZE = 15       # papers per LLM scoring call
 SCREEN_CONCURRENCY = 4       # scoring calls in flight at once
 
 
-def _normalize_doi(doi: Optional[str]) -> str:
+def _normalize_doi(doi: str | None) -> str:
     """Canonicalize DOI string."""
     if not doi:
         return ""
@@ -56,14 +57,14 @@ def _normalize_doi(doi: Optional[str]) -> str:
     return doi.strip()
 
 
-def _normalize_title(title: Optional[str]) -> str:
+def _normalize_title(title: str | None) -> str:
     """Normalize title for fuzzy collision-resistant deduplication."""
     if not title:
         return ""
     return re.sub(r"\W+", "", title.lower())
 
 
-async def fetch_arxiv_papers(client: httpx.AsyncClient, keyword: str, max_results: int = 50) -> List[PaperRecord]:
+async def fetch_arxiv_papers(client: httpx.AsyncClient, keyword: str, max_results: int = 50) -> list[PaperRecord]:
     """Retrieve papers from arXiv."""
     papers = []
     if feedparser is None:
@@ -105,12 +106,12 @@ async def fetch_arxiv_papers(client: httpx.AsyncClient, keyword: str, max_result
                     study_type="theoretical",
                     screening_status="retrieved"
                 ))
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"ArXiv search skipped for '{keyword}': {e}")
     return papers
 
 
-async def fetch_tavily_web_papers(keyword: str, max_results: int = 5) -> List[PaperRecord]:
+async def fetch_tavily_web_papers(keyword: str, max_results: int = 5) -> list[PaperRecord]:
     """LAST RESORT FALLBACK: Web articles via Tavily when academic databases return insufficient literature."""
     papers = []
     try:
@@ -140,17 +141,17 @@ async def fetch_tavily_web_papers(keyword: str, max_results: int = 5) -> List[Pa
                 citation_count=0,
                 screening_status="retrieved"
             ))
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"Tavily web fallback search skipped for '{keyword}': {e}")
     return papers
 
 
 async def search_academic_papers_structured(
-    keywords: List[str]
-) -> Tuple[List[PaperRecord], PRISMATracker]:
+    keywords: list[str]
+) -> tuple[list[PaperRecord], PRISMATracker]:
     """Concurrent multi-source academic search returning typed PaperRecords and PRISMATracker."""
     selected_keywords = keywords[:MAX_SEARCH_KEYWORDS] if keywords else ["research"]
-    records_by_source: Dict[str, int] = {
+    records_by_source: dict[str, int] = {
         "openalex": 0,
         "semantic_scholar": 0,
         "arxiv": 0,
@@ -179,7 +180,7 @@ async def search_academic_papers_structured(
             tasks.append(search_pubmed(kw, limit=15))
 
         results_list = await asyncio.gather(*tasks, return_exceptions=True)
-        combined: List[PaperRecord] = []
+        combined: list[PaperRecord] = []
         for res in results_list:
             if isinstance(res, list):
                 for p in res:
@@ -192,7 +193,7 @@ async def search_academic_papers_structured(
     seen_dois = set()
     seen_titles = set()
     seen_paper_ids = set()
-    deduped: List[PaperRecord] = []
+    deduped: list[PaperRecord] = []
 
     for p in combined:
         doi = p.doi
@@ -252,8 +253,8 @@ async def search_academic_papers_structured(
 
 
 async def search_academic_papers(
-    keywords: List[str]
-) -> Tuple[List[Dict[str, Any]], Dict[str, int]]:
+    keywords: list[str]
+) -> tuple[list[dict[str, Any]], dict[str, int]]:
     """Legacy adapter returning dictionary papers and stats for backward compatibility."""
     records, tracker = await search_academic_papers_structured(keywords)
     dict_papers = [r.model_dump() for r in records]
@@ -266,16 +267,16 @@ async def search_academic_papers(
     return dict_papers, stats
 
 
-def _select_candidates(papers: List[PaperRecord], limit: int) -> List[PaperRecord]:
+def _select_candidates(papers: list[PaperRecord], limit: int) -> list[PaperRecord]:
     """Select candidate pool for screening using round-robin distribution across sources."""
-    by_source: Dict[str, List[PaperRecord]] = {}
+    by_source: dict[str, list[PaperRecord]] = {}
     for p in papers:
         by_source.setdefault(p.retrieval_source, []).append(p)
 
     for bucket in by_source.values():
         bucket.sort(key=lambda p: p.citation_count or 0, reverse=True)
 
-    candidates: List[PaperRecord] = []
+    candidates: list[PaperRecord] = []
     buckets = list(by_source.values())
     idx = 0
     while len(candidates) < limit and any(idx < len(b) for b in buckets):
@@ -290,11 +291,11 @@ def _select_candidates(papers: List[PaperRecord], limit: int) -> List[PaperRecor
 
 async def _score_batch(
     llm,
-    batch: List[PaperRecord],
+    batch: list[PaperRecord],
     problem_statement: str,
     objectives_str: str,
     semaphore: asyncio.Semaphore
-) -> List[PaperRecord]:
+) -> list[PaperRecord]:
     """Scores one batch of papers 1-10 for relevance."""
     prompt = f"""Problem Statement:
 {problem_statement}
@@ -313,22 +314,21 @@ Papers:
     prompt += """\nReturn ONLY a JSON array of objects with fields 'id' (1-based index) and 'score' (1-10). Example:
 [{"id": 1, "score": 9}, {"id": 2, "score": 4}]"""
 
-    score_map: Dict[int, int] = {}
+    score_map: dict[int, int] = {}
     async with semaphore:
         try:
             res = await asyncio.wait_for(llm.ainvoke(prompt), timeout=20.0)
             raw = str(res.content).strip()
             if "```" in raw:
                 raw = raw.split("```")[1]
-                if raw.startswith("json"):
-                    raw = raw[4:]
+                raw = raw.removeprefix("json")
             scores = json.loads(raw.strip())
             score_map = {
                 item["id"]: item.get("score", 5)
                 for item in scores
                 if isinstance(item, dict) and "id" in item
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Screening batch scoring defaulted to neutral [5]: {e}")
 
     scored = []
@@ -340,12 +340,12 @@ Papers:
 
 
 async def screen_papers_structured(
-    papers: List[PaperRecord],
+    papers: list[PaperRecord],
     problem_statement: str,
-    objectives: List[str],
-    tracker: Optional[PRISMATracker] = None,
-    model: Optional[str] = None
-) -> Tuple[List[PaperRecord], PRISMATracker]:
+    objectives: list[str],
+    tracker: PRISMATracker | None = None,
+    model: str | None = None
+) -> tuple[list[PaperRecord], PRISMATracker]:
     """Screen candidate corpus for relevance, updating PRISMATracker deterministically."""
     tr = tracker.model_copy(deep=True) if tracker else PRISMATracker(
         records_identified=len(papers),
@@ -388,7 +388,7 @@ async def screen_papers_structured(
         return_exceptions=True
     )
 
-    scored_papers: List[PaperRecord] = []
+    scored_papers: list[PaperRecord] = []
     for res in results:
         if isinstance(res, list):
             scored_papers.extend(res)
@@ -412,12 +412,12 @@ async def screen_papers_structured(
     # set, even if they scored below the cutoff. This prevents Crossref /
     # PubMed / OpenCitations from being completely eliminated by citation-count
     # bias (older indexed sources tend to have higher citation counts).
-    by_source: Dict[str, List[PaperRecord]] = {}
+    by_source: dict[str, list[PaperRecord]] = {}
     for p in scored_papers:
         by_source.setdefault(p.retrieval_source, []).append(p)
 
-    guaranteed: List[PaperRecord] = []
-    for src, src_papers in by_source.items():
+    guaranteed: list[PaperRecord] = []
+    for src_papers in by_source.values():
         present = [p for p in src_papers if id(p) in top_ids]
         if len(present) < SCREEN_MIN_PER_SOURCE:
             deficit = SCREEN_MIN_PER_SOURCE - len(present)
@@ -461,11 +461,11 @@ async def screen_papers_structured(
 
 
 async def screen_papers(
-    papers: List[Dict[str, Any]],
+    papers: list[dict[str, Any]],
     problem_statement: str,
-    objectives: List[str],
-    model: Optional[str] = None
-) -> Tuple[List[Dict[str, Any]], Dict[str, int]]:
+    objectives: list[str],
+    model: str | None = None
+) -> tuple[list[dict[str, Any]], dict[str, int]]:
     """Legacy screening adapter returning dicts and stats."""
     records = [PaperRecord.from_dict(p) for p in papers]
     screened_records, tracker = await screen_papers_structured(records, problem_statement, objectives, model=model)
@@ -479,7 +479,7 @@ async def screen_papers(
     return dict_screened, stats
 
 
-def format_apa(paper: Dict[str, Any]) -> str:
+def format_apa(paper: dict[str, Any]) -> str:
     """Format paper metadata into APA 7th edition citation string."""
     authors = paper.get("authors") or []
     if not authors:
@@ -491,7 +491,7 @@ def format_apa(paper: Dict[str, Any]) -> str:
     elif len(authors) <= 7:
         author_str = ", ".join(authors[:-1]) + f", & {authors[-1]}"
     else:
-        author_str = ", ".join(authors[:6]) + f", et al."
+        author_str = ", ".join(authors[:6]) + ", et al."
 
     year = paper.get("year", "n.d.")
     title = str(paper.get("title", "")).strip().rstrip(".")

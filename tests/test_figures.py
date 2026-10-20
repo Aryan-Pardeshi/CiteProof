@@ -1,6 +1,7 @@
 import os
-import pytest
-from backend.app.tools.figures import render_prisma_diagram, render_evidence_table
+
+from backend.app.tools.figures import render_evidence_table, render_prisma_diagram
+
 
 def test_render_prisma_diagram(tmp_path):
     output_path = str(tmp_path / "prisma.png")

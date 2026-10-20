@@ -1,9 +1,9 @@
 """Unit tests for Stage 2: PRISMA Tracker Determinism & Figure Generation."""
 
 import os
-import pytest
-from backend.app.models.evidence import PRISMATracker, PaperRecord
-from backend.app.tools.figures import render_prisma_diagram, render_evidence_table
+
+from backend.app.models.evidence import PaperRecord, PRISMATracker
+from backend.app.tools.figures import render_evidence_table, render_prisma_diagram
 
 
 def test_render_prisma_diagram_from_tracker(tmp_path):

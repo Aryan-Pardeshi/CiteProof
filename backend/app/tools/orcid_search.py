@@ -38,7 +38,8 @@ from __future__ import annotations
 import asyncio
 import logging
 import re
-from typing import Any, List, Optional
+from typing import Any
+
 import httpx
 from pydantic import BaseModel, Field
 
@@ -56,10 +57,10 @@ class AuthorIdentity(BaseModel):
     """Adapter-local ORCID author identity (never stored on PaperRecord)."""
 
     orcid_id: str
-    given_names: Optional[str] = None
-    family_names: Optional[str] = None
-    credit_name: Optional[str] = None
-    institutions: List[str] = Field(default_factory=list)
+    given_names: str | None = None
+    family_names: str | None = None
+    credit_name: str | None = None
+    institutions: list[str] = Field(default_factory=list)
 
     @property
     def display_name(self) -> str:
@@ -86,7 +87,7 @@ def _confident_match(query_name: str, identity: AuthorIdentity) -> bool:
     return len(orcid_tokens) >= 2 and orcid_tokens.issubset(query_tokens)
 
 
-def _parse_expanded_result(entry: dict) -> Optional[AuthorIdentity]:
+def _parse_expanded_result(entry: dict) -> AuthorIdentity | None:
     orcid_id = (entry.get("orcid-id") or "").strip()
     if not orcid_id:
         return None
@@ -105,8 +106,8 @@ def _parse_expanded_result(entry: dict) -> Optional[AuthorIdentity]:
 async def resolve_orcid_authors(
     query: str,
     limit: int = 5,
-    client: Optional[httpx.AsyncClient] = None,
-) -> List[AuthorIdentity]:
+    client: httpx.AsyncClient | None = None,
+) -> list[AuthorIdentity]:
     """Resolve a free-text author name to ORCID iDs via the public expanded-search.
 
     Query syntax supports ORCID search fields (e.g. "family-names:Turing").
@@ -131,7 +132,7 @@ async def resolve_orcid_authors(
         logger.info(f"ORCID resolved {len(identities)} identities for: {query[:40]!r}")
         return identities
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"ORCID expanded-search failed for {query[:40]!r}: {e}")
         return []
 
@@ -146,8 +147,8 @@ def _orcid_value(field: Any) -> str:
 
 async def fetch_orcid_profile(
     orcid_id: str,
-    client: Optional[httpx.AsyncClient] = None,
-) -> Optional[AuthorIdentity]:
+    client: httpx.AsyncClient | None = None,
+) -> AuthorIdentity | None:
     """Fetch the canonical person name for a known ORCID iD. None on failure."""
     orcid_id = orcid_id.strip()
     if not re.fullmatch(r"\d{4}-\d{4}-\d{4}-[\dX]{4}", orcid_id):
@@ -176,7 +177,7 @@ async def fetch_orcid_profile(
             credit_name=credit or None,
         )
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"ORCID profile fetch failed for {orcid_id}: {e}")
         return None
 
@@ -184,7 +185,7 @@ async def fetch_orcid_profile(
 async def enrich_record_authors(
     record: PaperRecord,
     max_authors: int = 2,
-    client: Optional[httpx.AsyncClient] = None,
+    client: httpx.AsyncClient | None = None,
 ) -> PaperRecord:
     """Canonicalize leading author names on a PaperRecord via ORCID.
 
@@ -223,7 +224,7 @@ async def enrich_record_authors(
                 if canonical and canonical != raw_name:
                     updated[idx] = canonical
                     changed = True
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.debug(f"ORCID author enrichment skipped: {e}")
     finally:
         if own_client is not None:
@@ -235,11 +236,11 @@ async def enrich_record_authors(
 
 
 async def enrich_records_authors(
-    records: List[PaperRecord],
+    records: list[PaperRecord],
     max_authors: int = 2,
     concurrency: int = 4,
-    client: Optional[httpx.AsyncClient] = None,
-) -> List[PaperRecord]:
+    client: httpx.AsyncClient | None = None,
+) -> list[PaperRecord]:
     """Batch wrapper over enrich_record_authors with bounded concurrency."""
     semaphore = asyncio.Semaphore(concurrency)
 

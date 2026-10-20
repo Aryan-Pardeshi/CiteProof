@@ -31,7 +31,8 @@ import asyncio
 import logging
 import os
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any
+
 import httpx
 
 from backend.app.models.evidence import PaperRecord, make_paper_id
@@ -43,17 +44,14 @@ SEMANTIC_SCHOLAR_TIMEOUT = 10.0
 
 # Trimmed payload; subfields are requested explicitly so author objects always
 # carry 'name' regardless of API defaults.
-_S2_FIELDS = ",".join([
-    "paperId", "title", "abstract", "authors.name", "year", "venue",
-    "publicationDate", "citationCount", "externalIds", "openAccessPdf", "url",
-])
+_S2_FIELDS = "paperId,title,abstract,authors.name,year,venue,publicationDate,citationCount,externalIds,openAccessPdf,url"
 
 # 429 retry policy for the shared unauthenticated pool.
 _MAX_429_RETRIES = 2
 _429_BACKOFF_SECONDS = (1.0, 3.0)
 
 
-def _normalize_doi(doi: Optional[str]) -> str:
+def _normalize_doi(doi: str | None) -> str:
     """Canonicalize a DOI string to bare lowercase form."""
     if not doi:
         return ""
@@ -65,19 +63,19 @@ def _normalize_doi(doi: Optional[str]) -> str:
 async def search_semantic_scholar(
     query: str,
     limit: int = 15,
-    client: Optional[httpx.AsyncClient] = None,
-) -> List[PaperRecord]:
+    client: httpx.AsyncClient | None = None,
+) -> list[PaperRecord]:
     """Search Semantic Scholar for academic literature matching the query.
 
     Uses SEMANTIC_SCHOLAR_API_KEY when set. Retries on HTTP 429 with backoff;
     returns [] on persistent failure so callers' fan-out is never crashed.
     """
-    headers: Dict[str, Any] = {}
+    headers: dict[str, Any] = {}
     api_key = os.getenv("SEMANTIC_SCHOLAR_API_KEY", "").strip()
     if api_key:
         headers["x-api-key"] = api_key
 
-    params: Dict[str, Any] = {
+    params: dict[str, Any] = {
         "query": query,
         "limit": min(limit, 50),
         "fields": _S2_FIELDS,
@@ -99,7 +97,7 @@ async def search_semantic_scholar(
 
         data = resp.json()
         items = data.get("data", [])
-        records: List[PaperRecord] = []
+        records: list[PaperRecord] = []
 
         for item in items:
             if not isinstance(item, dict):
@@ -153,18 +151,18 @@ async def search_semantic_scholar(
         logger.info(f"Semantic Scholar returned {len(records)} papers for: {query[:40]!r}")
         return records
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"Semantic Scholar search failed for {query[:40]!r}: {e}")
         return []
 
 
 async def _get_with_retry(
     client: httpx.AsyncClient,
-    params: Dict[str, Any],
-    headers: Dict[str, Any],
-) -> Optional[httpx.Response]:
+    params: dict[str, Any],
+    headers: dict[str, Any],
+) -> httpx.Response | None:
     """Issue the search GET, retrying 429 responses with exponential backoff."""
-    resp: Optional[httpx.Response] = None
+    resp: httpx.Response | None = None
     for attempt in range(_MAX_429_RETRIES + 1):
         resp = await client.get(SEMANTIC_SCHOLAR_API_URL, params=params, headers=headers)
         if resp.status_code != 429:
@@ -172,7 +170,7 @@ async def _get_with_retry(
         if attempt < _MAX_429_RETRIES:
             # Honor Retry-After when the server sends one, else fixed backoff.
             retry_after = resp.headers.get("Retry-After")
-            delay: Optional[float] = None
+            delay: float | None = None
             if retry_after:
                 try:
                     delay = float(retry_after)
