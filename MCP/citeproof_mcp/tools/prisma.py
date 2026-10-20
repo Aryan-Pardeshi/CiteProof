@@ -569,7 +569,13 @@ def dedup_papers(
     ],
     review_id: Annotated[
         str | None,
-        Field(description="If given, the duplicate count is recorded as this review's PRISMA dedup step."),
+        Field(
+            description=(
+                "If given, the duplicate count is recorded as this review's PRISMA dedup step, but only when you "
+                "send every exported record in this one call (records_checked must equal the hits recorded with "
+                "prisma_record_search). A partial or batched call is analysed but not recorded."
+            )
+        ),
     ] = None,
 ) -> dict[str, Any]:
     """Find duplicate records deterministically so the PRISMA duplicate count is computed, not guessed.
@@ -584,14 +590,24 @@ def dedup_papers(
     Returns: records_checked, unique_records, duplicates_removed, removed_indices
     (0-based positions to drop), clusters (kept_index, kept_id, member_indices,
     matched_on, conflicting_dois; capped at 200), possible_duplicates (capped),
-    truncated, recorded (true when saved to the review), warnings.
+    truncated, recorded (true when saved to the review), warnings, note.
+
+    A review has one dedup count, so it is recorded only when the call covers
+    every exported record (records_checked equals the recorded hits); otherwise
+    recorded is false and the previous record is kept.
 
     Does NOT fetch or merge metadata, and does not use fuzzy title matching.
+    Before you discard the records at removed_indices, copy any field you still
+    need (an abstract, a PMID or DOI, a full-text link) onto the kept record.
     """
     if not isinstance(papers, list) or not papers:
         fail("papers must be a non-empty list of record objects")
     if len(papers) > MAX_DEDUP_PAPERS:
-        fail(f"papers has {len(papers)} records; the limit is {MAX_DEDUP_PAPERS} per call")
+        fail(
+            f"papers has {len(papers)} records; the limit is {MAX_DEDUP_PAPERS} per call. Duplicates across "
+            "separate calls would be missed, so deduplicate a larger set elsewhere and record the whole-review "
+            "count with prisma_record_dedup."
+        )
     for i, p in enumerate(papers):
         if not isinstance(p, dict):
             fail(f"papers[{i}] must be an object with doi, pmid, title, year and authors fields")
@@ -607,12 +623,19 @@ def dedup_papers(
     recorded = False
     if review_id is not None and str(review_id).strip():
         with store.review_db(review_id, write=True) as conn:
-            identified = _save_dedup(conn, removed, f"{dedup.METHOD} ({len(papers)} records checked)")
-            recorded = True
-            if identified != len(papers):
+            identified, _, _ = search_totals(conn)
+            if identified == 0:
+                fail("no searches are recorded yet; record every search with prisma_record_search first")
+            if len(papers) == identified:
+                _save_dedup(conn, removed, f"{dedup.METHOD} ({len(papers)} records checked)")
+                recorded = True
+            else:
+                # One review has one dedup count. A partial or batched call must never replace it.
                 warnings.append(
-                    f"{len(papers)} records were checked but the recorded searches total {identified} hits; "
-                    "send every exported record so the PRISMA counts add up."
+                    f"{len(papers)} records were checked but the recorded searches total {identified} hits, so the "
+                    "duplicate count was NOT recorded (the review keeps its previous dedup record). Send every "
+                    f"exported record in one call. If the review has more than {MAX_DEDUP_PAPERS} records, or you "
+                    "deduplicated elsewhere, record the whole-review count with prisma_record_dedup."
                 )
     return {
         "ok": True,
@@ -626,6 +649,10 @@ def dedup_papers(
         "recorded": recorded,
         "method": dedup.METHOD,
         "warnings": warnings,
+        "note": (
+            "Only the duplicate count is computed. Records are not merged: copy any field you need from the "
+            "removed records onto the kept one before you discard them."
+        ),
     }
 
 

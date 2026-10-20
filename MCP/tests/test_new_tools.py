@@ -136,7 +136,11 @@ async def test_dedup_papers_records_count_into_prisma() -> None:
     assert st["dedup_method"].startswith("dedup_papers")
 
     short = await call("dedup_papers", papers=PAPERS[:4], review_id=rid)
-    assert any("8 hits" in w for w in short["warnings"])
+    assert short["recorded"] is False
+    assert any("8 hits" in w and "NOT recorded" in w for w in short["warnings"])
+    # The partial call did not replace the review's dedup record
+    st = await call("prisma_status", review_id=rid)
+    assert st["duplicates_removed"] == 3 and st["records_after_dedup"] == 5
 
 
 @pytest.mark.asyncio
@@ -145,6 +149,45 @@ async def test_dedup_papers_cannot_exceed_recorded_hits() -> None:
     res = await call("dedup_papers", papers=PAPERS, review_id=rid)
     assert res["ok"] is False
     assert "prisma_record_search" in res["error"]
+
+
+@pytest.mark.asyncio
+async def test_dedup_papers_batches_never_overwrite_the_review_total() -> None:
+    """Regression: a review has one dedup count; batched calls must not replace each other's result."""
+    rid = await _review()
+    await call("prisma_record_search", review_id=rid, source="PubMed", query="x", date_run="2026-01-01", hits=8)
+    first_half, second_half = PAPERS[:4], PAPERS[4:]
+
+    one = await call("dedup_papers", papers=first_half, review_id=rid)
+    two = await call("dedup_papers", papers=second_half, review_id=rid)
+    assert one["recorded"] is False and two["recorded"] is False
+    assert all("prisma_record_dedup" in r["warnings"][0] for r in (one, two))
+    status = await call("prisma_status", review_id=rid)
+    assert status["dedup_recorded"] is False and status["duplicates_removed"] == 0
+
+    whole = await call("dedup_papers", papers=PAPERS, review_id=rid)
+    assert whole["recorded"] is True
+    status = await call("prisma_status", review_id=rid)
+    assert status["duplicates_removed"] == 3 and status["records_after_dedup"] == 5
+
+    # A later partial call cannot undo the complete result
+    await call("dedup_papers", papers=second_half, review_id=rid)
+    status = await call("prisma_status", review_id=rid)
+    assert status["duplicates_removed"] == 3
+
+
+@pytest.mark.asyncio
+async def test_dedup_papers_result_tells_the_agent_to_keep_removed_metadata() -> None:
+    res = await call("dedup_papers", papers=PAPERS)
+    assert "copy any field" in res["note"]
+
+
+@pytest.mark.asyncio
+async def test_dedup_papers_over_the_limit_points_to_prisma_record_dedup() -> None:
+    papers = [{"title": f"Distinct title number {i} for the limit test"} for i in range(10_001)]
+    res = await call("dedup_papers", papers=papers)
+    assert res["ok"] is False
+    assert "prisma_record_dedup" in res["error"]
 
 
 # --- evidence_record / evidence_table ----------------------------------------------------------
