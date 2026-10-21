@@ -1,107 +1,169 @@
 # CiteProof MCP
 
-Audit tools for AI literature reviews, as an [MCP](https://modelcontextprotocol.io) server. It runs next to a research agent such as Claude Science and keeps the records a systematic review needs: a protocol, a PRISMA record, a screening log, an evidence table, claim checks, risk-of-bias records and an exportable audit trail.
+**A local audit trail for AI-assisted systematic reviews.** CiteProof MCP gives research agents structured records for review protocols, PRISMA counts, screening decisions, extracted evidence, risk-of-bias assessments, citation checks, and a reproducible export.
 
-**The server has no language model inside.** The agent searches, reads, decides and writes. CiteProof MCP stores each decision, checks the evidence it points to, does the counting and refuses bad input. It needs no API key and nothing leaves your machine, except DOI lookups to Crossref and doi.org.
+[Model Context Protocol (MCP)](https://modelcontextprotocol.io) server · Python 3.12+ · stdio transport · MIT
 
-## Contents
+> **The agent does the research; CiteProof keeps it auditable.** The server contains no language model and does not search for or read papers. It records the agent's decisions, validates inputs, checks supplied evidence, and computes review counts. No model API key is required.
 
-- [What it checks](#what-it-checks)
-- [The 24 tools](#the-24-tools)
-- [Install](#install)
-- [A short review, step by step](#a-short-review-step-by-step)
-- [What it does not do](#what-it-does-not-do)
-- [Tests](#tests)
-- [More documentation](#more-documentation)
-- [Licence](#licence)
+## Why CiteProof MCP?
 
-## What it checks
+Systematic reviews involve many decisions that are easy to lose track of across searches, screening, extraction, and reporting. CiteProof MCP provides one local record of that work and checks that the pieces are internally consistent.
 
-| Check | How |
+- **Traceable screening:** record title/abstract and full-text decisions, reasons for exclusion, and reviewer agreement using Cohen's kappa.
+- **PRISMA accounting:** track database searches, deduplication, screening counts, pending decisions, and consistency invariants.
+- **Evidence checks:** compare supplied quotations with source text and flag numbers that do not appear in a recorded quote.
+- **Risk-of-bias records:** maintain domain-level judgements for RoB 2, ROBINS-I, and Newcastle–Ottawa scales, with rule-based summaries.
+- **Citation checks:** look up DOI registration, resolve in-text citations against a supplied reference list, and lint prose for advisory issues.
+- **One export:** assemble the protocol, decisions, evidence, checks, warnings, and next steps into a review bundle.
+
+## How it works
+
+The MCP server runs alongside a compatible research agent (for example, Claude Science or another stdio-capable MCP client).
+
+```text
+Research agent
+  ├─ searches for and reads papers
+  ├─ makes screening, extraction, and interpretation decisions
+  └─ sends decisions and supplied text to CiteProof MCP
+                         │
+                         ▼
+                 CiteProof MCP
+  ├─ validates records and checks supplied quotations
+  ├─ computes PRISMA counts and reviewer agreement
+  ├─ tracks risk-of-bias and citation checks
+  └─ keeps a local audit trail and exports it
+```
+
+CiteProof does **not** independently decide whether a study should be included, whether a claim is true, or whether a risk-of-bias judgement is scientifically correct. Those are the researcher's or agent's judgements; the server checks structure, rules, and the evidence supplied to it.
+
+## Tool overview
+
+The server exposes 24 tools. Use [`docs/SPEC.md`](docs/SPEC.md) for the full argument schemas, output fields, validation rules, and examples.
+
+| Workflow stage | Tools |
 |---|---|
-| A quote really appears in the source text | The agent sends the quote and the text. The server matches them after normalising case, whitespace, curly quotes, dashes, zero-width characters and line-break hyphens. It needs word boundaries and at least 12 characters. The result is stored as `quote_verified`. |
-| Numbers in the evidence table come from the quote | Every number entered (sample size, estimate, confidence limits) must be written in the quote. Estimates outside their interval and ratios of zero or less are refused. |
-| PRISMA numbers add up | Counts are computed from the recorded searches, the deduplication step and the screening decisions. `PRISMATracker` invariants are checked on every call. |
-| Two reviewers agree | Cohen's kappa over the papers both reviewers decided, with the list of disagreements. |
-| DOIs exist and are not retracted | Crossref and doi.org lookups. An unreachable registry gives "unverified", never "not found". |
-| Citations match the reference list | In-text citations are matched to your reference list by DOI, author and year, or title. "Resolved" means matched, not supported. |
-| Risk-of-bias overall judgements follow the published rules | RoB 2, ROBINS-I and Newcastle-Ottawa (AHRQ thresholds). The server computes the overall result from the domains. |
-| Duplicates | Deterministic clustering by DOI, PMID, then title plus year plus first author. |
-
-## The 24 tools
-
-| Group | Tools |
-|---|---|
-| Set up and status | `review_create`, `review_list`, `protocol_record`, `review_status` |
-| Searches and duplicates | `prisma_record_search`, `dedup_papers`, `prisma_record_dedup` |
-| Screening | `screening_record`, `screening_record_many`, `screening_list`, `screening_agreement` |
-| PRISMA | `prisma_status`, `prisma_flow_diagram`, `prisma_checklist` |
-| Evidence and bias | `evidence_record`, `evidence_table`, `claim_record`, `claim_report`, `rob_record`, `rob_summary` |
-| Citations and prose | `verify_dois`, `resolve_citations`, `lint_prose` |
+| Review setup and status | `review_create`, `review_list`, `protocol_record`, `review_status` |
+| Searches and deduplication | `prisma_record_search`, `dedup_papers`, `prisma_record_dedup` |
+| Screening and agreement | `screening_record`, `screening_record_many`, `screening_list`, `screening_agreement` |
+| PRISMA reporting | `prisma_status`, `prisma_flow_diagram`, `prisma_checklist` |
+| Evidence and claims | `evidence_record`, `evidence_table`, `claim_record`, `claim_report` |
+| Risk of bias | `rob_record`, `rob_summary` |
+| References and prose | `verify_dois`, `resolve_citations`, `lint_prose` |
 | Export | `export_bundle` |
 
-Every argument, result field and rule is described in [docs/SPEC.md](docs/SPEC.md). The agent also sees a description on every tool and argument.
+## Requirements
+
+- Python **3.12 or newer**
+- An MCP client that supports the **stdio** transport
+- Internet access only when using DOI registry checks; the other records and checks can run locally
+
+The package supports the `mcp` 1.27 API used by the tested Claude Science setup as well as `mcp` 2.x.
 
 ## Install
 
-**Claude Science (Windows):** follow [docs/CLAUDE_SCIENCE.md](docs/CLAUDE_SCIENCE.md). The connector runs in a sandbox, so the install copies the server into the connector's own folder.
+### General MCP clients
 
-**Any other MCP client:**
+From the repository root, install the local package:
 
 ```bash
-pip install ./MCP
+python -m pip install ./MCP
 ```
 
-Then point the client at the `citeproof-mcp` command (stdio). Example for a client with a JSON config:
+The installation provides the `citeproof-mcp` command. Configure your MCP client to launch it over stdio.
+
+Example configuration for clients that accept a JSON `mcpServers` object:
 
 ```json
 {
   "mcpServers": {
     "citeproof": {
       "command": "citeproof-mcp",
-      "env": { "CITEPROOF_MCP_HOME": "/path/to/your/review-data" }
+      "env": {
+        "CITEPROOF_MCP_HOME": "/path/to/your/review-data"
+      }
     }
   }
 }
 ```
 
-Review files go to `CITEPROOF_MCP_HOME`, or to `~/.citeproof-mcp` when it is not set. Python 3.12 or newer. The package works with `mcp` 1.27 and with `mcp` 2.x.
+Replace `/path/to/your/review-data` with a directory where you want CiteProof to keep its local review files. On Windows, use a valid path for your environment.
 
-## A short review, step by step
+You can also run the server directly from the installed package:
 
-1. `review_create` with the title, the question and the allowed publication years. Keep the `review_id`.
-2. `protocol_record` with the PICO fields, the eligibility criteria, the databases and the search strategy. It lists what is still missing.
-3. After each database search, `prisma_record_search` with the source, the query, the date and the number of hits.
-4. `dedup_papers` with the exported records. It records the duplicate count itself.
-5. `screening_record` or `screening_record_many` for every decision at title and abstract, then at full text. A second reviewer records under another name; `screening_agreement` gives kappa.
-6. `evidence_record` for each included study and outcome, with the quote and its source text. `rob_record` for each risk-of-bias domain, then `rob_summary`.
-7. Write the report. Use `claim_record` for the cited claims, `verify_dois` and `resolve_citations` for the references, `prisma_flow_diagram` and `prisma_checklist` for the methods.
-8. `review_status` at any point says which phase you are in and what to do next. `export_bundle` returns the whole audit trail as one document.
+```bash
+python -m citeproof_mcp
+```
 
-## What it does not do
+### Claude Science on Windows
 
-- It does not search for papers. Use your agent's search, or the CiteProof Research app in the parent repository.
-- It does not judge anything. A label such as "supported" is the agent's judgement. The server only checks that the quote is in the text.
-- It does not read PDFs. The agent supplies the text.
-- The PRISMA checklist and the report number check are keyword checks. They show what is mentioned, not whether it is reported well.
-- Deduplication matches titles exactly after normalising. It does not do fuzzy matching.
+Claude Science's local-command connector runs inside its own sandbox, so a Python environment elsewhere on your computer may not be accessible. Use the dedicated bundle workflow documented in [`docs/CLAUDE_SCIENCE.md`](docs/CLAUDE_SCIENCE.md). It covers creating the connector workspace, building the self-contained bundle, configuring the command and data directory, updating the connector, and troubleshooting.
 
-## Tests
+### Local data directory
 
-The tests are offline. They use the MCP in-memory client and an isolated data folder.
+Review state is saved as SQLite files under:
+
+- The directory specified by `CITEPROOF_MCP_HOME`, when set
+- `~/.citeproof-mcp`, when the variable is omitted
+
+Each review has its own database under `reviews/<review_id>.db`. Back up this directory if you need to preserve review records. Exported bundles are returned by the tool; they are not automatically written to a separate report file.
+
+## A typical review workflow
+
+1. **Create the review** with `review_create`. Save its returned `review_id`.
+2. **Record the protocol** with `protocol_record`: population, intervention, outcomes, eligibility criteria, databases, and search strategy.
+3. **Log every search** with `prisma_record_search`, including source, query, date, and hit count.
+4. **Deduplicate the complete result set** with `dedup_papers`. For PRISMA accounting, the tool must receive the complete exported set, not separately deduplicated batches.
+5. **Screen studies** at title/abstract and full-text stages. Use `screening_record` or `screening_record_many`; capture full-text exclusion reasons.
+6. **Measure reviewer agreement** by recording both reviewers' decisions and calling `screening_agreement`. Record the agreed result under the `primary` reviewer when applicable.
+7. **Extract evidence and assess bias** using `evidence_record` and `rob_record`; inspect `evidence_table` and `rob_summary`.
+8. **Check claims and references** with `claim_record`, `claim_report`, `verify_dois`, and `resolve_citations`.
+9. **Prepare and audit the report** with `prisma_flow_diagram`, `prisma_checklist`, and `lint_prose`.
+10. **Export the audit trail** with `export_bundle`. Call `review_status` at any time to see missing steps, warnings, and suggested next actions.
+
+For exact argument names, permitted values, and edge cases, follow the [tool specification](docs/SPEC.md).
+
+## What is checked — and what is not
+
+| Check | What CiteProof does |
+|---|---|
+| Quotes | Checks a supplied quote against supplied source text after normalisation. A failed match is flagged rather than hidden. |
+| Evidence numbers | Flags numerical values entered in an evidence row that do not appear in its quote; validates effect estimates and confidence intervals for supported measures. |
+| PRISMA | Computes counts from recorded searches, deduplication, and screening decisions, then checks consistency invariants. |
+| Reviewer agreement | Calculates Cohen's kappa for decisions shared by two reviewers. |
+| DOI status | Queries Crossref and doi.org. If a registry cannot be reached, the status is **unverified**, not **not found**. |
+| Citation resolution | Matches citations against a supplied reference list. A resolved citation is a match, not proof that the cited source supports the surrounding claim. |
+| Risk of bias | Computes the overall summary from recorded domains and documented rules; the scientific judgements still come from the reviewer or agent. |
+| Prose and checklist | Provides advisory or keyword-based checks. These do not establish the quality, completeness, or scientific validity of a report. |
+
+## Privacy and network behaviour
+
+- Review records are kept locally in SQLite under the configured data directory.
+- CiteProof has no embedded language model and requires no model-provider API key.
+- DOI verification is the only feature that makes outbound network requests, to Crossref and doi.org.
+- CiteProof does not search the web, fetch papers, or read PDFs. The calling agent supplies the source text and research decisions.
+- Source text used in evidence checks is not kept in full by the audit store; the implementation records its length and SHA-256 alongside the check results.
+
+See [`docs/SPEC.md`](docs/SPEC.md#security) for implementation-level security details.
+
+## Run tests
+
+From the MCP package directory:
 
 ```bash
 cd MCP
-pip install -e ".[test]"
-python -m pytest -q
+python -m pip install -e ".[test]"
+python -m pytest -q -p no:cacheprovider
 ```
 
-## More documentation
+The suite uses an in-memory MCP client and an isolated data directory. These tests are intended to run offline.
 
-- [docs/SPEC.md](docs/SPEC.md): the full tool reference and design rules.
-- [docs/CLAUDE_SCIENCE.md](docs/CLAUDE_SCIENCE.md): install in Claude Science, update and troubleshooting.
-- [NOTICE.md](NOTICE.md): third-party code.
+## Documentation
 
-## Licence
+- [Full tool specification](docs/SPEC.md)
+- [Claude Science install and troubleshooting](docs/CLAUDE_SCIENCE.md)
+- [Third-party notices](NOTICE.md)
 
-MIT, see the [root licence](../LICENSE). `citeproof_mcp/_vendor/doi_verify.py` and `prose_lint.py` are adapted from Anthropic's Claude Science `literature-review` skill under the Apache License 2.0. See [NOTICE.md](NOTICE.md) and [LICENSES/Apache-2.0.txt](LICENSES/Apache-2.0.txt).
+## License
+
+CiteProof MCP is released under the [MIT License](../LICENSE). Adapted third-party components are documented in [`NOTICE.md`](NOTICE.md) and [`LICENSES/Apache-2.0.txt`](LICENSES/Apache-2.0.txt).
