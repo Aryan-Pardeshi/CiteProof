@@ -18,6 +18,7 @@ from pydantic import Field
 
 from citeproof_mcp import store
 from citeproof_mcp.compat import MCPServer
+from citeproof_mcp.tools import source_tracking
 from citeproof_mcp.tools.common import (
     MAX_TEXT_CHARS,
     cap,
@@ -409,7 +410,24 @@ def claim_record(
                        source_sha256, updated_at, claim_key, paper_ref) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 values + (claim_key, ref),
             ).lastrowid
-    return {
+        source_changed = (
+            source_tracking.record_observation(
+                conn, ref, "claim_record", claim_key, source
+            )
+            if source
+            else None
+        )
+
+    if source_changed:
+        prev_h = source_changed["previous_sha256"][:6]
+        curr_h = source_changed["current_sha256"][:6]
+        fmt_msg = "; whitespace or formatting only" if source_changed["formatting_only"] else ""
+        warnings.append(
+            f"source_text differs from the text previously supplied for this record "
+            f"(sha256 {prev_h}… → {curr_h}…{fmt_msg}). This does not show which version is authentic."
+        )
+
+    res = {
         "ok": True,
         "claim_id": claim_id,
         "updated": existing is not None,
@@ -417,6 +435,9 @@ def claim_record(
         "quote_note": quote_note,
         "warnings": warnings,
     }
+    if source_changed:
+        res["source_changed"] = source_changed
+    return res
 
 
 @safe_tool
@@ -575,7 +596,24 @@ def rob_record(
              store.now_iso(), rationale_clean),
         )
         recorded = {r[0] for r in conn.execute("SELECT domain FROM rob WHERE paper_ref = ?", (ref,))}
-    return {
+        source_changed = (
+            source_tracking.record_observation(
+                conn, ref, "rob_record", domain_clean, source
+            )
+            if source
+            else None
+        )
+
+    if source_changed:
+        prev_h = source_changed["previous_sha256"][:6]
+        curr_h = source_changed["current_sha256"][:6]
+        fmt_msg = "; whitespace or formatting only" if source_changed["formatting_only"] else ""
+        warnings.append(
+            f"source_text differs from the text previously supplied for this record "
+            f"(sha256 {prev_h}… → {curr_h}…{fmt_msg}). This does not show which version is authentic."
+        )
+
+    res = {
         "ok": True,
         "updated": existing is not None,
         "paper_ref": ref,
@@ -588,6 +626,9 @@ def rob_record(
         "domains_missing": [d for d in domains if d not in recorded],
         "warnings": warnings,
     }
+    if source_changed:
+        res["source_changed"] = source_changed
+    return res
 
 
 @safe_tool

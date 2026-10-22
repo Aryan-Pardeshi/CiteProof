@@ -22,7 +22,7 @@ from pydantic import Field
 
 from citeproof_mcp import store
 from citeproof_mcp.compat import MCPServer
-from citeproof_mcp.tools import prisma
+from citeproof_mcp.tools import prisma, source_tracking
 from citeproof_mcp.tools.common import (
     MAX_TEXT_CHARS,
     cap,
@@ -301,9 +301,20 @@ def evidence_record(
         rows_for_paper = int(
             conn.execute("SELECT COUNT(*) FROM evidence_rows WHERE paper_ref = ?", (ref,)).fetchone()[0]
         )
+        source_changed = source_tracking.record_observation(
+            conn, ref, "evidence_record", row["outcome_key"], source
+        )
     if included and ref not in included:
         warnings.append(f"'{ref}' is not among the studies included at full_text; check the paper_ref or the screening.")
-    return {
+    if source_changed:
+        prev_h = source_changed["previous_sha256"][:6]
+        curr_h = source_changed["current_sha256"][:6]
+        fmt_msg = "; whitespace or formatting only" if source_changed["formatting_only"] else ""
+        warnings.append(
+            f"source_text differs from the text previously supplied for this record "
+            f"(sha256 {prev_h}… → {curr_h}…{fmt_msg}). This does not show which version is authentic."
+        )
+    res = {
         "ok": True,
         "updated": existing is not None,
         "paper_ref": ref,
@@ -315,6 +326,9 @@ def evidence_record(
         "rows_for_paper": rows_for_paper,
         "warnings": warnings,
     }
+    if source_changed:
+        res["source_changed"] = source_changed
+    return res
 
 
 @safe_tool
