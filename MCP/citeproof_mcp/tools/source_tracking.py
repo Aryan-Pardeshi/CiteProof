@@ -11,11 +11,12 @@ Tables owned here: ``source_observations``, ``source_changes``.
 from __future__ import annotations
 
 import hashlib
+import re
 import sqlite3
+import unicodedata
 from typing import Any
 
 from citeproof_mcp import store
-from citeproof_mcp.tools.quotes import normalize_text
 
 store.register_schema(
     (
@@ -45,12 +46,39 @@ store.register_schema(
 )
 
 
+def normalize_source_text(text: str) -> str:
+    """Minimal normalizer for strict formatting-only check.
+
+    Unicode NFC, convert CRLF and CR to LF, collapse runs of whitespace to a single space,
+    and strip leading and trailing whitespace. No case folding, no dash, quote or hyphen changes.
+    """
+    if not text:
+        return ""
+    norm = unicodedata.normalize("NFC", text)
+    norm = norm.replace("\r\n", "\n").replace("\r", "\n")
+    norm = re.sub(r"\s+", " ", norm)
+    return norm.strip()
+
+
+def format_change_warning(source_changed: dict[str, Any]) -> str:
+    """Return honest warning message when source text differs."""
+    prev_h = source_changed["previous_sha256"][:6]
+    curr_h = source_changed["current_sha256"][:6]
+    fmt_msg = "; whitespace or formatting only" if source_changed["formatting_only"] else ""
+    return (
+        f"source_text differs from the text previously supplied for this record "
+        f"(sha256 {prev_h}… → {curr_h}…{fmt_msg}). This does not show which version is authentic."
+    )
+
+
 def record_observation(
     conn: sqlite3.Connection,
     paper_ref: str,
     tool: str,
     record_key: str,
     source_text: str,
+    fallback_sha256: str | None = None,
+    fallback_length: int | None = None,
 ) -> dict[str, Any] | None:
     """Record a source-text observation for a tool record inside the caller's write transaction.
 
@@ -62,11 +90,11 @@ def record_observation(
 
     raw_sha256 = hashlib.sha256(source_text.encode("utf-8")).hexdigest()
     raw_length = len(source_text)
-    norm_text = normalize_text(source_text)
+    norm_text = normalize_source_text(source_text)
     norm_sha256 = hashlib.sha256(norm_text.encode("utf-8")).hexdigest()
     now = store.now_iso()
 
-    # Find the most recent observation for this record
+    # Find the most recent observation or change for this record
     latest_change = conn.execute(
         """SELECT current_sha256, current_length FROM source_changes
            WHERE paper_ref = ? AND tool = ? AND record_key = ?
@@ -74,6 +102,7 @@ def record_observation(
         (paper_ref, tool, record_key),
     ).fetchone()
 
+    is_fallback = False
     if latest_change:
         prev_sha256 = latest_change["current_sha256"]
         prev_length = latest_change["current_length"]
@@ -87,21 +116,25 @@ def record_observation(
             prev_sha256 = prev_obs["sha256"]
             prev_length = prev_obs["length"]
         else:
-            prev_sha256 = None
-            prev_length = None
+            prev_sha256 = fallback_sha256
+            prev_length = fallback_length
+            if fallback_sha256 is not None:
+                is_fallback = True
 
     change_details: dict[str, Any] | None = None
 
     if prev_sha256 is not None and prev_sha256 != raw_sha256:
-        # Get the normalized sha256 of the previous observation
-        prev_norm_row = conn.execute(
-            """SELECT normalized_sha256 FROM source_observations
-               WHERE paper_ref = ? AND tool = ? AND record_key = ? AND sha256 = ?""",
-            (paper_ref, tool, record_key, prev_sha256),
-        ).fetchone()
+        if is_fallback:
+            formatting_only = False
+        else:
+            prev_norm_row = conn.execute(
+                """SELECT normalized_sha256 FROM source_observations
+                   WHERE paper_ref = ? AND tool = ? AND record_key = ? AND sha256 = ?""",
+                (paper_ref, tool, record_key, prev_sha256),
+            ).fetchone()
 
-        prev_norm_sha256 = prev_norm_row["normalized_sha256"] if prev_norm_row else None
-        formatting_only = prev_norm_sha256 == norm_sha256
+            prev_norm_sha256 = prev_norm_row["normalized_sha256"] if prev_norm_row else None
+            formatting_only = prev_norm_sha256 == norm_sha256
 
         conn.execute(
             """INSERT INTO source_changes

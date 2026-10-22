@@ -313,3 +313,100 @@ async def test_old_database_migration():
     )
     assert r["ok"]
     assert "source_changed" not in r
+
+
+@pytest.mark.asyncio
+async def test_pre_pr_fallback_migration():
+    """A record written with pre-PR schema (has source_sha256/source_chars in table, no source_observations row)
+    re-recorded with different text: change recorded, warning shown, formatting_only false."""
+    rev = await call("review_create", title="Pre-PR Review", question="Question?")
+    review_id = rev["review_id"]
+    paper = "10.1234/prepr.paper"
+    old_text = "Original text in old review row."
+    new_text = "Updated text in new review call."
+
+    # First record
+    r1 = await call(
+        "evidence_record",
+        review_id=review_id,
+        paper_ref=paper,
+        outcome="morbidity",
+        study_design="RCT",
+        quote="Original text",
+        source_text=old_text,
+    )
+    assert r1["ok"]
+
+    # Clear source_observations and source_changes to simulate pre-PR schema state where row exists in evidence_rows
+    db_path = store._db_path(review_id)
+    conn = sqlite3.connect(db_path)
+    conn.execute("DELETE FROM source_observations")
+    conn.execute("DELETE FROM source_changes")
+    conn.commit()
+    conn.close()
+
+    # Re-record with different text
+    r2 = await call(
+        "evidence_record",
+        review_id=review_id,
+        paper_ref=paper,
+        outcome="morbidity",
+        study_design="RCT",
+        quote="Updated text",
+        source_text=new_text,
+    )
+    assert r2["ok"]
+    assert "source_changed" in r2
+    sc = r2["source_changed"]
+    assert sc["formatting_only"] is False
+    assert any("source_text differs" in w for w in r2["warnings"])
+
+
+@pytest.mark.asyncio
+async def test_strict_formatting_only_check():
+    """Test strict formatting-only normalisation:
+    - 're-sign' vs 'resign' and 'TP53' vs 'tp53': formatting_only is False.
+    - Whitespace and CRLF vs LF: formatting_only is True."""
+    rev = await call("review_create", title="Formatting Review", question="Question?")
+    review_id = rev["review_id"]
+    paper = "10.1234/fmt.paper"
+
+    # re-sign vs resign
+    await call("evidence_record", review_id=review_id, paper_ref=paper, outcome="o1", study_design="RCT", quote="re-sign contract", source_text="They decided to re-sign the contract.")
+    r1 = await call("evidence_record", review_id=review_id, paper_ref=paper, outcome="o1", study_design="RCT", quote="resign contract", source_text="They decided to resign the contract.")
+    assert r1["source_changed"]["formatting_only"] is False
+
+    # TP53 vs tp53
+    await call("evidence_record", review_id=review_id, paper_ref=paper, outcome="o2", study_design="RCT", quote="TP53 gene mutation", source_text="Analysis of TP53 gene mutation.")
+    r2 = await call("evidence_record", review_id=review_id, paper_ref=paper, outcome="o2", study_design="RCT", quote="tp53 gene mutation", source_text="Analysis of tp53 gene mutation.")
+    assert r2["source_changed"]["formatting_only"] is False
+
+    # CRLF vs LF and whitespace
+    await call("evidence_record", review_id=review_id, paper_ref=paper, outcome="o3", study_design="RCT", quote="Line one line two", source_text="Line one\r\n\t line two")
+    r3 = await call("evidence_record", review_id=review_id, paper_ref=paper, outcome="o3", study_design="RCT", quote="Line one line two", source_text="Line one \n line two")
+    assert r3["source_changed"]["formatting_only"] is True
+
+
+@pytest.mark.asyncio
+async def test_review_status_more_than_20_changes():
+    """More than 20 changes: review_status shows newest ones plus omitted count warning."""
+    rev = await call("review_create", title="Many Changes Review", question="Question?")
+    review_id = rev["review_id"]
+    paper = "10.1234/many.paper"
+
+    # Generate 22 changes for outcome o1
+    base_text = "Initial source text baseline."
+    await call("evidence_record", review_id=review_id, paper_ref=paper, outcome="o1", study_design="RCT", quote="Initial source text", source_text=base_text)
+
+    for i in range(22):
+        await call("evidence_record", review_id=review_id, paper_ref=paper, outcome="o1", study_design="RCT", quote="Initial source text", source_text=f"Initial source text baseline iteration {i}.")
+
+    status = await call("review_status", review_id=review_id)
+    assert status["ok"]
+    warnings = status["warnings"]
+    change_warnings = [w for w in warnings if w.startswith("Source text changed for")]
+    omitted_warnings = [w for w in warnings if "earlier source text change(s) are omitted here" in w]
+
+    assert len(change_warnings) == 20
+    assert len(omitted_warnings) == 1
+    assert "2 earlier source text change(s) are omitted here" in omitted_warnings[0]

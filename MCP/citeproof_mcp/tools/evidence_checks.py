@@ -394,16 +394,19 @@ def claim_record(
     chars, digest = _source_fingerprint(source)
     with store.review_db(review_id, write=True) as conn:
         existing = conn.execute(
-            "SELECT id FROM claims WHERE claim_key = ? AND paper_ref = ?", (claim_key, ref)
+            "SELECT id, source_sha256, source_chars FROM claims WHERE claim_key = ? AND paper_ref = ?", (claim_key, ref)
         ).fetchone()
+        fb_sha = existing["source_sha256"] if existing else None
+        fb_len = existing["source_chars"] if existing else None
+
         values = (claim, label_clean, reason_clean, quote_clean, int(quote_verified), chars, digest, store.now_iso())
         if existing:
             conn.execute(
                 """UPDATE claims SET claim_text = ?, label = ?, reason = ?, quote = ?, quote_verified = ?,
                        source_chars = ?, source_sha256 = ?, updated_at = ? WHERE id = ?""",
-                values + (existing[0],),
+                values + (existing["id"],),
             )
-            claim_id = existing[0]
+            claim_id = existing["id"]
         else:
             claim_id = conn.execute(
                 """INSERT INTO claims (claim_text, label, reason, quote, quote_verified, source_chars,
@@ -412,20 +415,20 @@ def claim_record(
             ).lastrowid
         source_changed = (
             source_tracking.record_observation(
-                conn, ref, "claim_record", claim_key, source
+                conn,
+                ref,
+                "claim_record",
+                claim_key,
+                source,
+                fallback_sha256=fb_sha,
+                fallback_length=fb_len,
             )
             if source
             else None
         )
 
     if source_changed:
-        prev_h = source_changed["previous_sha256"][:6]
-        curr_h = source_changed["current_sha256"][:6]
-        fmt_msg = "; whitespace or formatting only" if source_changed["formatting_only"] else ""
-        warnings.append(
-            f"source_text differs from the text previously supplied for this record "
-            f"(sha256 {prev_h}… → {curr_h}…{fmt_msg}). This does not show which version is authentic."
-        )
+        warnings.append(source_tracking.format_change_warning(source_changed))
 
     res = {
         "ok": True,
@@ -583,8 +586,12 @@ def rob_record(
         if other:
             fail(f"paper '{ref}' already has assessments using tool '{other[0]}'; cannot mix tools")
         existing = conn.execute(
-            "SELECT 1 FROM rob WHERE paper_ref = ? AND tool = ? AND domain = ?", (ref, tool_clean, domain_clean)
+            "SELECT source_sha256, source_chars FROM rob WHERE paper_ref = ? AND tool = ? AND domain = ?",
+            (ref, tool_clean, domain_clean),
         ).fetchone()
+        fb_sha = existing["source_sha256"] if existing else None
+        fb_len = existing["source_chars"] if existing else None
+
         conn.execute(
             """INSERT INTO rob (paper_ref, tool, domain, judgement, quote, quote_verified, source_chars,
                    source_sha256, updated_at, rationale) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -598,20 +605,20 @@ def rob_record(
         recorded = {r[0] for r in conn.execute("SELECT domain FROM rob WHERE paper_ref = ?", (ref,))}
         source_changed = (
             source_tracking.record_observation(
-                conn, ref, "rob_record", domain_clean, source
+                conn,
+                ref,
+                "rob_record",
+                domain_clean,
+                source,
+                fallback_sha256=fb_sha,
+                fallback_length=fb_len,
             )
             if source
             else None
         )
 
     if source_changed:
-        prev_h = source_changed["previous_sha256"][:6]
-        curr_h = source_changed["current_sha256"][:6]
-        fmt_msg = "; whitespace or formatting only" if source_changed["formatting_only"] else ""
-        warnings.append(
-            f"source_text differs from the text previously supplied for this record "
-            f"(sha256 {prev_h}… → {curr_h}…{fmt_msg}). This does not show which version is authentic."
-        )
+        warnings.append(source_tracking.format_change_warning(source_changed))
 
     res = {
         "ok": True,

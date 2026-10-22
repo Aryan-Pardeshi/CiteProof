@@ -80,11 +80,17 @@ def build_overview(conn: sqlite3.Connection, reviewer: str | None) -> dict[str, 
 
     warnings: list[str] = []
     if source_changes:
-        for c in source_changes[:SAMPLE]:
+        newest_changes = source_changes[-SAMPLE:]
+        for c in newest_changes:
             fmt_msg = " (formatting only)" if c["formatting_only"] else ""
             warnings.append(
                 f"Source text changed for {c['tool']} record '{c['record_key']}' on {c['paper_ref']}: "
                 f"sha256 {c['previous_sha256'][:6]}… → {c['current_sha256'][:6]}…{fmt_msg}."
+            )
+        if len(source_changes) > SAMPLE:
+            omitted = len(source_changes) - SAMPLE
+            warnings.append(
+                f"{omitted} earlier source text change(s) are omitted here; export_bundle lists all changes."
             )
     steps: dict[str, list[str]] = {phase: [] for phase in PHASES}
     if not proto["complete"]:

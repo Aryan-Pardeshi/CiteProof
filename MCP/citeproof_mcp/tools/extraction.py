@@ -289,8 +289,12 @@ def evidence_record(
     cols = list(row)
     with store.review_db(review_id, write=True) as conn:
         existing = conn.execute(
-            "SELECT 1 FROM evidence_rows WHERE paper_ref = ? AND outcome_key = ?", (ref, row["outcome_key"])
+            "SELECT source_sha256, source_chars FROM evidence_rows WHERE paper_ref = ? AND outcome_key = ?",
+            (ref, row["outcome_key"]),
         ).fetchone()
+        fb_sha = existing["source_sha256"] if existing else None
+        fb_len = existing["source_chars"] if existing else None
+
         conn.execute(
             f"INSERT INTO evidence_rows ({', '.join(cols)}) VALUES ({', '.join('?' for _ in cols)}) "
             "ON CONFLICT(paper_ref, outcome_key) DO UPDATE SET "
@@ -302,18 +306,18 @@ def evidence_record(
             conn.execute("SELECT COUNT(*) FROM evidence_rows WHERE paper_ref = ?", (ref,)).fetchone()[0]
         )
         source_changed = source_tracking.record_observation(
-            conn, ref, "evidence_record", row["outcome_key"], source
+            conn,
+            ref,
+            "evidence_record",
+            row["outcome_key"],
+            source,
+            fallback_sha256=fb_sha,
+            fallback_length=fb_len,
         )
     if included and ref not in included:
         warnings.append(f"'{ref}' is not among the studies included at full_text; check the paper_ref or the screening.")
     if source_changed:
-        prev_h = source_changed["previous_sha256"][:6]
-        curr_h = source_changed["current_sha256"][:6]
-        fmt_msg = "; whitespace or formatting only" if source_changed["formatting_only"] else ""
-        warnings.append(
-            f"source_text differs from the text previously supplied for this record "
-            f"(sha256 {prev_h}… → {curr_h}…{fmt_msg}). This does not show which version is authentic."
-        )
+        warnings.append(source_tracking.format_change_warning(source_changed))
     res = {
         "ok": True,
         "updated": existing is not None,
