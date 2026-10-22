@@ -2,9 +2,11 @@
 """Tests for source text tracking and drift detection across review calls."""
 
 import sqlite3
+
 import pytest
-from tests.conftest import call
 from citeproof_mcp import store
+
+from tests.conftest import call
 
 
 @pytest.mark.asyncio
