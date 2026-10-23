@@ -1,12 +1,12 @@
-fastapi[standard]==0.143.0
+fastapi[standard]==0.150.0
 uvicorn==0.54.0
 pydantic==2.14.1
 python-dotenv==1.2.4
-langchain==1.4.5
-langchain-core==1.6.10
-langchain-openai==1.7.1
+langchain==1.4.6
+langchain-core==1.6.12
+langchain-openai==1.7.2
 langchain-community==0.4.2
-langgraph==1.2.15
+langgraph==1.2.16
 langgraph-checkpoint==4.3.0
 langgraph-checkpoint-sqlite
 aiosqlite>=0.22.1
