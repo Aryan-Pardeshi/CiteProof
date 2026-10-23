@@ -18,6 +18,7 @@ from pydantic import Field
 
 from citeproof_mcp import store
 from citeproof_mcp.compat import MCPServer
+from citeproof_mcp.tools import source_tracking
 from citeproof_mcp.tools.common import (
     MAX_TEXT_CHARS,
     cap,
@@ -393,23 +394,43 @@ def claim_record(
     chars, digest = _source_fingerprint(source)
     with store.review_db(review_id, write=True) as conn:
         existing = conn.execute(
-            "SELECT id FROM claims WHERE claim_key = ? AND paper_ref = ?", (claim_key, ref)
+            "SELECT id, source_sha256, source_chars FROM claims WHERE claim_key = ? AND paper_ref = ?", (claim_key, ref)
         ).fetchone()
+        fb_sha = existing["source_sha256"] if existing else None
+        fb_len = existing["source_chars"] if existing else None
+
         values = (claim, label_clean, reason_clean, quote_clean, int(quote_verified), chars, digest, store.now_iso())
         if existing:
             conn.execute(
                 """UPDATE claims SET claim_text = ?, label = ?, reason = ?, quote = ?, quote_verified = ?,
                        source_chars = ?, source_sha256 = ?, updated_at = ? WHERE id = ?""",
-                values + (existing[0],),
+                values + (existing["id"],),
             )
-            claim_id = existing[0]
+            claim_id = existing["id"]
         else:
             claim_id = conn.execute(
                 """INSERT INTO claims (claim_text, label, reason, quote, quote_verified, source_chars,
                        source_sha256, updated_at, claim_key, paper_ref) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 values + (claim_key, ref),
             ).lastrowid
-    return {
+        source_changed = (
+            source_tracking.record_observation(
+                conn,
+                ref,
+                "claim_record",
+                claim_key,
+                source,
+                fallback_sha256=fb_sha,
+                fallback_length=fb_len,
+            )
+            if source
+            else None
+        )
+
+    if source_changed:
+        warnings.append(source_tracking.format_change_warning(source_changed))
+
+    res = {
         "ok": True,
         "claim_id": claim_id,
         "updated": existing is not None,
@@ -417,6 +438,9 @@ def claim_record(
         "quote_note": quote_note,
         "warnings": warnings,
     }
+    if source_changed:
+        res["source_changed"] = source_changed
+    return res
 
 
 @safe_tool
@@ -562,8 +586,12 @@ def rob_record(
         if other:
             fail(f"paper '{ref}' already has assessments using tool '{other[0]}'; cannot mix tools")
         existing = conn.execute(
-            "SELECT 1 FROM rob WHERE paper_ref = ? AND tool = ? AND domain = ?", (ref, tool_clean, domain_clean)
+            "SELECT source_sha256, source_chars FROM rob WHERE paper_ref = ? AND tool = ? AND domain = ?",
+            (ref, tool_clean, domain_clean),
         ).fetchone()
+        fb_sha = existing["source_sha256"] if existing else None
+        fb_len = existing["source_chars"] if existing else None
+
         conn.execute(
             """INSERT INTO rob (paper_ref, tool, domain, judgement, quote, quote_verified, source_chars,
                    source_sha256, updated_at, rationale) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -575,7 +603,24 @@ def rob_record(
              store.now_iso(), rationale_clean),
         )
         recorded = {r[0] for r in conn.execute("SELECT domain FROM rob WHERE paper_ref = ?", (ref,))}
-    return {
+        source_changed = (
+            source_tracking.record_observation(
+                conn,
+                ref,
+                "rob_record",
+                domain_clean,
+                source,
+                fallback_sha256=fb_sha,
+                fallback_length=fb_len,
+            )
+            if source
+            else None
+        )
+
+    if source_changed:
+        warnings.append(source_tracking.format_change_warning(source_changed))
+
+    res = {
         "ok": True,
         "updated": existing is not None,
         "paper_ref": ref,
@@ -588,6 +633,9 @@ def rob_record(
         "domains_missing": [d for d in domains if d not in recorded],
         "warnings": warnings,
     }
+    if source_changed:
+        res["source_changed"] = source_changed
+    return res
 
 
 @safe_tool

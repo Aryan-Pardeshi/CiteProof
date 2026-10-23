@@ -22,7 +22,7 @@ from pydantic import Field
 
 from citeproof_mcp import store
 from citeproof_mcp.compat import MCPServer
-from citeproof_mcp.tools import prisma
+from citeproof_mcp.tools import prisma, source_tracking
 from citeproof_mcp.tools.common import (
     MAX_TEXT_CHARS,
     cap,
@@ -289,8 +289,12 @@ def evidence_record(
     cols = list(row)
     with store.review_db(review_id, write=True) as conn:
         existing = conn.execute(
-            "SELECT 1 FROM evidence_rows WHERE paper_ref = ? AND outcome_key = ?", (ref, row["outcome_key"])
+            "SELECT source_sha256, source_chars FROM evidence_rows WHERE paper_ref = ? AND outcome_key = ?",
+            (ref, row["outcome_key"]),
         ).fetchone()
+        fb_sha = existing["source_sha256"] if existing else None
+        fb_len = existing["source_chars"] if existing else None
+
         conn.execute(
             f"INSERT INTO evidence_rows ({', '.join(cols)}) VALUES ({', '.join('?' for _ in cols)}) "
             "ON CONFLICT(paper_ref, outcome_key) DO UPDATE SET "
@@ -301,9 +305,20 @@ def evidence_record(
         rows_for_paper = int(
             conn.execute("SELECT COUNT(*) FROM evidence_rows WHERE paper_ref = ?", (ref,)).fetchone()[0]
         )
+        source_changed = source_tracking.record_observation(
+            conn,
+            ref,
+            "evidence_record",
+            row["outcome_key"],
+            source,
+            fallback_sha256=fb_sha,
+            fallback_length=fb_len,
+        )
     if included and ref not in included:
         warnings.append(f"'{ref}' is not among the studies included at full_text; check the paper_ref or the screening.")
-    return {
+    if source_changed:
+        warnings.append(source_tracking.format_change_warning(source_changed))
+    res = {
         "ok": True,
         "updated": existing is not None,
         "paper_ref": ref,
@@ -315,6 +330,9 @@ def evidence_record(
         "rows_for_paper": rows_for_paper,
         "warnings": warnings,
     }
+    if source_changed:
+        res["source_changed"] = source_changed
+    return res
 
 
 @safe_tool

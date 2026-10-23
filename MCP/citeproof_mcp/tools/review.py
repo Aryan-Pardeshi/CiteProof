@@ -22,6 +22,7 @@ from citeproof_mcp.tools import (
     prisma,
     prisma_render,
     protocol,
+    source_tracking,
 )
 from citeproof_mcp.tools.common import choice_arg, md_cell, md_table, safe_tool
 
@@ -74,7 +75,23 @@ def build_overview(conn: sqlite3.Connection, reviewer: str | None) -> dict[str, 
     included_dois = [p for p in included if p.startswith("10.")]
     unchecked = [p for p in included_dois if p not in doi_by_ref or doi_by_ref[p]["status"] == "unverified"]
 
+    source_changes = source_tracking.source_changes_rows(conn)
+    distinct_texts = source_tracking.distinct_source_texts_by_paper(conn)
+
     warnings: list[str] = []
+    if source_changes:
+        newest_changes = source_changes[-SAMPLE:]
+        for c in newest_changes:
+            fmt_msg = " (formatting only)" if c["formatting_only"] else ""
+            warnings.append(
+                f"Source text changed for {c['tool']} record '{c['record_key']}' on {c['paper_ref']}: "
+                f"sha256 {c['previous_sha256'][:6]}… → {c['current_sha256'][:6]}…{fmt_msg}."
+            )
+        if len(source_changes) > SAMPLE:
+            omitted = len(source_changes) - SAMPLE
+            warnings.append(
+                f"{omitted} earlier source text change(s) are omitted here; export_bundle lists all changes."
+            )
     steps: dict[str, list[str]] = {phase: [] for phase in PHASES}
     if not proto["complete"]:
         steps["protocol"].append(f"Complete the protocol with protocol_record: {', '.join(proto['missing_required'])}.")
@@ -180,6 +197,10 @@ def build_overview(conn: sqlite3.Connection, reviewer: str | None) -> dict[str, 
             "unverified": sum(1 for d in dois if d["status"] == "unverified"),
             "included_dois_unchecked": len(unchecked),
         },
+        "source_texts": {
+            "distinct_by_paper": distinct_texts,
+            "changes_count": len(source_changes),
+        },
         "warnings": warnings,
         "next_steps": next_steps,
     }
@@ -227,6 +248,8 @@ def _collect(conn: sqlite3.Connection, reviewer: str | None) -> dict[str, Any]:
             result["disagreements"] = result["disagreements"][:50]
             agreements.append(result)
     rob = evidence_checks.rob_overview(conn)
+    source_changes = source_tracking.source_changes_rows(conn)
+    distinct_texts = source_tracking.distinct_source_texts_by_paper(conn)
     return {
         "bundle_version": 1,
         "generated_at": store.now_iso(),
@@ -246,6 +269,8 @@ def _collect(conn: sqlite3.Connection, reviewer: str | None) -> dict[str, Any]:
         "claims": claims[:MAX_EXPORT_ROWS],
         "claims_total": len(claims),
         "doi_checks": core.doi_check_rows(conn),
+        "source_changes": source_changes,
+        "distinct_source_texts": distinct_texts,
         "truncated": len(screening) > MAX_EXPORT_ROWS or len(claims) > MAX_EXPORT_ROWS,
     }
 
@@ -352,6 +377,40 @@ def _markdown(b: dict[str, Any]) -> str:
         )
     else:
         out.append("No DOI checks saved.")
+    out += ["", "## Source text changes", ""]
+    if b.get("source_changes"):
+        out.append(
+            md_table(
+                ["Paper", "Tool", "Record key", "Previous SHA-256", "Current SHA-256", "Prev len", "Curr len", "Formatting only", "Changed at"],
+                [
+                    [
+                        c["paper_ref"],
+                        c["tool"],
+                        c["record_key"],
+                        c["previous_sha256"][:10] + "…",
+                        c["current_sha256"][:10] + "…",
+                        c["previous_length"],
+                        c["current_length"],
+                        c["formatting_only"],
+                        c["changed_at"],
+                    ]
+                    for c in b["source_changes"]
+                ],
+            )
+        )
+    else:
+        out.append("No source text changes recorded.")
+
+    distinct_texts = b.get("distinct_source_texts", {})
+    if distinct_texts:
+        out += ["", "### Distinct source texts per paper", ""]
+        out.append(
+            md_table(
+                ["Paper", "Distinct source texts"],
+                [[paper_ref, count] for paper_ref, count in distinct_texts.items()],
+            )
+        )
+
     out += ["", "## Open items", ""]
     out += [f"- Warning: {_t(w)}" for w in b["status"]["warnings"]]
     out += [f"- Next: {_t(s)}" for s in b["status"]["next_steps"]]
