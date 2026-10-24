@@ -7,7 +7,7 @@ import logging
 import os
 from typing import Any
 
-from backend.app.models.evidence import PaperRecord
+from backend.app.models.evidence import PaperRecord, PRISMATracker
 from backend.app.tools.academic_search import (
     _normalize_doi,
     search_academic_papers_structured,
@@ -96,10 +96,31 @@ async def citation_expander_agent(state: dict[str, Any]) -> dict[str, Any]:
                 return {}
             new_records = [r.model_dump() for r in resolved]
             all_records = paper_dicts + new_records
-            return {
+
+            # Keep PRISMA conservation true across corpus growth: a paper added
+            # by citation expansion is one more identified and one more
+            # deduplicated record, never a silent mismatch at screening.
+            raw_tracker = state.get("prisma_tracker") or {}
+            updates: dict[str, Any] = {
                 "paper_records": all_records,
-                "raw_papers": all_records
+                "raw_papers": all_records,
             }
+            if raw_tracker:
+                tracker = PRISMATracker(**raw_tracker)
+                added = len(new_records)
+                tracker.records_identified += added
+                tracker.records_after_dedup += added
+                tracker.records_by_source["opencitations"] = (
+                    tracker.records_by_source.get("opencitations", 0) + added
+                )
+                updates["prisma_tracker"] = tracker.model_dump()
+                updates["corpus_stats"] = {
+                    "retrieved": tracker.records_identified,
+                    "after_dedup": tracker.records_after_dedup,
+                    "screened": 0,
+                    "included": 0,
+                }
+            return updates
     except Exception as e:  # noqa: BLE001
         logger.warning(f"Citation graph expansion encountered non-critical error: {e}")
 

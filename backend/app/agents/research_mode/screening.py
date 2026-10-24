@@ -29,7 +29,11 @@ async def paper_screener_agent(state: dict[str, Any]) -> dict[str, Any]:
 
     records = [PaperRecord.from_dict(p) for p in raw_papers]
     screened_records, updated_tracker = await screen_papers_structured(
-        records, ps, objs, tracker=tracker
+        records,
+        ps,
+        objs,
+        tracker=tracker,
+        protocol=state.get("search_protocol"),
     )
     dict_screened = [r.model_dump() for r in screened_records]
 
