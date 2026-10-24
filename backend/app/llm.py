@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+import time
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -43,6 +44,95 @@ def get_llm_config():
     return api_key, base_url
 
 
+# Model ids that must never receive a research prompt: `openrouter/free` once
+# routed one to a safety classifier, and any classifier answers "User Safety:
+# safe" instead of a report.
+_FORBIDDEN_MODEL_IDS = frozenset({"openrouter/free"})
+_FORBIDDEN_MODEL_MARKERS = ("safety", "guard", "moderation")
+
+# Transient failures worth retrying: rate limits, provider errors and 5xx.
+_LLM_MAX_ATTEMPTS = 3
+_LLM_RETRY_BACKOFF_SECONDS = (0.5, 1.5)
+_TRANSIENT_STATUS_CODES = frozenset({404, 429, 500, 502, 503, 504})
+_TRANSIENT_MARKERS = (
+    "rate limit",
+    "rate-limit",
+    "ratelimited",
+    "provider returned error",
+    "temporarily unavailable",
+    "overloaded",
+    "timeout",
+    "timed out",
+    "connection reset",
+    "connection error",
+    "server error",
+)
+
+
+def require_safe_model(model: str) -> str:
+    """Refuse a model id that is a router or a safety classifier."""
+    lowered = str(model or "").strip().lower()
+    if lowered in _FORBIDDEN_MODEL_IDS or any(
+        marker in lowered for marker in _FORBIDDEN_MODEL_MARKERS
+    ):
+        raise RuntimeError(
+            f"Model {model!r} is not a report writer. Configure a completion "
+            "model that is not a router or a safety, guard or moderation classifier."
+        )
+    return model
+
+
+def _status_code(exc: BaseException) -> int | None:
+    value = getattr(exc, "status_code", None)
+    if isinstance(value, int):
+        return value
+    response = getattr(exc, "response", None)
+    value = getattr(response, "status_code", None)
+    return value if isinstance(value, int) else None
+
+
+def is_transient_llm_error(exc: BaseException) -> bool:
+    """True for a free-model failure worth retrying.
+
+    Free OpenRouter models regularly answer 429 (rate limited), 404 ("provider
+    returned error") and 5xx. Auth, validation and schema errors are not
+    transient and must fail fast.
+    """
+    status = _status_code(exc)
+    if status is not None:
+        return status in _TRANSIENT_STATUS_CODES
+    text = str(exc).lower()
+    return any(marker in text for marker in _TRANSIENT_MARKERS)
+
+
+def _retry_delay(attempt: int) -> float:
+    """Short bounded backoff; the whole retry budget stays under 60 seconds."""
+    index = min(max(attempt - 1, 0), len(_LLM_RETRY_BACKOFF_SECONDS) - 1)
+    return _LLM_RETRY_BACKOFF_SECONDS[index]
+
+
+def invoke_llm(llm, *args, **kwargs):
+    """Call ``llm.invoke``, retrying transient failures up to three attempts."""
+    for attempt in range(1, _LLM_MAX_ATTEMPTS + 1):
+        try:
+            return llm.invoke(*args, **kwargs)
+        except Exception as exc:
+            if attempt >= _LLM_MAX_ATTEMPTS or not is_transient_llm_error(exc):
+                raise
+            time.sleep(_retry_delay(attempt))
+
+
+async def ainvoke_llm(llm, *args, **kwargs):
+    """Await ``llm.ainvoke`` with the same bounded retry budget."""
+    for attempt in range(1, _LLM_MAX_ATTEMPTS + 1):
+        try:
+            return await llm.ainvoke(*args, **kwargs)
+        except Exception as exc:
+            if attempt >= _LLM_MAX_ATTEMPTS or not is_transient_llm_error(exc):
+                raise
+            await asyncio.sleep(_retry_delay(attempt))
+
+
 def get_llm(model: str | None = None, role: str | None = None, temperature: float = 0.0) -> ChatOpenAI:
     api_key, base_url = get_llm_config()
     if not api_key or api_key == "your_api_key_here" or api_key == "your_key_here":
@@ -60,6 +150,7 @@ def get_llm(model: str | None = None, role: str | None = None, temperature: floa
             model = os.getenv("LLM_MODEL_AGGREGATOR", "deepseek-chat")
         else:
             model = os.getenv("LLM_MODEL_PLANNER", "deepseek-chat")
+    model = require_safe_model(model)
 
     timeout_val = float(os.getenv("LLM_REQUEST_TIMEOUT", "60.0"))
     return ChatOpenAI(
@@ -112,19 +203,26 @@ def invoke_structured(base_llm, schema, prompt):
         methods = (cached,) + tuple(m for m in STRUCTURED_METHODS if m != cached)
 
     last_error = None
-    for method in methods:
-        try:
-            result = base_llm.with_structured_output(schema, method=method).invoke(prompt)
-            if result is None:
-                last_error = ValueError(f"{method} returned no parsed output")
-                continue
-            if _structured_method_cache.get(key) != method:
-                logger.info(f"Structured output via '{method}' for {model} at {base}")
-                _structured_method_cache[key] = method
-            return result
-        except Exception as e:  # noqa: BLE001
-            last_error = e
-            logger.debug(f"Structured output method '{method}' failed for {model}: {e}")
+    for attempt in range(1, _LLM_MAX_ATTEMPTS + 1):
+        transient = False
+        for method in methods:
+            try:
+                result = base_llm.with_structured_output(schema, method=method).invoke(prompt)
+                if result is None:
+                    last_error = ValueError(f"{method} returned no parsed output")
+                    continue
+                if _structured_method_cache.get(key) != method:
+                    logger.info(f"Structured output via '{method}' for {model} at {base}")
+                    _structured_method_cache[key] = method
+                return result
+            except Exception as e:  # noqa: BLE001
+                last_error = e
+                transient = transient or is_transient_llm_error(e)
+                logger.debug(f"Structured output method '{method}' failed for {model}: {e}")
+
+        if not transient or attempt >= _LLM_MAX_ATTEMPTS:
+            break
+        time.sleep(_retry_delay(attempt))
 
     raise last_error if last_error else RuntimeError("Structured output failed")
 
@@ -157,6 +255,7 @@ async def ainvoke_structured_with_retry(
     for attempt in range(max_retries + 1):
         if asyncio.get_event_loop().time() - start_time > total_deadline:
             break
+        transient = False
         for method in methods:
             try:
                 structured_chain = base_llm.with_structured_output(schema, method=method)
@@ -168,15 +267,15 @@ async def ainvoke_structured_with_retry(
                 last_error = ValueError(f"{method} returned empty structured output")
             except Exception as e:  # noqa: BLE001
                 last_error = e
+                transient = transient or is_transient_llm_error(e)
                 logger.debug(f"Structured attempt {attempt+1}/{max_retries+1} ({method}) failed: {e}")
-                err_str = str(e).lower()
                 # If non-transient error like invalid parameter/schema, don't repeat full method matrix
-                is_transient = any(kw in err_str for kw in ("timeout", "rate", "429", "500", "502", "503", "connection", "overloaded"))
-                if not is_transient and strict:
+                if not is_transient_llm_error(e) and strict:
                     break
 
-        if attempt < max_retries:
-            backoff = min(1.5 ** attempt, 5.0)
-            await asyncio.sleep(backoff)
+        if attempt < max_retries and transient:
+            await asyncio.sleep(min(1.5 ** attempt, 5.0))
+        elif attempt < max_retries:
+            break
 
     raise last_error or RuntimeError("Structured output failed after retries")

@@ -273,6 +273,8 @@ class PaperRecord(BaseModel):
     quality_rubric: dict[str, Any] | None = None
     screening_status: Literal["retrieved", "screened", "included", "excluded"] = "retrieved"
     exclusion_reason: str | None = None
+    # Set by sources that report retractions (OpenAlex); screening excludes these.
+    is_retracted: bool = False
     hypothesis_support: dict[str, str] = Field(default_factory=dict)
 
     @classmethod

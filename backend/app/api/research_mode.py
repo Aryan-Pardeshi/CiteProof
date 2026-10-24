@@ -20,11 +20,17 @@ from backend.app.agents.research_mode.writing import EV_MARKER_RE
 # Resolved lazily rather than importing the compiled graph: lifespan recompiles it
 # with the SQLite checkpointer, and a module-level binding would keep the old object.
 from backend.app.graph.research_mode_builder import get_research_mode_graph
+from backend.app.report_guard import research_paper_is_valid
 from backend.app.stats import get_paper_count, increment_paper_count
 from backend.app.tools.docx_generator import generate_paper_docx
 from backend.app.tools.pdf_generator import generate_paper_pdf
 
 logger = logging.getLogger(__name__)
+
+REPORT_REJECTED_MESSAGE = (
+    "The report could not be generated because the model returned "
+    "incomplete or uncited output. Please try again."
+)
 
 router = APIRouter()
 
@@ -226,14 +232,21 @@ async def _execute_research_graph(thread_id: str, message: str):
         # Check if paused at next interrupt or finished
         is_completed = values.get("status") == "completed" or not (state and state.next)
         is_checkpoint, hitl_checkpoint = _resolve_checkpoint_state(state)
-        
+
+        # A "completed" graph with no written sections or references is junk, not
+        # a paper: report an error instead of a success.
+        report_rejected = is_completed and not research_paper_is_valid(values)
+
         # Determine the correct terminal event:
+        # - "error" if the finished paper failed the report guard
         # - "completed" if the graph finished
         # - "checkpoint" if genuinely paused at an HITL interrupt
         # - "running" if the graph is actively executing (no interrupt, not finished)
         #   In this case we don't send a terminal event; the stream simply ends
         #   and the frontend will reconnect via pipeline-status polling.
-        if is_completed:
+        if report_rejected:
+            event_name = "error"
+        elif is_completed:
             event_name = "completed"
         elif is_checkpoint:
             event_name = "checkpoint"
@@ -292,10 +305,16 @@ async def _execute_research_graph(thread_id: str, message: str):
                 "title": values.get("title")
             }
         }
+        if report_rejected:
+            logger.warning(
+                "Research Mode finished without a usable paper; failing the run"
+            )
+            final_payload["message"] = REPORT_REJECTED_MESSAGE
         if event_name is not None:
             await _broadcast_event(thread_id, final_payload, is_node_event=True)
         if buf:
             buf["completed"] = is_completed
+            buf["report_rejected"] = report_rejected
 
     except Exception:
         logger.exception("SSE Error in Research Mode approve")
@@ -484,6 +503,7 @@ async def get_pipeline_status(thread_id: str):
     return {
         "running": running,
         "completed": buf.get("completed", False),
+        "report_rejected": buf.get("report_rejected", False),
         "events_count": len(buf.get("events", []))
     }
 
@@ -501,16 +521,24 @@ async def get_research_mode_result(thread_id: str):
     values = state.values
 
     is_checkpoint, hitl_checkpoint = _resolve_checkpoint_state(state)
-    is_completed = not bool(state.next) and values.get("status") == "completed"
+    finished = not bool(state.next) and values.get("status") == "completed"
+    # Apply the same report guard as the SSE stream, so a client that missed the
+    # stream's error event cannot render a rejected paper as a success.
+    report_rejected = finished and not research_paper_is_valid(values)
+    is_completed = finished and not report_rejected
 
-    return {
+    result = {
         "values": values,
         "next": list(state.next) if state.next else [],
         "is_checkpoint": is_checkpoint,
         "is_completed": is_completed,
+        "report_rejected": report_rejected,
         "hitl_checkpoint": hitl_checkpoint,
         "status": values.get("status")
     }
+    if report_rejected:
+        result["message"] = REPORT_REJECTED_MESSAGE
+    return result
 
 
 EXPORT_DIR = Path(__file__).resolve().parent.parent.parent.parent / "data" / "exports"

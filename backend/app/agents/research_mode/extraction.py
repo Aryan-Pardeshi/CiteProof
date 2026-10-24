@@ -20,6 +20,7 @@ from langchain_core.messages import HumanMessage
 from backend.app.agents.research_mode._common import (
     _safe_invoke_llm,
     get_llm_for,
+    included_papers,
 )
 from backend.app.models.evidence import (
     UNKNOWN_SECTION,
@@ -159,7 +160,7 @@ async def evidence_extractor_agent(state: dict[str, Any]) -> dict[str, Any]:
     ev_seq_by_paper: dict[str, int] = {}
 
     # Process top 10 included papers
-    for p_idx, p in enumerate(paper_dicts[:10]):
+    for p_idx, p in enumerate(included_papers(paper_dicts)[:10]):
         paper_id = p.get("paper_id")
         if not paper_id:
             # Persist a stable identifier back onto the record so downstream

@@ -10,8 +10,8 @@ from langchain_core.messages import HumanMessage
 
 from backend.app.agents.research_mode._common import (
     _safe_invoke_llm,
-    _strip_preamble,
     get_llm_for,
+    write_required_section,
 )
 
 logger = logging.getLogger(__name__)
@@ -86,9 +86,32 @@ Include specific subsections:
 - 1. Methodological Gaps
 - 2. Empirical Inconsistencies & Contradictions
 - 3. Unaddressed Boundary Conditions
+
+Instructions:
+- Write only the body of this section; do not write a document title, an abstract, or '#'/'##' headings; use '###' for subsections if needed.
 """
-    raw = await _safe_invoke_llm(llm, [HumanMessage(content=prompt)])
-    return {"research_gap": _strip_preamble(raw)}
+    compact_prompt = f"""You are a Critical Literature Analyst.
+Identify the major research gaps and methodological limitations for:
+Topic: {ps}
+
+Evidence Base:
+{ev_text[:800]}
+
+Write 2-3 paragraphs covering methodological gaps, inconsistent findings, and
+unaddressed boundary conditions. Write only the body; no document title,
+abstract, or '#'/'##' headings.
+"""
+    # Research Gap is a required paper section: an empty model response must be
+    # retried and then fail the run, never silently drop the section from the
+    # exported paper.
+    body = await write_required_section(
+        _safe_invoke_llm,
+        llm,
+        prompt,
+        section="Research Gap",
+        compact_prompt=compact_prompt,
+    )
+    return {"research_gap": body}
 
 
 async def conceptual_framework_agent(state: dict[str, Any]) -> dict[str, Any]:
@@ -108,9 +131,26 @@ Provide a detailed Conceptual Framework in Markdown format including:
 - Core Theoretical Constructs (Independent, Dependent, Mediating, and Moderating Variables)
 - Structural Relationships & Mechanistic Pathways
 - Theoretical Grounding (linking constructs to established scientific paradigms)
+
+Instructions:
+- Write only the body of this section; do not write a document title, an abstract, or '#'/'##' headings; use '###' for subsections if needed.
 """
-    raw = await _safe_invoke_llm(llm, [HumanMessage(content=prompt)])
-    return {"conceptual_framework": _strip_preamble(raw)}
+    compact_prompt = f"""You are a Senior Theoretical Framework Architect.
+Construct a concise but complete Conceptual Framework for:
+Problem Statement: {ps}
+Gaps: {gap[:400]}
+
+Cover independent, dependent, mediating, and moderating constructs, their structural relationships, and theoretical grounding.
+Write only the body; no document title, abstract, or '#'/'##' headings.
+"""
+    body = await write_required_section(
+        _safe_invoke_llm,
+        llm,
+        prompt,
+        section="Conceptual Framework",
+        compact_prompt=compact_prompt,
+    )
+    return {"conceptual_framework": body}
 
 
 async def hypotheses_agent(state: dict[str, Any]) -> dict[str, Any]:
