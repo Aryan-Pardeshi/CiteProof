@@ -588,9 +588,10 @@ def _is_protocol_without_results(paper: PaperRecord) -> bool:
     """
     title = str(paper.title or "")
     abstract = str(paper.abstract or "")
-    if not _PROTOCOL_TITLE_RE.search(title):
-        if not re.search(r"\bprotocol\b", abstract[:500], re.IGNORECASE):
-            return False
+    if not _PROTOCOL_TITLE_RE.search(title) and not re.search(
+        r"\bprotocol\b", abstract[:500], re.IGNORECASE
+    ):
+        return False
     return not _PROTOCOL_RESULTS_RE.search(abstract)
 
 
@@ -667,8 +668,7 @@ def _parse_score_map(raw: str, batch_size: int) -> dict[int, float]:
     """Parse and validate a batch score payload; invalid entries stay unscored."""
     if "```" in raw:
         raw = raw.split("```")[1]
-        if raw.startswith("json"):
-            raw = raw[4:]
+        raw = raw.removeprefix("json")
     cleaned = raw.strip()
     try:
         payload = json.loads(cleaned)
@@ -677,7 +677,7 @@ def _parse_score_map(raw: str, batch_size: int) -> dict[int, float]:
         # literal_eval parses the value without executing anything.
         payload = ast.literal_eval(cleaned)
     if not isinstance(payload, list):
-        raise ValueError(f"score payload is not a list (got {type(payload).__name__})")
+        raise TypeError(f"score payload is not a list (got {type(payload).__name__})")
 
     score_map: dict[int, float] = {}
     for item in payload:
@@ -710,7 +710,7 @@ async def _request_batch_scores(
             return _parse_score_map(str(res.content).strip(), len(batch))
         except ReportGenerationError:
             raise
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - any provider or parse failure leaves the batch unscored
             # Only the exception type: provider messages can echo prompts and keys.
             logger.warning(
                 "Screening batch scoring failed (%s) for %d papers; retrying split.",

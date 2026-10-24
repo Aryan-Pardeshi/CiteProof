@@ -5,8 +5,6 @@ argument tolerance, screening calibration and PRISMA accounting, and the
 Research Mode paper-quality writers.
 """
 
-# ruff: noqa: E402
-
 from __future__ import annotations
 
 import asyncio

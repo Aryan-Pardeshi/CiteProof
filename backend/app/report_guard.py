@@ -101,9 +101,7 @@ def deepsearch_report_is_valid(
         return False
 
     retrieved = _citation_urls(citations)
-    if retrieved and not any(url in text for url in retrieved):
-        return False
-    return True
+    return not (retrieved and not any(url in text for url in retrieved))
 
 
 def research_paper_text(values: Mapping[str, Any]) -> str:
@@ -122,9 +120,7 @@ def research_paper_is_valid(values: Mapping[str, Any]) -> bool:
     if _word_count(text) < MIN_RESEARCH_PAPER_WORDS:
         return False
     references = values.get("references")
-    if not isinstance(references, (list, tuple)) or not references:
-        return False
-    return True
+    return isinstance(references, (list, tuple)) and bool(references)
 
 
 __all__ = [

@@ -115,10 +115,8 @@ def normalize_section_body(text: str, *, section_title: str) -> str:
             return True
         # If it doesn't match section title, check if it's a numbered subsection (e.g. "1. Scope", "1.1 Details")
         # Subsections start with a number (like "1.", "1.1") and should not be removed as section titles
-        if re.match(r"^\d+(\.\d+)*[.)]?\s+", title.strip()):
-            return False
         # Any non-numbered heading on the first non-blank line is treated as the section title
-        return True
+        return not re.match(r"^\d+(\.\d+)*[.)]?\s+", title.strip())
 
     # 2. If the first non-blank line is a Markdown heading (# to ######), remove it
     first_h = _parse_heading(lines[0])
@@ -160,7 +158,7 @@ def normalize_section_body(text: str, *, section_title: str) -> str:
 
     for line in lines:
         stripped = line.strip()
-        if stripped.startswith("```") or stripped.startswith("~~~"):
+        if stripped.startswith(("```", "~~~")):
             in_code_block = not in_code_block
             parsed_lines.append((False, None, "", line))
             continue
