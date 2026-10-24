@@ -20,6 +20,7 @@ from backend.app.agents.research_mode.writing import EV_MARKER_RE
 # Resolved lazily rather than importing the compiled graph: lifespan recompiles it
 # with the SQLite checkpointer, and a module-level binding would keep the old object.
 from backend.app.graph.research_mode_builder import get_research_mode_graph
+from backend.app.report_guard import research_paper_is_valid
 from backend.app.stats import get_paper_count, increment_paper_count
 from backend.app.tools.docx_generator import generate_paper_docx
 from backend.app.tools.pdf_generator import generate_paper_pdf
@@ -226,14 +227,21 @@ async def _execute_research_graph(thread_id: str, message: str):
         # Check if paused at next interrupt or finished
         is_completed = values.get("status") == "completed" or not (state and state.next)
         is_checkpoint, hitl_checkpoint = _resolve_checkpoint_state(state)
-        
+
+        # A "completed" graph with no written sections or references is junk, not
+        # a paper: report an error instead of a success.
+        report_rejected = is_completed and not research_paper_is_valid(values)
+
         # Determine the correct terminal event:
+        # - "error" if the finished paper failed the report guard
         # - "completed" if the graph finished
         # - "checkpoint" if genuinely paused at an HITL interrupt
         # - "running" if the graph is actively executing (no interrupt, not finished)
         #   In this case we don't send a terminal event; the stream simply ends
         #   and the frontend will reconnect via pipeline-status polling.
-        if is_completed:
+        if report_rejected:
+            event_name = "error"
+        elif is_completed:
             event_name = "completed"
         elif is_checkpoint:
             event_name = "checkpoint"
@@ -292,6 +300,14 @@ async def _execute_research_graph(thread_id: str, message: str):
                 "title": values.get("title")
             }
         }
+        if report_rejected:
+            logger.warning(
+                "Research Mode finished without a usable paper; failing the run"
+            )
+            final_payload["message"] = (
+                "The report could not be generated because the model returned "
+                "incomplete or uncited output. Please try again."
+            )
         if event_name is not None:
             await _broadcast_event(thread_id, final_payload, is_node_event=True)
         if buf:

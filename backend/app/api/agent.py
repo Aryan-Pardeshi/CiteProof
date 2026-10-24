@@ -13,6 +13,7 @@ from pydantic import BaseModel
 # Resolved per call, not bound at import: lifespan recompiles the graph with the
 # SQLite checkpointer, and an import-time binding would pin the in-memory one.
 from backend.app.graph.builder import get_research_graph
+from backend.app.report_guard import deepsearch_report_is_valid
 
 logger = logging.getLogger(__name__)
 
@@ -212,20 +213,43 @@ async def approve_plan(request: ResearchApproveRequest):
                 # 3. Graph execution is finished. Retrieve the final state snapshot to send the final report/citations.
                 state = await get_research_graph().aget_state(config)
 
-                final_payload = {
-                    "event": (
-                        "completed"
-                        if state.values.get("status") == "completed"
-                        else "awaiting_approval"
-                    ),
-                    "thread_id": request.thread_id,
-                    "plan_approved": state.values.get("plan_approved"),
-                    "status": state.values.get("status"),
-                    "ps": state.values.get("ps"),
-                    "plan": state.values.get("plan"),
-                    "final_answer": state.values.get("final_answer"),
-                    "citations": state.values.get("citations"),
-                }
+                final_answer = state.values.get("final_answer")
+                citations = state.values.get("citations") or []
+                status = state.values.get("status")
+                # A safety verdict or an empty stub is not a report: report an
+                # error instead of "completed" so the UI never shows junk.
+                report_rejected = status == "completed" and not deepsearch_report_is_valid(
+                    final_answer,
+                    citations=citations,
+                )
+
+                if report_rejected:
+                    logger.warning(
+                        "DeepSearch finished without a usable report; failing the run"
+                    )
+                    final_payload = {
+                        "event": "error",
+                        "thread_id": request.thread_id,
+                        "message": (
+                            "The report could not be generated because the model "
+                            "returned incomplete or uncited output. Please try again."
+                        ),
+                    }
+                else:
+                    final_payload = {
+                        "event": (
+                            "completed"
+                            if status == "completed"
+                            else "awaiting_approval"
+                        ),
+                        "thread_id": request.thread_id,
+                        "plan_approved": state.values.get("plan_approved"),
+                        "status": status,
+                        "ps": state.values.get("ps"),
+                        "plan": state.values.get("plan"),
+                        "final_answer": final_answer,
+                        "citations": citations,
+                    }
                 # Send the complete final state payload to mark completion
                 yield f"data: {json.dumps(final_payload)}\n\n"
 

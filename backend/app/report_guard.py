@@ -1,0 +1,138 @@
+"""Reject a finished run whose final text is not a usable report.
+
+Free and small models occasionally answer a report prompt with a safety verdict
+or a single line. A run must fail with a clear error rather than "complete" with
+that output.
+"""
+
+from __future__ import annotations
+
+import re
+from collections.abc import Mapping, Sequence
+from typing import Any
+
+# Named thresholds so the rule is easy to review and change.
+MIN_REPORT_WORDS = 80
+MIN_SECTION_WORDS = 30
+MIN_RESEARCH_PAPER_WORDS = 20
+
+_HEADING_RE = re.compile(r"^\s{0,3}#{1,6}\s+")
+_RULE_RE = re.compile(r"^\s{0,3}([-*_])(?:\s*\1){2,}\s*$")
+_URL_RE = re.compile(r"https?://[^\s)\]>\"']+")
+_WORD_RE = re.compile(r"[A-Za-z0-9]+(?:['\u2019-][A-Za-z0-9]+)*")
+
+_PAPER_TEXT_FIELDS = (
+    "abstract",
+    "introduction",
+    "literature_review",
+    "research_gap",
+    "research_design",
+    "data_collection_plan",
+    "data_analysis_plan",
+    "results",
+    "discussion",
+    "implications",
+    "limitations",
+    "conclusion",
+    "future_scope",
+)
+
+
+class ReportGenerationError(RuntimeError):
+    """Raised when a run finished without a usable report.
+
+    The message is fixed and safe to show to a user; the reason is kept for logs.
+    """
+
+    def __init__(self, reason: str) -> None:
+        self.reason = reason
+        super().__init__(
+            "The report could not be generated because the model returned "
+            "incomplete or uncited output. Please try again."
+        )
+
+
+def _word_count(text: str) -> int:
+    return len(_WORD_RE.findall(text))
+
+
+def _section_words(text: str) -> int:
+    """Words outside headings, horizontal rules and bare source links."""
+    total = 0
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped or _HEADING_RE.match(stripped) or _RULE_RE.match(stripped):
+            continue
+        if _URL_RE.fullmatch(stripped.lstrip("-* ").strip()):
+            continue
+        total += _word_count(stripped)
+    return total
+
+
+def _citation_urls(values: Sequence[Any]) -> list[str]:
+    urls: list[str] = []
+    for item in values:
+        if isinstance(item, str):
+            cleaned = item.strip()
+        elif isinstance(item, Mapping):
+            value = item.get("url")
+            cleaned = value.strip() if isinstance(value, str) else ""
+        else:
+            cleaned = ""
+        if cleaned:
+            urls.append(cleaned)
+    return urls
+
+
+def deepsearch_report_is_valid(
+    report: Any,
+    *,
+    citations: Sequence[Any] = (),
+) -> bool:
+    """Return True only for a report with body text and its retrieved sources."""
+    if not isinstance(report, str):
+        return False
+    text = report.strip()
+    if not text:
+        return False
+    if _word_count(text) < MIN_REPORT_WORDS:
+        return False
+    if _section_words(text) < MIN_SECTION_WORDS:
+        return False
+
+    retrieved = _citation_urls(citations)
+    if retrieved and not any(url in text for url in retrieved):
+        return False
+    return True
+
+
+def research_paper_text(values: Mapping[str, Any]) -> str:
+    """Join the written sections of a Research Mode paper."""
+    parts = [
+        str(values.get(field) or "")
+        for field in _PAPER_TEXT_FIELDS
+        if values.get(field)
+    ]
+    return "\n\n".join(part.strip() for part in parts if part.strip())
+
+
+def research_paper_is_valid(values: Mapping[str, Any]) -> bool:
+    """A paper needs written sections and at least one reference."""
+    text = research_paper_text(values)
+    if _word_count(text) < MIN_RESEARCH_PAPER_WORDS:
+        return False
+    references = values.get("references")
+    if not isinstance(references, (list, tuple)) or not references:
+        return False
+    return True
+
+
+__all__ = [
+    "MIN_REPORT_WORDS",
+    "MIN_RESEARCH_PAPER_WORDS",
+    "MIN_SECTION_WORDS",
+    "ReportGenerationError",
+    "deepsearch_report_is_valid",
+    "research_paper_is_valid",
+    "research_paper_text",
+]
