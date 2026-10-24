@@ -152,6 +152,9 @@ def test_research_paper_needs_text_and_references():
 def test_research_paper_without_in_text_citation_is_rejected():
     values = {"abstract": _body(40), "references": [{"title": "Cited nowhere"}]}
     assert research_paper_is_valid(values) is False
+    # A statistic beside a year must not stand in for a citation.
+    values["abstract"] += " (n = 120, 2020)."
+    assert research_paper_is_valid(values) is False
 
 
 @pytest.mark.parametrize(
@@ -162,9 +165,17 @@ def test_research_paper_without_in_text_citation_is_rejected():
         ("Smith et al. (2020) found gains.", True),
         ("Lee and Park (2019) found gains.", True),
         ("Gains held (Smith et al., 2020a, p. 4).", True),
+        ("Gains held (Lee, Kim, & Park, 2019).", True),
+        ("Gains held (see O'Brien, 2020).", True),
+        ("Guidance agrees (WHO, 2020).", True),
         ("Gains held in 2020 (see Table 2).", False),
         ("Gains held (2020).", False),
         ("Gains held (n = 120).", False),
+        # Sample sizes and statistics next to a year are not author citations.
+        ("Gains held (n = 120, 2020).", False),
+        ("Gains held (N = 120, 2020).", False),
+        ("Gains held (p < .05, 2020).", False),
+        ("Gains held (Table 2, 2020).", False),
     ],
 )
 def test_in_text_citation_detection(text, expected):

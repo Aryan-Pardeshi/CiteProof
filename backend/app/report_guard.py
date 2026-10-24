@@ -21,12 +21,18 @@ _RULE_RE = re.compile(r"^\s{0,3}([-*_])(?:\s*\1){2,}\s*$")
 _URL_RE = re.compile(r"https?://[^\s)\]>\"']+")
 _WORD_RE = re.compile(r"[A-Za-z0-9]+(?:['\u2019-][A-Za-z0-9]+)*")
 _YEAR = r"(?:19|20)\d{2}[a-z]?"
+# An author-like label: a capitalised name ("Smith", "O'Brien") or a short
+# all-caps organisation ("WHO"). A lone "n" or "N" (sample size) is not one.
+_AUTHOR = r"[A-Z](?:[a-z][A-Za-z'\u2019-]*|[A-Z]{1,9})"
 # APA in-text citations: parenthetical "(Smith et al., 2020)" or
 # "(Smith, 2020; Lee & Park, 2019)", and narrative "Smith et al. (2020)".
-# Each span is bounded: an unbounded scan after an unclosed "(" is quadratic
-# and took seconds on a paper-length text.
+# The year must directly follow an author label, so "(n = 120, 2020)" is not a
+# citation. Each span is bounded: an unbounded scan after an unclosed "(" is
+# quadratic and took seconds on a paper-length text.
 _IN_TEXT_CITATION_RE = re.compile(
-    rf"\((?=[^()]{{0,300}}?[A-Za-z])[^()]{{0,300}}?,\s*{_YEAR}\b[^()]{{0,300}}\)"
+    rf"\([^()]{{0,300}}?\b{_AUTHOR}"
+    rf"(?:\s+et\s+al\.|,?\s+(?:and|&)\s+{_AUTHOR}|,\s+{_AUTHOR}){{0,6}}"
+    rf",\s*{_YEAR}\b[^()]{{0,300}}\)"
     rf"|\b[A-Z][A-Za-z'\u2019-]+(?:\s+et\s+al\.|\s+(?:and|&)\s+[A-Z][A-Za-z'\u2019-]+)?\s+\({_YEAR}\)"
 )
 
