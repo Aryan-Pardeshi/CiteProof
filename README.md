@@ -321,7 +321,7 @@ MIT, see [LICENSE](LICENSE). Two files inside the MCP server are adapted from An
 
 ---
 
-## Star history
+## Star History
 
 <a href="https://www.star-history.com/?repos=aryan-pardeshi%2Fciteproof-ai-mcp&type=date&legend=top-left">
  <picture>
