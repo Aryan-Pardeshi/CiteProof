@@ -755,15 +755,20 @@ def test_strip_abstract_heading_removes_a_leading_abstract_label():
 
 @pytest.mark.asyncio
 async def test_safe_invoke_llm_logs_exception_type_only(monkeypatch, caplog):
-    def boom(*_args, **_kwargs):
-        raise RuntimeError("secret prompt body sk-live-should-not-appear")
+    class Boom:
+        calls = 0
 
-    monkeypatch.setattr(_common, "invoke_llm", boom)
+        def invoke(self, *_args, **_kwargs):
+            Boom.calls += 1
+            raise RuntimeError("503 secret prompt body sk-live-should-not-appear")
 
     with caplog.at_level(logging.WARNING):
         result = await _common._safe_invoke_llm(
-            object(), [], max_retries=0, node="literature_review"
+            Boom(), [], max_retries=0, node="literature_review"
         )
+
+    # One attempt per outer try: no nested transient retries.
+    assert Boom.calls == 1
 
     assert result == ""
     log_text = "\n".join(record.getMessage() for record in caplog.records)
@@ -1036,3 +1041,184 @@ def test_format_apa_cleans_html_entities_casing_and_punctuation():
     assert "https://doi.org/10.48550/arXiv.1706.03762" in apa
     assert ".." not in apa
     assert " ." not in apa
+
+
+class _FakeGraphState:
+    def __init__(self, values):
+        self.values = values
+        self.next = ()
+        self.tasks = ()
+
+
+class _FakeGraph:
+    def __init__(self, values):
+        self._state = _FakeGraphState(values)
+
+    async def aget_state(self, _config):
+        return self._state
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("values", "rejected"),
+    [
+        ({"status": "completed", "references": []}, True),
+        (
+            {"status": "completed", "abstract": _body(40), "references": [{"title": "T"}]},
+            False,
+        ),
+    ],
+)
+async def test_result_endpoint_applies_report_guard(monkeypatch, values, rejected):
+    from backend.app.api import research_mode as api
+
+    monkeypatch.setattr(api, "get_research_mode_graph", lambda: _FakeGraph(values))
+    monkeypatch.setattr(api, "_resolve_checkpoint_state", lambda _state: (False, None))
+
+    result = await api.get_research_mode_result("thread-1")
+
+    assert result["report_rejected"] is rejected
+    assert result["is_completed"] is (not rejected)
+    assert ("message" in result) is rejected
+
+
+@pytest.mark.asyncio
+async def test_evidence_extractor_skips_screening_exclusions(monkeypatch):
+    from backend.app.agents.research_mode import extraction
+
+    abstract = "A randomised trial found that the app reduced depressive symptoms at twelve weeks."
+    papers = [
+        {"paper_id": "inc1", "title": "Included trial", "abstract": abstract,
+         "screening_status": "included"},
+        {"paper_id": "prot1", "title": "Trial protocol", "abstract": abstract,
+         "screening_status": "excluded", "exclusion_reason": "Protocol without reported results"},
+    ]
+
+    async def no_items(_llm, _messages, **_kwargs):
+        return "[]"
+
+    monkeypatch.setattr(extraction, "get_llm_for", lambda *_a, **_k: object())
+    monkeypatch.setattr(extraction, "_safe_invoke_llm", no_items)
+
+    result = await extraction.evidence_extractor_agent({"paper_records": papers})
+
+    assert {e["paper_id"] for e in result["evidence_records"]} == {"inc1"}
+    # The full audit list is still returned for PRISMA reporting.
+    assert [p["paper_id"] for p in result["paper_records"]] == ["inc1", "prot1"]
+
+
+@pytest.mark.asyncio
+async def test_retracted_openalex_record_is_excluded_at_screening():
+    import httpx
+
+    from backend.app.tools.openalex_search import search_openalex
+
+    payload = {"results": [{
+        "doi": "https://doi.org/10.1/retracted",
+        "title": "A retracted trial",
+        "publication_year": 2020,
+        "authorships": [{"author": {"display_name": "Ann Smith"}}],
+        "is_retracted": True,
+    }]}
+    transport = httpx.MockTransport(lambda _req: httpx.Response(200, json=payload))
+    async with httpx.AsyncClient(transport=transport) as client:
+        records = await search_openalex("trial", client=client)
+
+    assert records[0].is_retracted is True
+    # The flag must survive the dict round trip the pipeline state uses.
+    restored = PaperRecord.from_dict(records[0].model_dump())
+    assert restored.is_retracted is True
+
+    screened, tracker = await screen_papers_structured([restored], "trial", [])
+    assert screened[0].screening_status == "excluded"
+    assert tracker.exclusion_reasons.get("Retracted publication") == 1
+
+
+def _linker_fixture():
+    cited = _paper_dict("p-cited", ["Curie, M."], "2021", "Alpha Paper")
+    evidence = {"p-cited_ev001": {"evidence_id": "p-cited_ev001", "paper_id": "p-cited"}}
+    return cited, evidence
+
+
+def test_marker_rendering_keeps_line_and_paragraph_breaks():
+    cited, evidence = _linker_fixture()
+    papers = {"p-cited": cited}
+
+    def render(text):
+        # Same two steps claims_linker_node applies to each section.
+        return writing._clean_citation_punctuation(
+            writing._render_markers_as_citations(text, evidence, papers)
+        )
+
+    assert render("Strong gains [EV:p-cited_ev001]\n\nNext paragraph.") == (
+        "Strong gains (Curie, 2021)\n\nNext paragraph."
+    )
+    # A dropped (unresolvable) marker must not glue two sentences together.
+    assert render("X.[EV:ghost_ev9] Next") == "X. Next"
+
+
+@pytest.mark.asyncio
+async def test_claims_linker_defers_marker_on_its_own_line():
+    cited, evidence = _linker_fixture()
+    state = {
+        "paper_records": [cited],
+        "evidence_records": list(evidence.values()),
+        "references": [format_apa(cited)],
+        # The trailing marker sits on its own line, so it splits off as its own
+        # "sentence" and renders to a bare "(Curie, 2021)".
+        "results": "Gains were reported [EV:p-cited_ev001]. Accuracy rose sharply.\n[EV:p-cited_ev001]",
+    }
+
+    result = await writing.claims_linker_node(state)
+
+    claim_texts = [c["claim_text"] for c in result["review_claims"]]
+    assert claim_texts == ["Gains were reported (Curie, 2021)."]
+
+
+@pytest.mark.asyncio
+async def test_claims_linker_keeps_reference_cited_without_marker():
+    cited, evidence = _linker_fixture()
+    narrative = _paper_dict("p-narr", ["Lovelace, A.", "Babbage, C.", "Turing, A."], "2018", "Narr")
+    uncited = _paper_dict("p-uncited", ["Noether, E."], "2019", "Uncited Paper")
+    state = {
+        "paper_records": [cited, narrative, uncited],
+        "evidence_records": list(evidence.values()),
+        "references": [format_apa(cited), format_apa(narrative), format_apa(uncited)],
+        "introduction": (
+            "Prior work reported gains [EV:p-cited_ev001]. "
+            "Lovelace et al. (2018) framed the problem."
+        ),
+    }
+
+    result = await writing.claims_linker_node(state)
+
+    assert format_apa(narrative) in result["references"]
+    assert format_apa(cited) in result["references"]
+    assert format_apa(uncited) not in result["references"]
+
+
+@pytest.mark.parametrize(
+    "title",
+    ["Meta-Analytic Review of X", "A Meta-Analysis Review of X", "Systematic Review and Meta-Analysis of X"],
+)
+def test_sanitize_title_never_doubles_review(title):
+    cleaned = writing._sanitize_title(title, "F")
+    assert "Review Review" not in cleaned
+    assert "meta" not in cleaned.lower()
+    assert "Systematic Review" in cleaned
+
+
+@pytest.mark.asyncio
+async def test_implications_prompts_request_evidence_markers(monkeypatch):
+    prompts = []
+    monkeypatch.setattr(writing, "get_llm_for", lambda *_a, **_k: object())
+
+    async def capture(_llm, messages, **_kwargs):
+        prompts.append(messages[0].content)
+        return "" if len(prompts) == 1 else "Implications grounded in evidence. " * 20
+
+    monkeypatch.setattr(writing, "_safe_invoke_llm", capture)
+    await writing.implications_agent({"problem_statement": "Topic"})
+
+    assert len(prompts) == 2  # full prompt, then the compact retry
+    assert all("[EV:<Evidence ID>]" in prompt for prompt in prompts)

@@ -10,7 +10,7 @@ from typing import Any
 
 from langchain_core.messages import HumanMessage
 
-from backend.app.llm import get_llm, invoke_llm
+from backend.app.llm import get_llm
 from backend.app.report_guard import ReportGenerationError
 
 logger = logging.getLogger(__name__)
@@ -24,6 +24,15 @@ EVIDENCE_BASIS_NOTE = (
     "- NEVER state or imply that the authors of this report executed original laboratory experiments, "
     "conducted human surveys, or obtained unpublished empirical measurements unless explicitly provided in the evidence base."
 )
+
+
+def included_papers(papers: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Papers eligible for extraction and appraisal.
+
+    Screening returns audited exclusions (protocols, retractions) alongside the
+    included studies; those must never feed evidence or synthesis.
+    """
+    return [p for p in papers if p.get("screening_status") != "excluded"]
 
 
 def get_llm_for(role: str, state: dict[str, Any], temperature: float = 0.0):
@@ -211,7 +220,9 @@ async def _safe_invoke_llm(
     last_err_type = None
     for attempt in range(max_retries + 1):
         try:
-            res = await asyncio.to_thread(invoke_llm, llm, messages)
+            # This loop owns the retry budget; invoke_llm's own transient
+            # retries would multiply the calls per prompt.
+            res = await asyncio.to_thread(llm.invoke, messages)
             content = res.content if hasattr(res, "content") else str(res)
             return _strip_preamble(str(content))
         except ReportGenerationError:

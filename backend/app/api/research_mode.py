@@ -27,6 +27,11 @@ from backend.app.tools.pdf_generator import generate_paper_pdf
 
 logger = logging.getLogger(__name__)
 
+REPORT_REJECTED_MESSAGE = (
+    "The report could not be generated because the model returned "
+    "incomplete or uncited output. Please try again."
+)
+
 router = APIRouter()
 
 THREAD_ID_PATTERN = re.compile(r"[a-zA-Z0-9\-_]{1,64}")
@@ -304,14 +309,12 @@ async def _execute_research_graph(thread_id: str, message: str):
             logger.warning(
                 "Research Mode finished without a usable paper; failing the run"
             )
-            final_payload["message"] = (
-                "The report could not be generated because the model returned "
-                "incomplete or uncited output. Please try again."
-            )
+            final_payload["message"] = REPORT_REJECTED_MESSAGE
         if event_name is not None:
             await _broadcast_event(thread_id, final_payload, is_node_event=True)
         if buf:
             buf["completed"] = is_completed
+            buf["report_rejected"] = report_rejected
 
     except Exception:
         logger.exception("SSE Error in Research Mode approve")
@@ -500,6 +503,7 @@ async def get_pipeline_status(thread_id: str):
     return {
         "running": running,
         "completed": buf.get("completed", False),
+        "report_rejected": buf.get("report_rejected", False),
         "events_count": len(buf.get("events", []))
     }
 
@@ -517,16 +521,24 @@ async def get_research_mode_result(thread_id: str):
     values = state.values
 
     is_checkpoint, hitl_checkpoint = _resolve_checkpoint_state(state)
-    is_completed = not bool(state.next) and values.get("status") == "completed"
+    finished = not bool(state.next) and values.get("status") == "completed"
+    # Apply the same report guard as the SSE stream, so a client that missed the
+    # stream's error event cannot render a rejected paper as a success.
+    report_rejected = finished and not research_paper_is_valid(values)
+    is_completed = finished and not report_rejected
 
-    return {
+    result = {
         "values": values,
         "next": list(state.next) if state.next else [],
         "is_checkpoint": is_checkpoint,
         "is_completed": is_completed,
+        "report_rejected": report_rejected,
         "hitl_checkpoint": hitl_checkpoint,
         "status": values.get("status")
     }
+    if report_rejected:
+        result["message"] = REPORT_REJECTED_MESSAGE
+    return result
 
 
 EXPORT_DIR = Path(__file__).resolve().parent.parent.parent.parent / "data" / "exports"

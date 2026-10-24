@@ -1565,7 +1565,10 @@ async function restoreRMSessionOnLoad() {
                     updateCorpusStats(state.rm.corpus_stats);
                 }
 
-                if (data.is_completed) {
+                if (data.report_rejected) {
+                    // Finished, but the report guard rejected the paper.
+                    processRMSEEvent({ event: 'error', message: data.message });
+                } else if (data.is_completed) {
                     rmTimer.stop();
                     state.rm.hitlCheckpoint = 'title';
                     updateRMPipelineTracker('title', RM_STAGES.map(s => s.id));
@@ -2437,7 +2440,9 @@ async function openRMEventStream(message) {
                                 if (syncRes.ok) {
                                     const syncData = await syncRes.json();
                                     if (syncData.values) applyRMStatePayload(syncData.values);
-                                    if (syncData.is_checkpoint) {
+                                    if (syncData.report_rejected) {
+                                        processRMSEEvent({ event: 'error', message: syncData.message });
+                                    } else if (syncData.is_checkpoint) {
                                         const cp = (syncData.hitl_checkpoint || 'checkpoint_1').replace(/_(approved|revising)$/, '');
                                         renderRMHitlPanel(cp);
                                     } else if (!syncData.next || syncData.next.length === 0) {
@@ -2463,7 +2468,9 @@ async function openRMEventStream(message) {
                     if (syncRes.ok) {
                         const syncData = await syncRes.json();
                         if (syncData.values) applyRMStatePayload(syncData.values);
-                        if (syncData.is_checkpoint) {
+                        if (syncData.report_rejected) {
+                            processRMSEEvent({ event: 'error', message: syncData.message });
+                        } else if (syncData.is_checkpoint) {
                             const cp = (syncData.hitl_checkpoint || 'checkpoint_1').replace(/_(approved|revising)$/, '');
                             renderRMHitlPanel(cp);
                         } else if (!syncData.next || syncData.next.length === 0) {

@@ -11,6 +11,7 @@ from langchain_core.messages import HumanMessage
 from backend.app.agents.research_mode._common import (
     _safe_invoke_llm,
     get_llm_for,
+    included_papers,
 )
 from backend.app.models.evidence import PaperRecord, PRISMATracker
 from backend.app.tools.academic_search import screen_papers_structured
@@ -82,8 +83,8 @@ async def quality_appraisal_agent(state: dict[str, Any]) -> dict[str, Any]:
 
     llm = get_llm_for("researcher", state, temperature=0.1)
     
-    # Assess top 10 papers in a single batch
-    sample = paper_dicts[:10]
+    # Assess top 10 included papers in a single batch
+    sample = included_papers(paper_dicts)[:10]
     papers_summary = "\n".join(
         f"[{i+1}] Title: {p.get('title')}\nAbstract: {(p.get('abstract') or '')[:250]}\nExcerpt: {(p.get('fulltext_excerpt') or '')[:250]}"
         for i, p in enumerate(sample)

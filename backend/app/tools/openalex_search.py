@@ -16,10 +16,11 @@ Raw API field -> PaperRecord mapping (verified against live API 2026-08):
     results[].open_access.oa_url           -> pdf_url      (fallback: best_oa_location.pdf_url)
     results[].doi (URL) or primary_location.landing_page_url -> source_url
     results[].cited_by_count               -> citation_count
+    results[].is_retracted                 -> is_retracted (screening excludes retracted works)
     (constant)                             -> retrieval_source="openalex", screening_status="retrieved"
     paper_id                               -> make_paper_id(doi, title, year)
 OpenAlex-only fields deliberately dropped (must not leak past the adapter):
-relevance_score, fwci, concepts/topics, is_retracted, biblio pages, grants.
+relevance_score, fwci, concepts/topics, biblio pages, grants.
 """
 
 from __future__ import annotations
@@ -40,7 +41,7 @@ OPENALEX_TIMEOUT = 10.0
 
 # Trimmed payload: only fields this adapter consumes. Keeps responses small and
 # pins the contract so upstream additions can never silently change parsing.
-_OPENALEX_SELECT = "id,doi,title,display_name,publication_year,authorships,abstract_inverted_index,primary_location,open_access,best_oa_location,cited_by_count,biblio,ids"
+_OPENALEX_SELECT = "id,doi,title,display_name,publication_year,authorships,abstract_inverted_index,primary_location,open_access,best_oa_location,cited_by_count,biblio,ids,is_retracted"
 
 _PMID_URL_RE = re.compile(r"pubmed\.ncbi\.nlm\.nih\.gov/(\d+)")
 
@@ -164,6 +165,7 @@ async def search_openalex(
                 pdf_url=pdf_url or None,
                 retrieval_source="openalex",
                 citation_count=citation_count,
+                is_retracted=item.get("is_retracted") is True,
                 screening_status="retrieved",
             ))
 

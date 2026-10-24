@@ -91,6 +91,8 @@ async def test_openalex_normalizes_full_mapping():
     assert r.source_url == "https://doi.org/10.1038/s41586-021-03819-2"
     assert r.citation_count == 12345
     assert r.screening_status == "retrieved"
+    assert r.is_retracted is False
+    assert "is_retracted" in seen_params["select"]
 
 
 @pytest.mark.asyncio

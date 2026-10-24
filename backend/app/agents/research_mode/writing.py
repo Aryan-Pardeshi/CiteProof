@@ -168,8 +168,12 @@ def _render_markers_as_citations(
         return ""
 
     def _replace(match: re.Match[str]) -> str:
+        raw_run = match.group(0)
+        # The run regex swallows trailing whitespace; give it back so line and
+        # paragraph breaks after a marker survive.
+        trailing = raw_run[len(raw_run.rstrip()):]
         ids = []
-        for evidence_id in EV_MARKER_RE.findall(match.group(0)):
+        for evidence_id in EV_MARKER_RE.findall(raw_run):
             if evidence_id not in ids:
                 ids.append(evidence_id)
 
@@ -189,10 +193,34 @@ def _render_markers_as_citations(
                 citations.append(citation)
 
         if not citations:
-            return ""
-        return f" ({'; '.join(citations)})"
+            return trailing
+        return f" ({'; '.join(citations)})" + trailing
 
     return _MARKER_RUN_RE.sub(_replace, text)
+
+
+def _papers_cited_by_label(text: str, papers_by_id: dict[str, dict[str, Any]]) -> set[str]:
+    """Paper ids whose author-year citation appears in prose without a marker.
+
+    Writers may cite an included paper that has no evidence record, so it can
+    carry no [EV:] marker; it still needs its reference entry.
+    """
+    cited: set[str] = set()
+    if not text:
+        return cited
+    for paper_id, paper in papers_by_id.items():
+        label = _in_text_citation(paper)
+        if not label:
+            continue
+        surname, _, year = label.rpartition(", ")
+        first = surname.split()[0] if surname else ""
+        if not first or not year:
+            continue
+        # Matches "(Smith et al., 2020)" and narrative "Smith et al. (2020)".
+        pattern = rf"\b{re.escape(first)}\b(?:[^.\n]|\bal\.){{0,40}}?\b{re.escape(year)}\b"
+        if re.search(pattern, text):
+            cited.add(paper_id)
+    return cited
 
 
 def _clean_citation_punctuation(text: str) -> str:
@@ -243,9 +271,10 @@ def _sanitize_title(title: str, fallback: str) -> str:
         cleaned,
         flags=re.IGNORECASE,
     )
-    cleaned = _META_ANALYSIS_RE.sub("Systematic Review", cleaned)
-    cleaned = re.sub(r"\bSystematic Review\s+and\s+Systematic Review\b", "Systematic Review", cleaned, flags=re.IGNORECASE)
     cleaned = re.sub(r"\bMeta[\s-]?analytic\s+Review\b", "Systematic Review", cleaned, flags=re.IGNORECASE)
+    cleaned = _META_ANALYSIS_RE.sub("Systematic Review", cleaned)
+    cleaned = re.sub(r"\bSystematic Review(?:\s+Review)+\b", "Systematic Review", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"\bSystematic Review\s+and\s+Systematic Review\b", "Systematic Review", cleaned, flags=re.IGNORECASE)
     cleaned = re.sub(r"\s{2,}", " ", cleaned).strip(" :;-–—")
     return cleaned or fallback
 
@@ -309,10 +338,11 @@ async def claims_linker_node(state: dict[str, Any]) -> dict[str, Any]:
                         "reason": "unknown evidence_id",
                     })
 
+            has_text = bool(_clean_citation_punctuation(EV_MARKER_RE.sub("", sentence)))
             cleaned = _clean_citation_punctuation(
                 _render_markers_as_citations(sentence, evidence_by_id, papers_by_id)
             )
-            if not cleaned:
+            if not has_text or not cleaned:
                 # Marker-only fragment: defer its ids to the adjacent claim
                 # sentence instead of emitting an empty claim_text.
                 pending_ids.extend(i for i in resolved_ids if i not in pending_ids)
@@ -365,6 +395,11 @@ async def claims_linker_node(state: dict[str, Any]) -> dict[str, Any]:
     # list untouched when no citation was produced (nothing to prune against).
     if cited_paper_ids and state.get("references"):
         cited_set = set(cited_paper_ids)
+        rendered = "\n".join(
+            str(updates.get(section) or state.get(section) or "")
+            for section in LINKED_PROSE_SECTIONS
+        )
+        cited_set.update(_papers_cited_by_label(rendered, papers_by_id))
         references = [
             format_apa(paper)
             for paper in papers
@@ -671,6 +706,8 @@ Write a substantive Implications section (not a pointer to another section) cove
 
 Instructions:
 - Ground every implication in the supplied evidence; distinguish what is established from what is suggested.
+- Cite studies with APA author-year citations, e.g. (Smith et al., 2020).
+- TRACEABILITY: immediately after any sentence grounded in a specific evidence record, append its machine tag on the same line, e.g. "...improves adherence [EV:<Evidence ID>]". Use the exact Evidence ID from the evidence base above.
 - Write only the body of this section; do not write a document title, an abstract, or '#'/'##' headings; use '###' for subsections if needed.
 {EVIDENCE_BASIS_NOTE}
 """
@@ -681,6 +718,7 @@ Discussion: {discussion[:400]}
 Evidence (reduced): {_format_evidence_context(state, max_items=5)}
 
 Cover theoretical implications, practical implications, and their boundary conditions in substantive prose.
+Use APA author-year citations and [EV:<Evidence ID>] markers after grounded sentences.
 Write only the body; no document title, abstract, or '#'/'##' headings.
 {EVIDENCE_BASIS_NOTE}
 """
