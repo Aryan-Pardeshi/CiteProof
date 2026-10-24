@@ -2676,6 +2676,11 @@ function processRMSEEvent(data) {
         if (trackerContainer) trackerContainer.classList.remove('active-execution');
         if (paperCard) paperCard.classList.remove('active-execution');
         if (dom.rmPipelineStatusTag) dom.rmPipelineStatusTag.textContent = 'Pipeline stopped — error';
+        // A failed or rejected paper must not keep the completed-paper export
+        // controls (a restored session may have rendered them before the check).
+        [dom.rmCopyPaperBtn, dom.rmExportDropdown, dom.rmExportPdfBtn].forEach(el => {
+            if (el) el.style.display = 'none';
+        });
         // The run is dead, so the "synthesizing" spinner must not keep spinning
         // forever. Show whatever was produced before the failure instead.
         state.rm.status = 'error';

@@ -20,6 +20,7 @@ from backend.app.agents.research_mode._common import (
     _safe_invoke_llm,
     _strip_preamble,
     get_llm_for,
+    included_papers,
     normalize_section_body,
     strip_abstract_heading,
     write_required_section,
@@ -221,6 +222,20 @@ def _papers_cited_by_label(text: str, papers_by_id: dict[str, dict[str, Any]]) -
         if re.search(pattern, text):
             cited.add(paper_id)
     return cited
+
+
+def _citation_labels(papers: list[dict[str, Any]]) -> str:
+    """Canonical "(Author, Year)" labels for included papers, one per line.
+
+    Writers that may cite by author-year get only these labels, so a manual
+    citation always matches a paper the reference list can keep.
+    """
+    labels: list[str] = []
+    for paper in included_papers(papers):
+        label = _in_text_citation(paper)
+        if label and f"- ({label})" not in labels:
+            labels.append(f"- ({label})")
+    return "\n".join(labels) or "- (none: cite only with [EV:<Evidence ID>] markers)"
 
 
 def _clean_citation_punctuation(text: str) -> str:
@@ -435,7 +450,7 @@ def _format_evidence_context(
         # Fallback to papers summary if evidence records not yet populated
         paper_dicts = state.get("paper_records") or state.get("screened_papers") or []
         lines = []
-        for p in paper_dicts[:10]:
+        for p in included_papers(paper_dicts)[:10]:
             raw_authors = p.get("authors") or ["Author"]
             authors_str = ", ".join(raw_authors[:3]) + (" et al." if len(raw_authors) > 3 else "")
             year = p.get("year", "n.d.")
@@ -474,8 +489,9 @@ async def literature_review_agent(state: dict[str, Any]) -> dict[str, Any]:
     papers = state.get("paper_records") or state.get("screened_papers") or []
 
     # Every included paper is offered for citation: capping the hints at 15 is
-    # how the writers ended up citing almost none of the corpus.
-    citation_hints = "\n".join(f"- {format_apa(p)}" for p in papers)
+    # how the writers ended up citing almost none of the corpus. Screening
+    # exclusions (protocols, retractions) are never offered.
+    citation_hints = "\n".join(f"- {format_apa(p)}" for p in included_papers(papers))
 
     llm = get_llm_for("aggregator", state, temperature=0.3)
     prompt = f"""You are a Leading Academic Scholar.
@@ -684,6 +700,7 @@ async def implications_agent(state: dict[str, Any]) -> dict[str, Any]:
     results = _strip_ev_markers(state.get("results", ""))
     discussion = _strip_ev_markers(state.get("discussion", ""))
     evidence_ctx = _format_evidence_context(state)
+    citation_labels = _citation_labels(state.get("paper_records") or state.get("screened_papers") or [])
     llm = get_llm_for("aggregator", state, temperature=0.3)
 
     prompt = f"""You are a Senior Academic Scholar writing the Implications section.
@@ -698,6 +715,9 @@ Discussion Context:
 Evidence Base:
 {evidence_ctx}
 
+Citable studies (use these exact author-year labels, no others):
+{citation_labels}
+
 Write a substantive Implications section (not a pointer to another section) covering:
 - Theoretical Implications: what the synthesis changes, qualifies, or confirms in theory.
 - Practical & Industrial Implications: concrete guidance for practitioners, engineers, and organizations.
@@ -706,7 +726,7 @@ Write a substantive Implications section (not a pointer to another section) cove
 
 Instructions:
 - Ground every implication in the supplied evidence; distinguish what is established from what is suggested.
-- Cite studies with APA author-year citations, e.g. (Smith et al., 2020).
+- Cite studies only with the author-year labels listed above or with [EV:<Evidence ID>] markers; never invent a citation.
 - TRACEABILITY: immediately after any sentence grounded in a specific evidence record, append its machine tag on the same line, e.g. "...improves adherence [EV:<Evidence ID>]". Use the exact Evidence ID from the evidence base above.
 - Write only the body of this section; do not write a document title, an abstract, or '#'/'##' headings; use '###' for subsections if needed.
 {EVIDENCE_BASIS_NOTE}
@@ -716,9 +736,11 @@ Topic: {ps}
 Results: {results[:500]}
 Discussion: {discussion[:400]}
 Evidence (reduced): {_format_evidence_context(state, max_items=5)}
+Citable studies (exact labels only):
+{citation_labels}
 
 Cover theoretical implications, practical implications, and their boundary conditions in substantive prose.
-Use APA author-year citations and [EV:<Evidence ID>] markers after grounded sentences.
+Cite only with the labels above or [EV:<Evidence ID>] markers after grounded sentences.
 Write only the body; no document title, abstract, or '#'/'##' headings.
 {EVIDENCE_BASIS_NOTE}
 """

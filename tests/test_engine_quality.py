@@ -1222,3 +1222,28 @@ async def test_implications_prompts_request_evidence_markers(monkeypatch):
 
     assert len(prompts) == 2  # full prompt, then the compact retry
     assert all("[EV:<Evidence ID>]" in prompt for prompt in prompts)
+
+
+@pytest.mark.asyncio
+async def test_writers_offer_only_included_papers_for_citation(monkeypatch):
+    included = _paper_dict("p-in", ["Curie, M."], "2021", "Included Trial")
+    excluded = _paper_dict("p-out", ["Noether, E."], "2019", "Retracted Trial")
+    excluded["screening_status"] = "excluded"
+    state = {"problem_statement": "Topic", "paper_records": [included, excluded]}
+
+    prompts = []
+    monkeypatch.setattr(writing, "get_llm_for", lambda *_a, **_k: object())
+
+    async def capture(_llm, messages, **_kwargs):
+        prompts.append(messages[0].content)
+        return "Grounded body text. " * 30
+
+    monkeypatch.setattr(writing, "_safe_invoke_llm", capture)
+    await writing.implications_agent(state)
+    await writing.literature_review_agent(state)
+
+    implications, literature = prompts[0], prompts[1]
+    assert "(Curie, 2021)" in implications
+    assert "Noether" not in implications
+    assert "Included Trial" in literature
+    assert "Retracted Trial" not in literature
