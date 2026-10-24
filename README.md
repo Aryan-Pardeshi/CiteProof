@@ -6,7 +6,7 @@
 
 [![Live demo](https://img.shields.io/badge/demo-live-2ea44f?style=flat-square)](https://deep-research-ai-xi.vercel.app/) ![Frontend on Vercel](https://img.shields.io/badge/frontend-Vercel-000000?style=flat-square&logo=vercel&logoColor=white) ![Backend on FastAPI Cloud](https://img.shields.io/badge/backend-FastAPI%20Cloud-009688?style=flat-square&logo=fastapi&logoColor=white) [![GitHub stars](https://img.shields.io/github/stars/Aryan-Pardeshi/CiteProof-AI-MCP?style=flat-square)](https://github.com/Aryan-Pardeshi/CiteProof-AI-MCP/stargazers) ![Last commit](https://img.shields.io/github/last-commit/Aryan-Pardeshi/CiteProof-AI-MCP?style=flat-square)
 
-**🔗 Live demo of the research app → [deep-research-ai-xi.vercel.app](https://deep-research-ai-xi.vercel.app/)**
+**🔗 Research Web → [CiteProof.top](https://citeproof.top/)**
 
 ## Contents
 
