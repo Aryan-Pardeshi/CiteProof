@@ -142,11 +142,46 @@ def test_retrieved_sources_must_appear_in_the_report():
 def test_research_paper_needs_text_and_references():
     values = {
         "abstract": _body(10),
-        "introduction": _body(10),
+        "introduction": _body(10) + " (Curie, 2021).",
         "references": [{"title": "Test reference"}],
     }
     assert research_paper_text(values).count("analysis") == 20
     assert research_paper_is_valid(values) is True
+
+
+def test_research_paper_without_in_text_citation_is_rejected():
+    values = {"abstract": _body(40), "references": [{"title": "Cited nowhere"}]}
+    assert research_paper_is_valid(values) is False
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("Gains held (Smith et al., 2020).", True),
+        ("Gains held (Smith, 2020; Lee & Park, 2019).", True),
+        ("Smith et al. (2020) found gains.", True),
+        ("Lee and Park (2019) found gains.", True),
+        ("Gains held (Smith et al., 2020a, p. 4).", True),
+        ("Gains held in 2020 (see Table 2).", False),
+        ("Gains held (2020).", False),
+        ("Gains held (n = 120).", False),
+    ],
+)
+def test_in_text_citation_detection(text, expected):
+    from backend.app.report_guard import has_in_text_citation
+
+    assert has_in_text_citation(text) is expected
+
+
+def test_in_text_citation_check_is_fast_after_unclosed_paren():
+    import time
+
+    from backend.app.report_guard import has_in_text_citation
+
+    text = "(" + "Results varied by setting, dose, and duration. " * 600
+    start = time.perf_counter()
+    assert has_in_text_citation(text) is False
+    assert time.perf_counter() - start < 0.5
 
 
 def test_research_paper_without_text_or_references_is_rejected():
@@ -987,7 +1022,7 @@ async def test_gap_analysis_writes_research_gap_into_the_paper(monkeypatch):
     async def fake_invoke(_llm, _messages, **_kwargs):
         return (
             "### 1. Methodological Gaps\n\nTrials are short, unblinded, and rarely report "
-            "dropout, so the durability of any symptom improvement remains untested."
+            "dropout (Author, 2020), so the durability of any symptom improvement remains untested."
         )
 
     monkeypatch.setattr(synthesis, "get_llm_for", lambda *_args, **_kwargs: object())
@@ -1064,7 +1099,11 @@ class _FakeGraph:
     [
         ({"status": "completed", "references": []}, True),
         (
-            {"status": "completed", "abstract": _body(40), "references": [{"title": "T"}]},
+            {
+                "status": "completed",
+                "abstract": _body(40) + " (Curie, 2021).",
+                "references": [{"title": "T"}],
+            },
             False,
         ),
     ],
