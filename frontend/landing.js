@@ -72,8 +72,10 @@ function initTheme() {
   const toggleBtn = document.getElementById('theme-toggle-btn');
   if (toggleBtn) {
     toggleBtn.addEventListener('click', () => {
-      const current = getSavedTheme();
-      const next = current === 'light' ? 'dark' : 'light';
+      // Read the DOM, not storage: with storage blocked getSavedTheme() is
+      // always 'dark', so the toggle could never switch back.
+      const isLight = document.documentElement.classList.contains('light-mode');
+      const next = isLight ? 'dark' : 'light';
       setSavedTheme(next);
       applyTheme(next);
     });
@@ -627,6 +629,12 @@ function animateCountUp(element, endVal, suffix = '', prefix = '') {
     return;
   }
 
+  // A later call (e.g. the scroll observer firing mid-animation) must reuse the
+  // real target, not the intermediate number on screen, and stop this run.
+  element.dataset.countUpTarget = String(target);
+  const token = (element._countUpToken || 0) + 1;
+  element._countUpToken = token;
+
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (prefersReduced) {
     element.textContent = `${prefix}${target}${suffix}`;
@@ -637,6 +645,7 @@ function animateCountUp(element, endVal, suffix = '', prefix = '') {
   const startTime = performance.now();
 
   function step(now) {
+    if (element._countUpToken !== token) return;
     const elapsed = now - startTime;
     const progress = Math.min(elapsed / duration, 1);
     // Cubic ease-out
@@ -667,9 +676,9 @@ function initCountUpMetrics() {
         const disc = document.getElementById('metric-discovered');
         const scr = document.getElementById('metric-screened');
         const inc = document.getElementById('metric-included');
-        if (disc) animateCountUp(disc, disc.textContent.trim());
-        if (scr) animateCountUp(scr, scr.textContent.trim());
-        if (inc) animateCountUp(inc, inc.textContent.trim());
+        if (disc) animateCountUp(disc, disc.dataset.countUpTarget || disc.textContent.trim());
+        if (scr) animateCountUp(scr, scr.dataset.countUpTarget || scr.textContent.trim());
+        if (inc) animateCountUp(inc, inc.dataset.countUpTarget || inc.textContent.trim());
         obs.unobserve(entry.target);
       }
     });
@@ -827,6 +836,7 @@ function renderPrismaFlow(prismaData) {
   container.textContent = '';
 
   function createPrismaBox(titleText, statText, subText, isExcluded) {
+    const statStr = statText == null ? '' : String(statText);
     const box = document.createElement('div');
     box.className = isExcluded ? 'prisma-box prisma-box-excluded' : 'prisma-box';
 
@@ -836,10 +846,10 @@ function renderPrismaFlow(prismaData) {
 
     const stat = document.createElement('div');
     stat.className = 'prisma-box-stat';
-    stat.textContent = statText;
+    stat.textContent = statStr;
 
     // Run count-up on PRISMA stat number if matchable
-    const numMatch = statText.match(/^(\d+)(.*)$/);
+    const numMatch = statStr.match(/^(\d+)(.*)$/);
     if (numMatch) {
       animateCountUp(stat, numMatch[1], numMatch[2]);
     }

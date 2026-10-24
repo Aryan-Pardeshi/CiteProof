@@ -433,7 +433,8 @@ body.cp-app .panel.active {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  body.cp-app .panel {
+  body.cp-app .panel,
+  body.cp-app .skeleton {
     animation: none;
   }
 }
@@ -664,6 +665,33 @@ body.cp-app .problem-statement-text {
   font-size: 14px;
   line-height: 1.6;
   color: var(--cp-body);
+}
+
+/* Long checkpoint text starts collapsed; the "Show full text" button toggles .expanded. */
+body.cp-app .truncatable {
+  max-height: 8.5em;
+  overflow: hidden;
+  position: relative;
+  mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+}
+
+body.cp-app .truncatable.expanded {
+  max-height: none;
+  mask-image: none;
+  -webkit-mask-image: none;
+}
+
+body.cp-app .truncate-toggle {
+  display: block;
+  margin: var(--cp-space-2) 0 var(--cp-space-4);
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--cp-link);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
 }
 
 body.cp-app .subtasks-list {
@@ -1055,7 +1083,7 @@ body.cp-app .rm-textarea {
   min-height: 90px;
   background: var(--cp-canvas-soft-2);
   border-radius: var(--cp-radius-sm);
-  border: none;
+  border: 1px solid var(--cp-hairline);
   padding: var(--cp-space-3);
   color: var(--cp-ink);
   font-family: var(--cp-font-sans);
@@ -1695,6 +1723,30 @@ body.cp-app .skeleton-line {
   background: var(--cp-canvas-soft-2);
   border-radius: 4px;
   animation: cpSkeletonPulse 1.2s ease-in-out infinite;
+}
+
+body.cp-app .skeleton {
+  display: block;
+  background: var(--cp-canvas-soft-2);
+  animation: cpSkeletonPulse 1.2s ease-in-out infinite;
+}
+
+body.cp-app .skeleton-ps {
+  width: 100%;
+  height: 14px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+}
+
+body.cp-app .skeleton-ps:last-child {
+  width: 60%;
+}
+
+body.cp-app .skeleton-task {
+  width: 100%;
+  height: 40px;
+  margin-bottom: 10px;
+  border-radius: var(--cp-radius-sm);
 }
 
 @keyframes cpSkeletonPulse {
