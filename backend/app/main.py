@@ -246,7 +246,7 @@ class UIStaticFiles(StaticFiles):
     StaticFiles sends only ETag/Last-Modified and no Cache-Control. With no
     caching directive at all, browsers fall back to heuristic caching (RFC 9111
     4.2.2) and may reuse index.html for a long time WITHOUT revalidating. Because
-    index.html is what names the ?v= query on app.js and style.css, a stale copy
+    index.html is what names the ?v= query on app.js and the stylesheets, a stale copy
     pins the browser to an old script forever: shipping a fix changes nothing for
     anyone already holding a cached page, and the only escape is a manual hard
     refresh. Serving HTML as no-cache keeps the ETag revalidation (cheap 304s)

@@ -1,0 +1,541 @@
+/* ==========================================================================
+   CiteProof shared page components
+   Follows DESIGN.md. Uses tokens from tokens.css (--cp-*).
+   Scoped under body.cp-page: base type, app header and footer, buttons, form
+   inputs and cards. app.css builds the research app on top of these.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Base Page Reset & Typography Scoping
+   -------------------------------------------------------------------------- */
+body.cp-page {
+  font-family: var(--cp-font-sans);
+  background-color: var(--cp-canvas);
+  color: var(--cp-body);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+
+body.cp-page *,
+body.cp-page *::before,
+body.cp-page *::after {
+  box-sizing: border-box;
+}
+
+/* Headings: Sentence case with tight tracking, weight <= 600 */
+body.cp-page h1,
+body.cp-page h2,
+body.cp-page h3,
+body.cp-page h4,
+body.cp-page .modal-title {
+  font-family: var(--cp-font-sans);
+  color: var(--cp-ink);
+  font-weight: 600;
+  margin: 0;
+}
+
+
+/* Accessible focus ring on every interactive element */
+body.cp-page button:focus-visible,
+body.cp-page a:focus-visible,
+body.cp-page input:focus-visible,
+body.cp-page select:focus-visible,
+body.cp-page textarea:focus-visible,
+body.cp-page [tabindex]:focus-visible,
+body.cp-page summary:focus-visible {
+  outline: 2px solid var(--cp-ink);
+  outline-offset: 2px;
+}
+
+/* Skip link */
+body.cp-page .skip-link {
+  position: absolute;
+  top: -100px;
+  left: var(--cp-space-4);
+  background: var(--cp-ink);
+  color: var(--cp-on-ink);
+  padding: var(--cp-space-2) var(--cp-space-4);
+  border-radius: var(--cp-radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 9999;
+  text-decoration: none;
+  transition: top var(--cp-dur) var(--cp-ease);
+}
+
+body.cp-page .skip-link:focus {
+  top: var(--cp-space-4);
+}
+
+/* --------------------------------------------------------------------------
+   2. Shared Navigation Bar (64px, Sticky, 1px Hairline, Blur Canvas)
+   -------------------------------------------------------------------------- */
+body.cp-page .app-header {
+  position: sticky;
+  top: 0;
+  height: var(--cp-nav-height, 64px);
+  background: color-mix(in srgb, var(--cp-canvas) 80%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border-bottom: none;
+  z-index: 100;
+  width: 100%;
+}
+
+body.cp-page .header-container {
+  max-width: var(--cp-max-width, 1200px);
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 var(--cp-gutter);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+body.cp-page .logo-container {
+  display: flex;
+  align-items: center;
+  gap: var(--cp-space-6);
+}
+
+body.cp-page .brand-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cp-space-2);
+  text-decoration: none;
+  color: var(--cp-ink);
+}
+
+body.cp-page .brand-logo {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  display: block;
+}
+
+body.cp-page .brand-name {
+  font-family: var(--cp-font-sans);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+  color: var(--cp-ink);
+}
+
+body.cp-page .header-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--cp-space-4);
+}
+
+body.cp-page .nav-link {
+  font-family: var(--cp-font-sans);
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--cp-body);
+  text-decoration: none;
+  transition: color var(--cp-dur) var(--cp-ease);
+}
+
+body.cp-page .nav-link:hover,
+body.cp-page .nav-link.active {
+  color: var(--cp-ink);
+}
+
+body.cp-page .header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--cp-space-3);
+}
+
+body.cp-page .btn-icon.theme-toggle {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--cp-radius-sm);
+  background: var(--cp-canvas);
+  border: none;
+  color: var(--cp-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: color var(--cp-dur) var(--cp-ease), background-color var(--cp-dur) var(--cp-ease), border-color var(--cp-dur) var(--cp-ease);
+}
+
+body.cp-page .btn-icon.theme-toggle:hover {
+  color: var(--cp-ink);
+  background-color: var(--cp-canvas-soft);
+}
+
+/* --------------------------------------------------------------------------
+   3. Shared Footer (Canvas-Soft, 1px Hairline, Mono Legal Line)
+   -------------------------------------------------------------------------- */
+body.cp-page .app-footer {
+  margin-top: auto;
+  background-color: var(--cp-canvas-soft);
+  border-top: none;
+  padding: var(--cp-space-6) var(--cp-gutter);
+  width: 100%;
+}
+
+body.cp-page .footer-container {
+  max-width: var(--cp-max-width, 1200px);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cp-space-4);
+  flex-wrap: wrap;
+}
+
+body.cp-page .footer-nav,
+.footer-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--cp-space-6);
+  flex-wrap: wrap;
+}
+
+body.cp-page .footer-link {
+  font-family: var(--cp-font-sans);
+  font-size: 14px;
+  color: var(--cp-muted);
+  text-decoration: none;
+  transition: color var(--cp-dur) var(--cp-ease);
+}
+
+body.cp-page .footer-link:hover {
+  color: var(--cp-ink);
+}
+
+body.cp-page .footer-legal {
+  font-family: var(--cp-font-mono);
+  font-size: 12px;
+  color: var(--cp-muted);
+  letter-spacing: 0.04em;
+}
+
+/* --------------------------------------------------------------------------
+/* --------------------------------------------------------------------------
+   5. Buttons (In-App: 6px Radius, 40px Height, Weight 500)
+   -------------------------------------------------------------------------- */
+body.cp-page .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cp-space-2);
+  height: 40px;
+  padding: 0 var(--cp-space-4);
+  font-family: var(--cp-font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: var(--cp-radius-sm);
+  cursor: pointer;
+  text-decoration: none;
+  border: none;
+  transition: opacity var(--cp-dur) var(--cp-ease), background-color var(--cp-dur) var(--cp-ease), border-color var(--cp-dur) var(--cp-ease), transform var(--cp-dur) var(--cp-ease);
+  white-space: nowrap;
+}
+
+body.cp-page .btn:active {
+  transform: scale(0.98);
+}
+
+body.cp-page .btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+body.cp-page .btn-primary {
+  background-color: var(--cp-ink);
+  color: var(--cp-on-ink);
+  border: none;
+}
+
+body.cp-page .btn-primary:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+body.cp-page .btn-secondary {
+  background-color: var(--cp-canvas);
+  color: var(--cp-ink);
+  border: none;
+}
+
+body.cp-page .btn-secondary:hover:not(:disabled) {
+  background-color: var(--cp-canvas-soft);
+}
+
+body.cp-page .btn-full {
+  width: 100%;
+}
+
+body.cp-page .btn-lg {
+  height: 44px;
+  padding: 0 var(--cp-space-6);
+  font-size: 15px;
+}
+
+body.cp-page .btn-sm {
+  height: 32px;
+  padding: 0 var(--cp-space-3);
+  font-size: 13px;
+}
+
+body.cp-page .btn-link {
+  background: transparent;
+  border: none;
+  color: var(--cp-link);
+  font-family: var(--cp-font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  padding: 0;
+  transition: opacity var(--cp-dur) var(--cp-ease);
+}
+
+body.cp-page .btn-link:hover {
+  text-decoration: underline;
+}
+
+body.cp-page .btn-danger {
+  color: var(--cp-error);
+  border: none;
+}
+
+body.cp-page .btn-danger:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--cp-error) 10%, transparent);
+  /* borderless */
+}
+
+/* --------------------------------------------------------------------------
+   6. Form Inputs & Groups (40px, 6px Radius, Hairline, Ink Focus Ring)
+   -------------------------------------------------------------------------- */
+body.cp-page .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cp-space-1);
+  margin-bottom: var(--cp-space-4);
+  text-align: left;
+}
+
+body.cp-page .form-label {
+  font-family: var(--cp-font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--cp-ink);
+}
+
+body.cp-page .form-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: var(--cp-space-1);
+}
+
+body.cp-page .form-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+body.cp-page .form-input {
+  width: 100%;
+  height: 40px;
+  padding: 0 var(--cp-space-3);
+  background-color: var(--cp-canvas);
+  border: none;
+  border-radius: var(--cp-radius-sm);
+  color: var(--cp-ink);
+  font-family: var(--cp-font-sans);
+  font-size: 14px;
+  outline: none;
+  transition: border-color var(--cp-dur) var(--cp-ease), box-shadow var(--cp-dur) var(--cp-ease);
+}
+
+body.cp-page .form-input:focus {
+  border: none;
+  outline: 2px solid var(--cp-ink); outline-offset: 2px; box-shadow: none;
+}
+
+body.cp-page .form-input[aria-invalid="true"] {
+  /* borderless */
+}
+
+body.cp-page .form-input[aria-invalid="true"]:focus {
+  outline: 2px solid var(--cp-error); outline-offset: 2px; box-shadow: none;
+}
+
+body.cp-page .form-input-readonly {
+  display: flex;
+  align-items: center;
+  background-color: var(--cp-canvas-soft);
+  color: var(--cp-muted);
+  user-select: all;
+  cursor: default;
+}
+
+body.cp-page .password-toggle-btn {
+  position: absolute;
+  right: var(--cp-space-3);
+  background: transparent;
+  border: none;
+  color: var(--cp-muted);
+  font-family: var(--cp-font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: var(--cp-space-1);
+}
+
+body.cp-page .password-toggle-btn:hover {
+  color: var(--cp-ink);
+}
+
+body.cp-page .form-error {
+  font-size: 12px;
+  color: var(--cp-error);
+  min-height: 16px;
+  margin-top: var(--cp-space-1);
+  display: block;
+}
+
+body.cp-page .form-hint {
+  font-size: 12px;
+  color: var(--cp-muted);
+  margin-top: var(--cp-space-1);
+  display: block;
+}
+
+body.cp-page .form-checkbox-group {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--cp-space-2);
+  margin-bottom: var(--cp-space-4);
+  font-size: 13px;
+  color: var(--cp-body);
+  line-height: 1.4;
+  text-align: left;
+}
+
+body.cp-page .form-checkbox {
+  margin-top: 2px;
+  accent-color: var(--cp-ink);
+  cursor: pointer;
+}
+
+/* --------------------------------------------------------------------------
+   7. Card Component
+   -------------------------------------------------------------------------- */
+body.cp-page .card {
+  background-color: var(--cp-canvas);
+  border: none;
+  border-radius: var(--cp-radius-md);
+  box-shadow: var(--cp-shadow-card);
+  padding: var(--cp-space-6);
+}
+
+
+/* --------------------------------------------------------------------------
+   8. Motion, hidden state and button resets
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  body.cp-page,
+  body.cp-page *,
+  body.cp-page *::before,
+  body.cp-page *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+body.cp-page::before,
+body.cp-page::after {
+  display: none;
+}
+
+body.cp-page [hidden] {
+  display: none !important;
+}
+
+body.cp-page .btn,
+body.cp-page .btn-primary,
+body.cp-page .btn-secondary {
+  background-image: none;
+  box-shadow: none;
+  transform: none;
+}
+
+body.cp-page .btn-primary:hover:not(:disabled) {
+  background-image: none;
+  box-shadow: none;
+  transform: none;
+  opacity: 0.88;
+}
+
+body.cp-page .btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* --------------------------------------------------------------------------
+   9. Phone layout (no horizontal scroll at 360px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 600px) {
+  body.cp-page .logo-container {
+    gap: var(--cp-space-3);
+  }
+
+  body.cp-page .footer-container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--cp-space-3);
+  }
+}
+
+@media (max-width: 640px) {
+  :root body.cp-page {
+    padding-top: 0 !important;
+  }
+
+  :root body.cp-page .app-header {
+    height: var(--cp-nav-height, 64px) !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+    flex-wrap: nowrap !important;
+    gap: 0 !important;
+    background: color-mix(in srgb, var(--cp-canvas) 80%, transparent) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    backdrop-filter: blur(8px) !important;
+    border-bottom: 0 !important;
+  }
+
+  :root body.cp-page .header-container {
+    gap: 8px;
+    padding: 0 12px;
+  }
+
+  :root body.cp-page .logo-container {
+    gap: 12px !important;
+  }
+
+  :root body.cp-page .header-actions {
+    gap: 8px;
+  }
+
+  :root body.cp-page .header-actions .btn,
+  :root body.cp-page .header-actions a {
+    white-space: nowrap;
+  }
+}

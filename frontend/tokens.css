@@ -1,0 +1,163 @@
+/*
+ * CiteProof design tokens. See DESIGN.md for the rules.
+ * Dark is the default. `html.light-mode` switches to light.
+ */
+
+:root {
+  /* color: dark values by default */
+  --cp-canvas: #000000;
+  --cp-canvas-soft: #0f0f0f;
+  --cp-canvas-soft-2: #141414;
+  --cp-ink: #ededed;
+  --cp-on-ink: #000000;
+  --cp-body: #a1a1a1;
+  --cp-muted: #8f8f8f;
+  --cp-hairline: #2e2e2e;
+  --cp-link: #52a8ff;
+  --cp-error: #ff6166;
+  --cp-warning: #ff6166;
+  --cp-success: #52a8ff;
+  --cp-shadow-ring: none;
+  --cp-shadow-card: 0 8px 30px rgba(0, 0, 0, 0.35);
+  --cp-shadow-modal: 0 16px 48px rgba(0, 0, 0, 0.6);
+
+  /* hero gradient (hero background only) */
+  --cp-grad-a: linear-gradient(135deg, #0070f3, #52a8ff);
+  --cp-grad-b: linear-gradient(135deg, #0070f3, #ff6166);
+  --cp-grad-c: linear-gradient(135deg, #ee0000, #ff6166);
+
+  /* type */
+  --cp-font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --cp-font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* spacing (4px base) */
+  --cp-space-1: 4px;
+  --cp-space-2: 8px;
+  --cp-space-3: 12px;
+  --cp-space-4: 16px;
+  --cp-space-6: 24px;
+  --cp-space-8: 32px;
+  --cp-space-12: 48px;
+  --cp-space-16: 64px;
+  --cp-space-24: 96px;
+  --cp-space-32: 128px;
+  --cp-space-48: 192px;
+
+  /* radius */
+  --cp-radius-sm: 6px;
+  --cp-radius-md: 12px;
+  --cp-radius-pill: 100px;
+
+  /* layout */
+  --cp-max-width: 1200px;
+  --cp-nav-height: 64px;
+  --cp-gutter: 24px;
+
+  /* motion */
+  --cp-ease: cubic-bezier(0.2, 0, 0, 1);
+  --cp-dur: 150ms;
+}
+
+html.light-mode {
+  --cp-canvas: #ffffff;
+  --cp-canvas-soft: #f5f5f5;
+  --cp-canvas-soft-2: #ebebeb;
+  --cp-ink: #171717;
+  --cp-on-ink: #ffffff;
+  --cp-body: #4d4d4d;
+  --cp-muted: #666666;
+  --cp-hairline: #ebebeb;
+  --cp-link: #0070f3;
+  --cp-error: #ee0000;
+  --cp-warning: #c50000;
+  --cp-success: #0062d6;
+  --cp-shadow-card: 0 8px 30px rgba(0, 0, 0, 0.06);
+  --cp-shadow-modal: 0 16px 48px rgba(0, 0, 0, 0.18);
+}
+
+@media (max-width: 600px) {
+  :root {
+    --cp-gutter: 16px;
+  }
+}
+
+
+/* ==========================================================================
+   SHADCN/UI NEW-YORK ALIASES & ACCENT COLOR PALETTE EXTENSIONS
+   Appended per landing polish specification without altering existing tokens.
+   ========================================================================== */
+
+:root {
+  /* shadcn/ui CSS variable aliases pointing to existing --cp-* tokens (dark default) */
+  --background: var(--cp-canvas);
+  --foreground: var(--cp-ink);
+  --card: var(--cp-canvas-soft);
+  --card-foreground: var(--cp-ink);
+  --popover: var(--cp-canvas-soft);
+  --popover-foreground: var(--cp-ink);
+  --primary: var(--cp-ink);
+  --primary-foreground: var(--cp-on-ink);
+  --secondary: var(--cp-canvas-soft-2);
+  --secondary-foreground: var(--cp-ink);
+  --muted: var(--cp-canvas-soft-2);
+  --muted-foreground: var(--cp-muted);
+  --accent: var(--cp-canvas-soft-2);
+  --accent-foreground: var(--cp-ink);
+  --border: transparent;
+  --input: var(--cp-canvas-soft-2);
+  --ring: var(--cp-ink);
+  --radius: 12px;
+
+  /* Accent wash and highlight colors (dark values) */
+  --cp-accent-blue: #52a8ff;
+  --cp-accent-teal: #52a8ff;
+  --cp-accent-purple: #0070f3;
+  --cp-accent-pink: #ff6166;
+  --cp-accent-amber: #ff6166;
+  --cp-accent-red: #ff6166;
+
+  /* Accent soft tints (~12% alpha for delicate background washes) */
+  --cp-accent-blue-tint: rgba(82, 168, 255, 0.12);
+  --cp-accent-teal-tint: rgba(82, 168, 255, 0.12);
+  --cp-accent-purple-tint: rgba(0, 112, 243, 0.12);
+  --cp-accent-pink-tint: rgba(255, 97, 102, 0.12);
+  --cp-accent-amber-tint: rgba(255, 97, 102, 0.12);
+  --cp-accent-red-tint: rgba(255, 97, 102, 0.12);
+}
+
+html.light-mode {
+  /* shadcn/ui CSS variable aliases for light mode */
+  --background: var(--cp-canvas);
+  --foreground: var(--cp-ink);
+  --card: var(--cp-canvas-soft);
+  --card-foreground: var(--cp-ink);
+  --popover: var(--cp-canvas-soft);
+  --popover-foreground: var(--cp-ink);
+  --primary: var(--cp-ink);
+  --primary-foreground: var(--cp-on-ink);
+  --secondary: var(--cp-canvas-soft-2);
+  --secondary-foreground: var(--cp-ink);
+  --muted: var(--cp-canvas-soft-2);
+  --muted-foreground: var(--cp-muted);
+  --accent: var(--cp-canvas-soft-2);
+  --accent-foreground: var(--cp-ink);
+  --border: transparent;
+  --input: var(--cp-canvas-soft-2);
+  --ring: var(--cp-ink);
+
+  /* Accent wash and highlight colors (light values - deeper accessible tones) */
+  --cp-accent-blue: #0070f3;
+  --cp-accent-teal: #0070f3;
+  --cp-accent-purple: #0062d6;
+  --cp-accent-pink: #ee0000;
+  --cp-accent-amber: #c50000;
+  --cp-accent-red: #c50000;
+
+  /* Accent soft tints for light mode (~12% alpha) */
+  --cp-accent-blue-tint: rgba(0, 112, 243, 0.12);
+  --cp-accent-teal-tint: rgba(0, 112, 243, 0.12);
+  --cp-accent-purple-tint: rgba(0, 98, 214, 0.12);
+  --cp-accent-pink-tint: rgba(238, 0, 0, 0.12);
+  --cp-accent-amber-tint: rgba(197, 0, 0, 0.12);
+  --cp-accent-red-tint: rgba(197, 0, 0, 0.12);
+}

@@ -6,8 +6,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     
     <!-- Primary SEO Meta Tags -->
-    <title>CiteProof — AI Multi-Agent Research Assistant & Academic Lab Workspace</title>
-    <meta name="title" content="CiteProof — AI Multi-Agent Research Assistant & Academic Lab Workspace">
+    <title>CiteProof — Research Workspace</title>
+    <meta name="title" content="CiteProof — Research Workspace">
     <meta name="description" content="Autonomous multi-agent research workspace powered by LangGraph, DeepSeek, OpenAlex, Semantic Scholar, and arXiv. Synthesizes cited academic papers with Human-in-the-Loop review and real-time streaming.">
     <meta name="keywords" content="AI research assistant, CiteProof, multi-agent AI, academic paper synthesis, LangGraph research, literature review, PRISMA framework, OpenAlex, Semantic Scholar, arXiv, autonomous research agents, DeepSeek AI">
     <meta name="author" content="Aryan Pardeshi">
@@ -30,12 +30,14 @@
     <meta name="apple-mobile-web-app-title" content="CiteProof">
     <link rel="manifest" href="site.webmanifest">
     <!-- Icons -->
-    <link rel="icon" type="image/png" sizes="64x64" href="/assets/favicon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/assets/favicon.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
 
     <!-- Resource Preconnects & Hints for Core Web Vitals -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 
     <!-- Open Graph / Facebook / LinkedIn / Discord -->
@@ -110,15 +112,19 @@
     }
     </script>
 
-    <link rel="stylesheet" href="style.css?v=3.6.1">
-    <!-- Marked.js for markdown parsing -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <!-- DOMPurify for XSS sanitization -->
+
+    <link rel="stylesheet" href="tokens.css?v=1.0.0">
+    <link rel="stylesheet" href="components.css?v=1.0.0">
+    <link rel="stylesheet" href="app.css?v=1.0.0">
+
+    <!-- Marked.js for markdown parsing (pinned) -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+    <!-- DOMPurify for XSS sanitization (pinned with SRI) -->
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js" integrity="sha384-+VfUPEb0PdtChMwmBcBmykRMDd+v6D/oFmB3rZM/puCMDYcIvF968OimRh4KQY9a" crossorigin="anonymous"></script>
-    <!-- Lucide icons -->
-    <script src="https://cdn.jsdelivr.net/npm/lucide/dist/umd/lucide.min.js"></script>
+    <!-- Lucide icons (pinned) -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
 </head>
-<body>
+<body class="cp-page cp-app">
     <!-- Skip Link for Accessibility & Keyboard Navigation -->
     <a href="#main-content" class="skip-link">Skip to main content</a>
 
@@ -138,73 +144,66 @@
 
     <!-- Header -->
     <header role="banner" class="app-header">
-        <div class="logo-container">
-            <a href="/" style="text-decoration: none; display: flex; align-items: center; gap: 0.75rem; color: inherit;">
-                <img src="/assets/logo.png" alt="CiteProof Logo" width="30" height="30" style="border-radius: 7px; overflow: hidden; object-fit: cover; box-shadow: 0 1px 3px rgba(0,0,0,0.25);">
-                <div class="brand-text-group">
-                    <span class="logo-text">CITEPROOF</span>
-                    <span class="logo-tag">ACADEMIC LAB</span>
-                </div>
-            </a>
-            <a href="/" class="home-nav-link" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.8rem; font-weight: 500; color: var(--text-muted); text-decoration: none; margin-left: 0.75rem; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--card-border); background: var(--card-bg); transition: var(--transition-fast);" title="Return to Marketing Landing Page">
-                <i data-lucide="arrow-left" style="width: 13px; height: 13px;"></i>
-                <span>Home</span>
-            </a>
-        </div>
-
-        <!-- Mode Switcher + Estimated Time Hint -->
-        <div class="mode-switcher-wrapper">
-            <nav class="mode-toggle-container" id="mode-toggle-container" aria-label="Research Workspace Modes">
-                <button class="mode-tab" id="tab-deepsearch" data-mode="deepsearch" aria-label="Switch to DeepSearch Web Research mode">
-                    <i data-lucide="globe" style="width: 15px; height: 15px;"></i>
-                    <span>DeepSearch</span>
-                </button>
-                <button class="mode-tab active" id="tab-researchmode" data-mode="researchmode" aria-label="Switch to Academic Research Paper mode">
-                    <i data-lucide="book-open-check" style="width: 15px; height: 15px;"></i>
-                    <span>Research Mode</span>
-                </button>
-            </nav>
-            <!-- Both runtimes are shown at once, each under its own tab, so the
-                 two modes can be compared without switching between them. -->
-            <div class="mode-time-row" id="mode-time-row">
-                <span class="mode-time-estimate" id="mode-time-deepsearch">~5–10 min</span>
-                <span class="mode-time-estimate is-active" id="mode-time-researchmode">~15–30 min</span>
+        <div class="header-container">
+            <div class="logo-container">
+                <a href="/" class="brand-link" aria-label="CiteProof">
+                    <img src="/assets/logo.png" alt="CiteProof" width="28" height="28" class="brand-logo">
+                    <span class="brand-name">CiteProof</span>
+                </a>
             </div>
-        </div>
 
-        <div class="header-actions">
-            <a href="https://github.com/Aryan-Pardeshi/CiteProof-AI-MCP" target="_blank" rel="noopener noreferrer" class="btn-secondary btn-github" id="github-star-btn" title="View CiteProof on GitHub" aria-label="View CiteProof on GitHub repository">
-                <!-- Drawn inline rather than via data-lucide: lucide carries no brand
-                     marks, so a "github" icon name silently renders nothing. -->
-                <svg class="brand-mark" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true" focusable="false"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
-                <span class="github-star-wrapper" id="github-star-wrapper">
-                    <i data-lucide="star" class="github-star-icon" id="github-star-icon" style="width: 12px; height: 12px; display: none;"></i>
-                    <span class="github-star-count" id="github-star-count" style="display: none;"></span>
-                </span>
-            </a>
-            <button class="btn-icon theme-toggle" id="theme-toggle-btn" title="Toggle theme" aria-label="Toggle dark and light color theme">
-                <i data-lucide="moon" style="width: 18px; height: 18px;"></i>
-            </button>
-            <button class="btn-secondary btn-new-research" id="new-research-btn" style="display:none;" aria-label="Start new research run">
-                <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
-                <span>New Run</span>
-            </button>
+            <!-- Mode Switcher + Estimated Time Hint -->
+            <div class="mode-switcher-wrapper">
+                <nav class="mode-toggle-container" id="mode-toggle-container" aria-label="Research Workspace Modes">
+                    <button class="mode-tab" id="tab-deepsearch" data-mode="deepsearch" aria-label="Switch to DeepSearch Web Research mode">
+                        <i data-lucide="globe" style="width: 15px; height: 15px;"></i>
+                        <span>DeepSearch</span>
+                    </button>
+                    <button class="mode-tab active" id="tab-researchmode" data-mode="researchmode" aria-label="Switch to Academic Research Paper mode">
+                        <i data-lucide="book-open-check" style="width: 15px; height: 15px;"></i>
+                        <span>Research Mode</span>
+                    </button>
+                </nav>
+                <!-- Both runtimes are shown at once, each under its own tab, so the
+                     two modes can be compared without switching between them. -->
+                <div class="mode-time-row" id="mode-time-row">
+                    <span class="mode-time-estimate" id="mode-time-deepsearch">~5–10 min</span>
+                    <span class="mode-time-estimate is-active" id="mode-time-researchmode">~15–30 min</span>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <a href="https://github.com/Aryan-Pardeshi/CiteProof-AI-MCP" target="_blank" rel="noopener noreferrer" class="btn-secondary btn-github" id="github-star-btn" title="View the repository on GitHub" aria-label="CiteProof on GitHub">
+                    <svg class="brand-mark" viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true" focusable="false"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+                    <span>GitHub</span>
+                    <span class="github-star-wrapper" id="github-star-wrapper">
+                        <i data-lucide="star" class="github-star-icon" id="github-star-icon" style="width: 12px; height: 12px; display: none;"></i>
+                        <span class="github-star-count" id="github-star-count" style="display: none;"></span>
+                    </span>
+                </a>
+                <button class="btn-icon theme-toggle" id="theme-toggle-btn" title="Toggle theme" aria-label="Toggle dark and light color theme">
+                    <i data-lucide="moon" style="width: 18px; height: 18px;"></i>
+                </button>
+                <button class="btn-secondary btn-new-research" id="new-research-btn" style="display:none;" aria-label="Start new research run">
+                    <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
+                    <span>New Run</span>
+                </button>
+            </div>
         </div>
     </header>
 
-    <!-- Env Setup Gate / Mandatory Configuration Modal -->
+    <!-- Backend setup gate: first-run configuration of the model provider and search keys -->
     <div class="modal-overlay setup-gate-modal" id="setup-gate-modal" style="display:none;">
-        <div class="modal modal-lg">
+        <div class="modal modal-lg" role="dialog" aria-modal="true" aria-labelledby="setup-gate-title">
             <div class="modal-header">
                 <div class="modal-title-group">
-                    <h2 class="modal-title">System Environment Setup</h2>
-                    <span class="modal-subtitle">Configure OpenAI-Compatible Provider & Academic Search Keys</span>
+                    <h2 class="modal-title" id="setup-gate-title">System Environment Setup</h2>
+                    <span class="modal-subtitle">Configure an OpenAI-compatible provider and academic search keys</span>
                 </div>
             </div>
 
-            <!-- Prominent Privacy Notice -->
             <div class="local-privacy-banner">
-                <i data-lucide="shield-check" style="width: 24px; height: 24px; flex-shrink: 0;"></i>
+                <i data-lucide="shield-check" style="width: 20px; height: 20px; flex-shrink: 0;"></i>
                 <div class="privacy-notice-text">
                     <strong>PRIVACY NOTE:</strong> Keys and settings are sent to this app's backend and saved in that server's <code>.env</code> file (on your own machine only if you run the backend locally). They are not stored in your browser. When you run research, your topic and the retrieved text are sent to the LLM provider you configured, and search queries go to Tavily and the academic databases the pipeline queries.
                 </div>
@@ -212,7 +211,7 @@
 
             <div class="modal-body">
                 <form id="setup-gate-form">
-                    <div class="form-section-title">LLM Configuration (OpenAI Compatible)</div>
+                    <div class="form-section-title">LLM configuration (OpenAI compatible)</div>
                     <div class="form-grid">
                         <div class="form-group full-width">
                             <label class="form-label" for="gate-llm-base-url">LLM Base URL</label>
@@ -240,10 +239,10 @@
                         </div>
                     </div>
 
-                    <div class="form-section-title" style="margin-top: 1.5rem;">Academic Search (Optional / Free)</div>
+                    <div class="form-section-title" style="margin-top: 1.5rem;">Academic search (optional, free)</div>
                     <div class="form-grid">
                         <div class="form-group full-width">
-                            <label class="form-label" for="gate-openalex-email">OpenAlex Email (Polite Pool - Faster Response)</label>
+                            <label class="form-label" for="gate-openalex-email">OpenAlex Email (polite pool, faster responses)</label>
                             <input type="email" class="form-input" id="gate-openalex-email" placeholder="researcher@university.edu">
                         </div>
                     </div>
@@ -253,12 +252,11 @@
                 <span class="save-status" id="gate-save-status"></span>
                 <button class="btn-primary" id="gate-submit-btn">
                     <i data-lucide="lock" style="width: 16px; height: 16px;"></i>
-                    <span>Save & Initialize Workspace</span>
+                    <span>Save &amp; Initialize Workspace</span>
                 </button>
             </div>
         </div>
     </div>
-
 
     <!-- Main Container -->
     <main id="main-content" role="main">
@@ -332,9 +330,7 @@
                         <i class="card-icon" data-lucide="edit-3" style="width: 20px; height: 20px;"></i>
                         <h2 class="card-title">Revisions Console</h2>
                     </div>
-                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
-                        Need changes? Type instructions below or click Approve to execute.
-                    </p>
+                    <p class="rm-hint" style="margin-bottom: 1rem;">Need changes? Type instructions below or click Approve to execute.</p>
                     <textarea class="feedback-textarea" id="feedback-input" placeholder="Type instructions to modify the plan..."></textarea>
                     <div class="input-meta-bar">
                         <span class="input-char-counter" id="feedback-char-counter">0 words</span>
@@ -359,11 +355,11 @@
         <section id="workspace-panel" class="panel">
             <aside class="workers-sidebar">
                 <h2 class="sidebar-title">
-                    <i data-lucide="cpu" style="width: 20px; height: 20px; color: var(--accent-purple);"></i>
+                    <i data-lucide="cpu" style="width: 18px; height: 18px;"></i>
                     <span>Parallel Researchers</span>
                 </h2>
                 <div class="sidebar-timer-container" id="sidebar-timer-container">
-                    <i data-lucide="clock" style="width: 16px; height: 16px; color: var(--accent-purple);"></i>
+                    <i data-lucide="clock" style="width: 14px; height: 14px;"></i>
                     <span class="timer-label">Research Time:</span>
                     <span id="research-timer" class="timer-value">00:00</span>
                 </div>
@@ -372,18 +368,18 @@
 
             <article class="report-workspace">
                 <div class="report-workspace-header">
-                    <h2 class="section-title" style="margin: 0;">Research Report</h2>
-                    <div class="report-actions" style="display: flex; gap: 0.5rem;">
-                        <button class="btn-secondary" id="copy-md-btn" style="display:none; gap: 0.35rem; align-items: center;">
-                            <i data-lucide="copy" style="width: 16px; height: 16px;"></i>
+                    <h2 class="section-title">Research Report</h2>
+                    <div class="report-actions">
+                        <button class="btn-secondary" id="copy-md-btn" style="display:none;">
+                            <i data-lucide="copy" style="width: 15px; height: 15px;"></i>
                             <span>Copy Report</span>
                         </button>
-                        <button class="btn-secondary btn-download" id="download-md-btn" style="display:none; gap: 0.35rem; align-items: center;">
-                            <i data-lucide="download" style="width: 16px; height: 16px;"></i>
+                        <button class="btn-secondary btn-download" id="download-md-btn" style="display:none;">
+                            <i data-lucide="download" style="width: 15px; height: 15px;"></i>
                             <span>Download .md</span>
                         </button>
-                        <button class="btn-primary" id="workspace-new-research-btn" style="display:none; gap: 0.35rem; align-items: center;">
-                            <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
+                        <button class="btn-primary" id="workspace-new-research-btn" style="display:none;">
+                            <i data-lucide="plus" style="width: 15px; height: 15px;"></i>
                             <span>New Session</span>
                         </button>
                     </div>
@@ -402,7 +398,7 @@
                     <div class="sources-section" id="workspace-sources-section" style="display: none;">
                         <div class="sources-header">
                             <h2 class="sources-title">
-                                <i data-lucide="link" style="width: 18px; height: 18px; color: var(--accent-purple);"></i>
+                                <i data-lucide="link" style="width: 16px; height: 16px;"></i>
                                 <span>Retrieved Sources</span>
                             </h2>
                         </div>
@@ -505,7 +501,7 @@
                     </div>
                 </div>
 
-                <button class="btn-primary btn-lg" id="rm-start-btn" style="width: 100%; justify-content: center;">
+                <button class="btn-primary btn-lg btn-full" id="rm-start-btn">
                     <i data-lucide="atom" style="width: 18px; height: 18px;"></i>
                     <span>Launch Autonomous Academic Pipeline</span>
                 </button>
@@ -567,15 +563,14 @@
         </section>
 
         <!-- Research Mode View 2: Pipeline Execution & HITL Workspace -->
-        <section id="rm-workspace-panel" class="panel" style="position: relative;">
-            <div class="rm-ambient-aura"></div>
+        <section id="rm-workspace-panel" class="panel">
             
             <!-- Autonomous Academic Pipeline Tracker -->
             <div class="pipeline-tracker-card card" id="rm-tracker-card">
                 <div class="tracker-top-bar">
                     <div class="tracker-title-wrap">
                         <div class="stepper-icon-ring">
-                            <i data-lucide="git-merge" style="width: 16px; height: 16px; color: var(--academic-blue);"></i>
+                            <i data-lucide="git-merge" style="width: 16px; height: 16px;"></i>
                         </div>
                         <div>
                             <h3 class="stepper-headline">Autonomous Academic Pipeline</h3>
@@ -625,16 +620,16 @@
                 <div class="rm-main-column">
 
                 <!-- PRISMA & Evidence Section (Materializes during run) -->
-                <div class="rm-evidence-card card" id="rm-evidence-card" style="display: none; margin-bottom: 1.5rem;">
+                <div class="rm-evidence-card card" id="rm-evidence-card" style="display: none;">
                     <div class="card-header border-bottom">
                         <div class="title-group" style="display: flex; align-items: center; gap: 8px;">
-                            <i data-lucide="bar-chart-3" style="width: 20px; height: 20px; color: var(--academic-blue);"></i>
-                            <h3 class="card-title" style="margin: 0; font-size: 1.05rem;">Study Selection (PRISMA) & Hypothesis Evidence Matrix</h3>
+                            <i data-lucide="bar-chart-3" style="width: 18px; height: 18px; color: var(--cp-link);"></i>
+                            <h3 class="card-title">Study Selection (PRISMA) &amp; Hypothesis Evidence Matrix</h3>
                         </div>
                     </div>
-                    <div class="card-body" style="padding: 1rem;">
-                        <div id="rm-prisma-view" style="margin-bottom: 1rem; text-align: center;"></div>
-                        <div id="rm-evidence-matrix-view" style="overflow-x: auto;"></div>
+                    <div class="card-body">
+                        <div id="rm-prisma-view"></div>
+                        <div id="rm-evidence-matrix-view" class="table-scroll-wrap"></div>
                     </div>
                 </div>
 
@@ -642,7 +637,7 @@
                 <div class="rm-hitl-panel card" id="rm-hitl-panel" style="display: none;">
                     <div class="card-header border-bottom">
                         <div class="hitl-title-group">
-                            <i data-lucide="shield-alert" style="width: 22px; height: 22px; color: var(--amber-review);"></i>
+                            <i data-lucide="shield-alert" style="width: 20px; height: 20px;"></i>
                             <h2 class="card-title" id="rm-hitl-title">Checkpoint Review Required</h2>
                         </div>
                         <span class="hitl-badge" id="rm-hitl-checkpoint-badge">Checkpoint 1 of 4</span>
@@ -656,19 +651,19 @@
                         <div class="form-group" style="width: 100%;">
                             <label class="form-label" for="rm-hitl-feedback-input">Revision Request (Optional)</label>
                             <textarea class="form-input rm-textarea-sm" id="rm-hitl-feedback-input" placeholder="Specify any edits or revisions for this phase..."></textarea>
-                            <div class="input-meta-bar" style="margin-top: 0.35rem;">
+                            <div class="input-meta-bar">
                                 <span class="input-char-counter" id="rm-hitl-char-counter">0 words</span>
                                 <span class="input-shortcut-hint"><kbd class="kbd-hint">Ctrl</kbd> + <kbd class="kbd-hint">Enter</kbd> to approve</span>
                             </div>
                         </div>
                         <div class="hitl-btn-row">
                             <button class="btn-secondary" id="rm-hitl-revise-btn">
-                                <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i>
+                                <i data-lucide="refresh-cw" style="width: 15px; height: 15px;"></i>
                                 <span>Request Revisions</span>
                             </button>
-                            <button class="btn-primary btn-emerald" id="rm-hitl-approve-btn">
-                                <i data-lucide="check-circle-2" style="width: 16px; height: 16px;"></i>
-                                <span>Approve & Continue Pipeline</span>
+                            <button class="btn-primary" id="rm-hitl-approve-btn">
+                                <i data-lucide="check-circle-2" style="width: 15px; height: 15px;"></i>
+                                <span>Approve &amp; Continue Pipeline</span>
                             </button>
                         </div>
                     </div>
@@ -678,7 +673,7 @@
                 <div class="rm-paper-card card" id="rm-paper-card">
                     <div class="paper-header">
                         <div class="paper-title-group">
-                            <i data-lucide="file-text" style="width: 22px; height: 22px; color: var(--academic-blue);"></i>
+                            <i data-lucide="file-text" style="width: 20px; height: 20px; color: var(--cp-link);"></i>
                             <h2 class="paper-heading" id="rm-paper-title">Academic Paper Workspace</h2>
                             <div class="paper-stats-badges" id="paper-stats-badges" style="display: none;">
                                 <span class="paper-meta-chip" id="paper-read-time" title="Estimated Reading Time"><i data-lucide="clock" style="width: 12px; height: 12px;"></i> <span id="paper-read-time-val">0 min read</span></span>
@@ -695,14 +690,14 @@
                                 <span>Copy Text</span>
                             </button>
                             <div class="export-dropdown" id="rm-export-dropdown" style="display: none;">
-                                <button class="btn-primary btn-pdf" id="rm-export-main-btn" onclick="toggleExportMenu(event)">
-                                    <i data-lucide="file-down" style="width: 16px; height: 16px;"></i>
+                                <button class="btn-primary" id="rm-export-main-btn" onclick="toggleExportMenu(event)">
+                                    <i data-lucide="file-down" style="width: 15px; height: 15px;"></i>
                                     <span>Export Report</span>
-                                    <span class="caret" style="margin-left: 4px;">▼</span>
+                                    <span class="caret">▼</span>
                                 </button>
                                 <div class="dropdown-menu" id="rm-export-menu">
-                                    <button class="dropdown-item" onclick="exportReport('pdf')">📄 Export as PDF (.pdf)</button>
-                                    <button class="dropdown-item" onclick="exportReport('docx')">📝 Export as Word (.docx)</button>
+                                    <button class="dropdown-item" onclick="exportReport('pdf')"><i data-lucide="file-text" style="width: 14px; height: 14px;"></i> <span>Export as PDF (.pdf)</span></button>
+                                    <button class="dropdown-item" onclick="exportReport('docx')"><i data-lucide="file-type-2" style="width: 14px; height: 14px;"></i> <span>Export as Word (.docx)</span></button>
                                 </div>
                             </div>
 
@@ -712,7 +707,7 @@
                     <div class="paper-layout-wrapper">
                         <nav class="paper-outline-rail" id="paper-outline-rail" style="display: none;" aria-label="Document Table of Contents">
                             <div class="outline-header">
-                                <i data-lucide="compass" style="width: 14px; height: 14px; color: var(--academic-blue);"></i>
+                                <i data-lucide="compass" style="width: 14px; height: 14px;"></i>
                                 <span>Contents</span>
                             </div>
                             <ul class="outline-list" id="paper-outline-list">
@@ -722,13 +717,13 @@
 
                         <div class="paper-render-container" id="rm-paper-output">
                             <div class="paper-placeholder-state" id="rm-paper-placeholder">
-                                <div class="paper-idle-icon" style="margin-bottom: 0.5rem;">
-                                    <i data-lucide="file-clock" style="width: 36px; height: 36px; color: var(--academic-blue); opacity: 0.7;"></i>
+                                <div class="paper-idle-icon">
+                                    <i data-lucide="file-clock" style="width: 36px; height: 36px;"></i>
                                 </div>
-                                <p style="color: var(--text-secondary); font-weight: 600; font-size: 0.95rem;">
+                                <p style="font-weight: 600; font-size: 15px; color: var(--cp-ink); margin: 0 0 4px 0;">
                                     Paper Synthesis In Progress
                                 </p>
-                                <p style="margin-top: 0.35rem; color: var(--text-muted); font-size: 0.82rem; max-width: 440px; line-height: 1.5; text-align: center;">
+                                <p style="color: var(--cp-muted); font-size: 13px; max-width: 440px; line-height: 1.5; text-align: center; margin: 0;">
                                     The pipeline is retrieving and screening papers. Sections will appear here as each stage completes.
                                 </p>
                                 <div class="paper-skeleton-outline">
@@ -748,7 +743,7 @@
                 <aside class="rm-sources-sidebar card" id="rm-sources-panel" style="display: none;">
                     <div class="rm-sources-header">
                         <div class="tracker-title-group">
-                            <i data-lucide="library" style="width: 18px; height: 18px; color: var(--academic-blue);"></i>
+                            <i data-lucide="library" style="width: 18px; height: 18px;"></i>
                             <h2 class="tracker-title">Sources</h2>
                         </div>
                         <span class="tracker-status-tag" id="rm-sources-count-tag">0 papers</span>
@@ -778,10 +773,9 @@
     <footer class="app-footer" role="contentinfo">
         <div class="footer-container">
             <div class="footer-col footer-brand-col">
-                <div class="footer-logo" style="display: flex; align-items: center; gap: 0.6rem;">
-                    <img src="/assets/logo.png" alt="CiteProof Logo" width="28" height="28" style="border-radius: 7px; overflow: hidden; object-fit: cover; box-shadow: 0 1px 3px rgba(0,0,0,0.25);">
-                    <span class="footer-brand-title">DEEPRERESEARCH</span>
-                    <span class="footer-brand-tag">ACADEMIC LAB</span>
+                <div class="footer-logo">
+                    <img src="/assets/logo.png" alt="CiteProof Logo" width="28" height="28" class="brand-logo">
+                    <span class="footer-brand-title">CiteProof</span>
                 </div>
                 <p class="footer-desc">
                     An autonomous, multi-agent AI research workspace with Human-in-the-Loop plan approval, PRISMA study selection, and literature synthesis across global academic databases.
@@ -837,13 +831,13 @@
     </footer>
 
     <!-- Paper Deep-Dive Inspector Modal -->
-    <div class="paper-modal-overlay" id="paper-detail-modal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; padding: 1.5rem;">
-        <div class="paper-modal-card" style="background: var(--bg-card); border-radius: 12px; max-width: 800px; width: 100%; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3); border: 1px solid var(--border-color); overflow: hidden;">
-            <div class="paper-modal-header" style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface);">
-                <h3 id="modal-paper-title" style="margin: 0; font-size: 1.1rem; font-weight: 700; color: var(--text-primary); max-width: 90%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Paper Deep-Dive Details</h3>
-                <button id="modal-close-btn" style="background: transparent; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); padding: 0 0.5rem;">&times;</button>
+    <div class="paper-modal-overlay" id="paper-detail-modal" style="display: none;">
+        <div class="paper-modal-card">
+            <div class="paper-modal-header">
+                <h3 id="modal-paper-title">Paper Deep-Dive Details</h3>
+                <button id="modal-close-btn">&times;</button>
             </div>
-            <div class="paper-modal-body" id="modal-paper-body" style="padding: 1.25rem; overflow-y: auto; line-height: 1.5; font-size: 0.9rem;">
+            <div class="paper-modal-body" id="modal-paper-body">
                 <!-- Filled dynamically by JavaScript -->
             </div>
         </div>
@@ -853,6 +847,6 @@
     <div class="toast-container" id="toast-container"></div>
 
     <!-- Application Script -->
-    <script src="app.js?v=3.5.4"></script>
+    <script src="app.js?v=4.0.0"></script>
 </body>
 </html>
