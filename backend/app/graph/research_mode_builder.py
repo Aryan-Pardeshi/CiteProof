@@ -41,6 +41,7 @@ from backend.app.agents.research_mode import (
     future_scope_agent,
     gap_analysis_agent,
     hypotheses_agent,
+    implications_agent,
     integrity_auditor_node,
     introduction_agent,
     keyword_extractor_agent,
@@ -230,6 +231,7 @@ builder.add_node("data_analysis", data_analysis_agent)
 builder.add_node("literature_review", literature_review_agent)
 builder.add_node("results", results_agent)
 builder.add_node("discussion", discussion_agent)
+builder.add_node("implications", implications_agent)
 builder.add_node("limitations", limitations_agent)
 builder.add_node("conclusion", conclusion_agent)
 builder.add_node("future_scope", future_scope_agent)
@@ -299,7 +301,8 @@ builder.add_edge("data_collection", "data_analysis")
 builder.add_edge("data_analysis", "literature_review")
 builder.add_edge("literature_review", "results")
 builder.add_edge("results", "discussion")
-builder.add_edge("discussion", "limitations")
+builder.add_edge("discussion", "implications")
+builder.add_edge("implications", "limitations")
 builder.add_edge("limitations", "conclusion")
 builder.add_edge("conclusion", "future_scope")
 builder.add_edge("future_scope", "references")

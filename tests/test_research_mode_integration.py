@@ -311,6 +311,8 @@ async def fake_evidence_llm(
     messages,
     max_retries=4,
     base_backoff=2.0,
+    node="llm",
+    **kwargs,
 ):
     prompt = str(messages).lower()
 
@@ -490,6 +492,7 @@ async def test_research_mode_runs_offline_from_problem_to_final_paper():
         problem_statement,
         objectives,
         tracker=None,
+        protocol=None,
     ):
         screened = []
 
@@ -639,6 +642,7 @@ async def test_research_mode_runs_offline_from_problem_to_final_paper():
         "literature_review",
         "results",
         "discussion",
+        "implications",
         "conclusion",
         "references",
     ):
@@ -654,7 +658,7 @@ async def test_research_mode_runs_offline_from_problem_to_final_paper():
         assert set(c["supporting_evidence_ids"]) <= evidence_ids
 
     # Markers must be stripped from the rendered prose.
-    for section in ("introduction", "literature_review", "results", "discussion"):
+    for section in ("introduction", "literature_review", "results", "discussion", "implications"):
         assert "[EV:" not in str(final_state.get(section)).upper()
 
     # ---- Validation report ----
