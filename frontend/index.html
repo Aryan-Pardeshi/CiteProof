@@ -1,821 +1,1102 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-    <!-- Primary SEO Meta Tags -->
-    <title>CiteProof — Turn Research Questions into Literature Reviews</title>
-    <meta name="title" content="CiteProof — Turn Research Questions into Literature Reviews">
-    <meta name="description" content="CiteProof searches academic literature, screens papers, synthesizes evidence, checks citation references, and helps you build a structured research paper with human checkpoints.">
-    <meta name="keywords" content="academic research AI, literature review generator, multi-agent academic research, PRISMA study selection, OpenAlex, Semantic Scholar, arXiv, citation resolution, LangGraph research">
-    <meta name="author" content="Aryan Pardeshi">
-    <meta name="creator" content="Aryan Pardeshi">
-    <meta name="publisher" content="CiteProof">
-    <meta name="application-name" content="CiteProof">
-    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
-    <link rel="canonical" href="https://deepresearch.dev/">
+  <!-- Primary SEO Meta Tags -->
+  <title>CiteProof — Turn Research Questions into Literature Reviews</title>
+  <meta name="title" content="CiteProof — Turn Research Questions into Literature Reviews">
+  <meta name="description" content="CiteProof searches academic literature, screens papers, synthesizes evidence, checks that citations resolve to the retrieved corpus, and helps you build a structured research paper with human checkpoints.">
+  <meta name="keywords" content="academic research AI, literature review generator, multi-agent academic research, PRISMA study selection, OpenAlex, Semantic Scholar, arXiv, citation checking, LangGraph research">
+  <meta name="author" content="Aryan Pardeshi">
+  <meta name="creator" content="Aryan Pardeshi">
+  <meta name="publisher" content="CiteProof">
+  <meta name="application-name" content="CiteProof">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <link rel="canonical" href="https://deepresearch.dev/">
 
-    <!-- PWA, Theme & Mobile Optimization -->
-    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
-    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-    <meta name="color-scheme" content="dark light">
-    <link rel="manifest" href="site.webmanifest">
+  <!-- PWA, Theme & Mobile Optimization -->
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="color-scheme" content="dark light">
+  <link rel="manifest" href="site.webmanifest">
 
-    <!-- Open Graph / Facebook / LinkedIn -->
-    <meta property="og:type" content="website">
-    <meta property="og:site_name" content="CiteProof">
-    <meta property="og:title" content="CiteProof — Turn Research Questions into Literature Reviews">
-    <meta property="og:description" content="CiteProof searches academic literature, screens papers, synthesizes evidence, checks citation references, and helps you build a structured research paper with human checkpoints.">
-    <meta property="og:url" content="https://deepresearch.dev/">
-    <meta property="og:locale" content="en_US">
+  <!-- Open Graph / Facebook / LinkedIn -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="CiteProof">
+  <meta property="og:title" content="CiteProof — Turn Research Questions into Literature Reviews">
+  <meta property="og:description" content="CiteProof searches academic literature, screens papers, synthesizes evidence, checks that citations resolve to the retrieved corpus, and helps you build a structured research paper with human checkpoints.">
+  <meta property="og:url" content="https://deepresearch.dev/">
+  <meta property="og:image" content="https://deepresearch.dev/assets/logo.png">
+  <meta property="og:image:alt" content="CiteProof">
+  <meta property="og:image:width" content="512">
+  <meta property="og:image:height" content="512">
+  <meta property="og:locale" content="en_US">
 
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:site" content="@AryanPardeshi">
-    <meta name="twitter:creator" content="@AryanPardeshi">
-    <meta name="twitter:title" content="CiteProof — Turn Research Questions into Literature Reviews">
-    <meta name="twitter:description" content="CiteProof searches academic literature, screens papers, synthesizes evidence, checks citation references, and helps you build a structured research paper with human checkpoints.">
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@AryanPardeshi">
+  <meta name="twitter:creator" content="@AryanPardeshi">
+  <meta name="twitter:title" content="CiteProof — Turn Research Questions into Literature Reviews">
+  <meta name="twitter:description" content="CiteProof searches academic literature, screens papers, synthesizes evidence, checks that citations resolve to the retrieved corpus, and helps you build a structured research paper with human checkpoints.">
+  <meta name="twitter:image" content="https://deepresearch.dev/assets/logo.png">
+  <meta name="twitter:image:alt" content="CiteProof">
 
-    <!-- Schema.org JSON-LD Structured Data -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@graph": [
-        {
-          "@type": "SoftwareApplication",
-          "@id": "https://deepresearch.dev/#software",
-          "name": "CiteProof",
-          "alternateName": "CiteProof",
-          "applicationCategory": "ResearchApplication, EducationalApplication",
-          "operatingSystem": "All",
-          "url": "https://deepresearch.dev/",
-          "description": "An open-source multi-agent academic research assistant that synthesizes literature reviews, checks citation references, builds PRISMA-style selection flows, and generates complete papers with human-in-the-loop checkpoints.",
-          "author": {
-            "@type": "Person",
-            "name": "Aryan Pardeshi",
-            "url": "https://github.com/Aryan-Pardeshi"
-          },
-          "offers": {
-            "@type": "Offer",
-            "price": "0",
-            "priceCurrency": "USD"
-          }
+  <!-- Schema.org JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://deepresearch.dev/#software",
+        "name": "CiteProof",
+        "applicationCategory": "ResearchApplication, EducationalApplication",
+        "operatingSystem": "All",
+        "url": "https://deepresearch.dev/",
+        "description": "A multi-agent academic research assistant that synthesizes literature reviews, checks citation references, builds PRISMA-style selection flows, and generates complete papers with human-in-the-loop checkpoints.",
+        "author": {
+          "@type": "Person",
+          "name": "Aryan Pardeshi",
+          "url": "https://github.com/Aryan-Pardeshi"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
         }
-      ]
-    }
-    </script>
+      }
+    ]
+  }
+  </script>
 
-    <!-- Stylesheets & Icons -->
-    <link rel="icon" type="image/png" sizes="64x64" href="/assets/favicon.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
-    <link rel="stylesheet" href="landing.css?v=4.1.10">
-    <script src="https://cdn.jsdelivr.net/npm/lucide/dist/umd/lucide.min.js"></script>
+  <!-- Icons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="/assets/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+
+  <!-- Fonts & Stylesheets (<link> order: fonts, tokens.css, landing.css) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="tokens.css?v=1.0.0">
+  <link rel="stylesheet" href="landing.css?v=3.0.0">
+  <link rel="stylesheet" href="footer.css?v=1.0.0">
 </head>
 <body>
-    <a href="#main-content" class="skip-link">Skip to main content</a>
+  <!-- Real brand marks (simple-icons, CC0 artwork; the marks belong to their owners) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <symbol id="logo-claude" viewBox="0 0 24 24"><path d="m4.7144 15.9555 4.7174-2.6471.079-.2307-.079-.1275h-.2307l-.7893-.0486-2.6956-.0729-2.3375-.0971-2.2646-.1214-.5707-.1215-.5343-.7042.0546-.3522.4797-.3218.686.0608 1.5179.1032 2.2767.1578 1.6514.0972 2.4468.255h.3886l.0546-.1579-.1336-.0971-.1032-.0972L6.973 9.8356l-2.55-1.6879-1.3356-.9714-.7225-.4918-.3643-.4614-.1578-1.0078.6557-.7225.8803.0607.2246.0607.8925.686 1.9064 1.4754 2.4893 1.8336.3643.3035.1457-.1032.0182-.0728-.164-.2733-1.3539-2.4467-1.445-2.4893-.6435-1.032-.17-.6194c-.0607-.255-.1032-.4674-.1032-.7285L6.287.1335 6.6997 0l.9957.1336.419.3642.6192 1.4147 1.0018 2.2282 1.5543 3.0296.4553.8985.2429.8318.091.255h.1579v-.1457l.1275-1.706.2368-2.0947.2307-2.6957.0789-.7589.3764-.9107.7468-.4918.5828.2793.4797.686-.0668.4433-.2853 1.8517-.5586 2.9021-.3643 1.9429h.2125l.2429-.2429.9835-1.3053 1.6514-2.0643.7286-.8196.85-.9046.5464-.4311h1.0321l.759 1.1293-.34 1.1657-1.0625 1.3478-.8804 1.1414-1.2628 1.7-.7893 1.36.0729.1093.1882-.0183 2.8535-.607 1.5421-.2794 1.8396-.3157.8318.3886.091.3946-.3278.8075-1.967.4857-2.3072.4614-3.4364.8136-.0425.0304.0486.0607 1.5482.1457.6618.0364h1.621l3.0175.2247.7892.522.4736.6376-.079.4857-1.2142.6193-1.6393-.3886-3.825-.9107-1.3113-.3279h-.1822v.1093l1.0929 1.0686 2.0035 1.8092 2.5075 2.3314.1275.5768-.3218.4554-.34-.0486-2.2039-1.6575-.85-.7468-1.9246-1.621h-.1275v.17l.4432.6496 2.3436 3.5214.1214 1.0807-.17.3521-.6071.2125-.6679-.1214-1.3721-1.9246L14.38 17.959l-1.1414-1.9428-.1397.079-.674 7.2552-.3156.3703-.7286.2793-.6071-.4614-.3218-.7468.3218-1.4753.3886-1.9246.3157-1.53.2853-1.9004.17-.6314-.0121-.0425-.1397.0182-1.4328 1.9672-2.1796 2.9446-1.7243 1.8456-.4128.164-.7164-.3704.0667-.6618.4008-.5889 2.386-3.0357 1.4389-1.882.929-1.0868-.0062-.1579h-.0546l-6.3385 4.1164-1.1293.1457-.4857-.4554.0608-.7467.2307-.2429 1.9064-1.3114Z"/></symbol>
+    <symbol id="logo-mcp" viewBox="0 0 24 24"><path d="M13.85 0a4.16 4.16 0 0 0-2.95 1.217L1.456 10.66a.835.835 0 0 0 0 1.18.835.835 0 0 0 1.18 0l9.442-9.442a2.49 2.49 0 0 1 3.541 0 2.49 2.49 0 0 1 0 3.541L8.59 12.97l-.1.1a.835.835 0 0 0 0 1.18.835.835 0 0 0 1.18 0l.1-.098 7.03-7.034a2.49 2.49 0 0 1 3.542 0l.049.05a2.49 2.49 0 0 1 0 3.54l-8.54 8.54a1.96 1.96 0 0 0 0 2.755l1.753 1.753a.835.835 0 0 0 1.18 0 .835.835 0 0 0 0-1.18l-1.753-1.753a.266.266 0 0 1 0-.394l8.54-8.54a4.185 4.185 0 0 0 0-5.9l-.05-.05a4.16 4.16 0 0 0-2.95-1.218c-.2 0-.401.02-.6.048a4.17 4.17 0 0 0-1.17-3.552A4.16 4.16 0 0 0 13.85 0m0 3.333a.84.84 0 0 0-.59.245L6.275 10.56a4.186 4.186 0 0 0 0 5.902 4.186 4.186 0 0 0 5.902 0L19.16 9.48a.835.835 0 0 0 0-1.18.835.835 0 0 0-1.18 0l-6.985 6.984a2.49 2.49 0 0 1-3.54 0 2.49 2.49 0 0 1 0-3.54l6.983-6.985a.835.835 0 0 0 0-1.18.84.84 0 0 0-.59-.245"/></symbol>
+    <symbol id="logo-github" viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></symbol>
+  </svg>
+  <!-- 1. Top Scroll Progress Indicator & Fixed Page Color Wash -->
+  <div class="scroll-progress-bar" aria-hidden="true"></div>
+  <div class="page-wash" aria-hidden="true"></div>
 
-    <!-- Apple Global Navigation Bar -->
-    <header class="landing-header" role="banner">
-        <div class="header-container">
-            <a href="/" class="logo-brand" aria-label="CiteProof Homepage">
-                <img src="/assets/logo.png" alt="CiteProof Logo" class="brand-logo-img" width="32" height="32">
-                <div class="brand-text-col">
-                    <span class="brand-name">CiteProof</span>
-                    <span class="brand-sub">Lab</span>
-                </div>
-            </a>
+  <!-- 2. Skip Link -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
 
-            <nav class="nav-menu" id="nav-menu" role="navigation" aria-label="Main Navigation">
-                <a href="#example-paper" class="nav-link">Example Output</a>
-                <a href="#why-different" class="nav-link">Why CiteProof</a>
-                <a href="#workflow" class="nav-link">Capabilities</a>
-                <a href="#hitl" class="nav-link">Human Review</a>
-                <a href="#modes" class="nav-link">Modes</a>
-                <a href="#architecture" class="nav-link">Architecture</a>
-            </nav>
+  <!-- 3. Sticky Navigation (64px) -->
+  <header class="landing-header" role="banner">
+    <div class="nav-container">
+      <a href="/" class="brand-link" aria-label="CiteProof homepage">
+        <img src="/assets/logo.png" alt="CiteProof" class="brand-logo" width="28" height="28">
+        <span class="brand-name">CiteProof</span>
+      </a>
 
-            <div class="nav-actions">
-                <a href="https://github.com/Aryan-Pardeshi/CiteProof-AI-MCP" target="_blank" rel="noopener noreferrer" class="btn-gh-stars" title="View repository on GitHub">
-                    <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
-                    <span>GitHub</span>
-                    <span class="gh-star-count-badge">35</span>
-                </a>
+      <nav class="nav-menu" id="nav-menu" role="navigation" aria-label="Main navigation">
+        <a href="#example" class="nav-link">Example</a>
+        <a href="#mcp" class="nav-link">Claude Science</a>
+        <a href="#how-it-works" class="nav-link">How it works</a>
+        <a href="#evidence" class="nav-link">Evidence</a>
+        <a href="#modes" class="nav-link">Modes</a>
+        <a href="#human-review" class="nav-link">Review gates</a>
+      </nav>
 
-                <button class="btn-theme" id="theme-toggle-btn" aria-label="Toggle color theme" title="Toggle dark/light theme">
-                    <i data-lucide="moon" style="width: 15px; height: 15px;"></i>
-                </button>
+      <div class="nav-actions">
+        <a href="https://github.com/Aryan-Pardeshi/CiteProof-AI-MCP" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-icon nav-icon-btn" aria-label="CiteProof on GitHub" title="CiteProof on GitHub">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+        </a>
 
-                <a href="/app" class="btn-primary">
-                    <span>Start a Research Run</span>
-                    <i data-lucide="arrow-right" style="width: 13px; height: 13px;"></i>
-                </a>
+        <button class="btn btn-ghost btn-icon theme-toggle-btn" id="theme-toggle-btn" aria-label="Toggle color theme" title="Toggle dark/light theme">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
 
-                <button class="mobile-nav-toggle" id="mobile-nav-toggle" aria-label="Toggle mobile menu" aria-controls="nav-menu" aria-expanded="false">
-                    <i data-lucide="menu" style="width: 18px; height: 18px;"></i>
-                </button>
-            </div>
-        </div>
-    </header>
+        <a href="/app" class="btn btn-default nav-btn-cta">Start researching</a>
 
-    <main id="main-content" role="main">
+        <button class="btn btn-ghost btn-icon mobile-nav-toggle" id="mobile-nav-toggle" aria-label="Toggle mobile menu" aria-controls="nav-menu" aria-expanded="false">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+      </div>
+    </div>
+  </header>
 
-        <!-- ==========================================================================
-             1. HERO SECTION (APPLE PRO)
-             ========================================================================== -->
-        <section class="hero-section">
-            <div class="container">
-                <div class="hero-content apple-scroll-reveal">
-                    <p class="hero-eyebrow">Academic Research Assistant</p>
-
-                    <h1 class="hero-title">
-                        Turn a research question into an <span class="text-gradient">evidence-grounded literature review.</span>
-                    </h1>
-
-                    <p class="hero-subtitle">
-                        Search academic literature <span aria-hidden="true">→</span> extract evidence <span aria-hidden="true">→</span> check citation references <span aria-hidden="true">→</span> generate a structured research paper.
-                    </p>
-
-                    <div class="hero-btn-group">
-                        <a href="#example-paper" class="btn-secondary btn-lg">
-                            <span>Try an example</span>
-                            <span style="margin-left: 2px;">›</span>
-                        </a>
-                        <a href="/app" class="btn-primary btn-lg">
-                            <span>Start researching</span>
-                            <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
-                        </a>
-                    </div>
-
-                    <div class="hero-trust-bar">
-                        <div class="trust-item">
-                            <i data-lucide="check" style="width: 14px; height: 14px;"></i>
-                            <span>24 specialized agents</span>
-                        </div>
-                        <div class="trust-item">
-                            <i data-lucide="check" style="width: 14px; height: 14px;"></i>
-                            <span>10 academic databases</span>
-                        </div>
-                        <div class="trust-item">
-                            <i data-lucide="check" style="width: 14px; height: 14px;"></i>
-                            <span>PRISMA tracking</span>
-                        </div>
-                        <div class="trust-item">
-                            <i data-lucide="check" style="width: 14px; height: 14px;"></i>
-                            <span>Evidence validation</span>
-                        </div>
-                        <div class="trust-item">
-                            <i data-lucide="check" style="width: 14px; height: 14px;"></i>
-                            <span>PDF/DOCX</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ==========================================================================
-                     2. REAL EXAMPLE OUTPUT (MACOS STUDIO WINDOW)
-                     ========================================================================== -->
-                <div class="hero-visual-wrapper apple-scroll-reveal delay-1" id="example-paper">
-                    <div class="example-select-row" role="tablist" aria-label="Example research runs">
-                        <button class="example-select-card active" data-example-id="hallucination" role="tab" aria-selected="true">
-                            <span class="example-select-title">AI hallucination mitigation</span>
-                            <span class="example-select-link">View completed research <span aria-hidden="true">›</span></span>
-                        </button>
-                        <button class="example-select-card" data-example-id="rag-vs-finetuning" role="tab" aria-selected="false">
-                            <span class="example-select-title">RAG vs fine-tuning</span>
-                            <span class="example-select-link">View completed research <span aria-hidden="true">›</span></span>
-                        </button>
-                        <button class="example-select-card" data-example-id="multi-agent-healthcare" role="tab" aria-selected="false">
-                            <span class="example-select-title">Multi-agent systems in healthcare</span>
-                            <span class="example-select-link">View completed research <span aria-hidden="true">›</span></span>
-                        </button>
-                    </div>
-
-                    <div class="example-banner-header card-specular-glow">
-                        <div class="example-question-box">
-                            <span class="example-label">Input Research Question</span>
-                            <p class="example-question-text" id="example-question-text">"What techniques reduce hallucinations in large language models?"</p>
-                        </div>
-                        <div class="example-metrics-row">
-                            <div class="metric-chip"><strong class="metric-num" id="metric-discovered">143</strong> discovered</div>
-                            <div class="metric-chip"><strong class="metric-num" id="metric-screened">87</strong> screened</div>
-                            <div class="metric-chip highlight"><strong class="metric-num" id="metric-included">31</strong> included</div>
-                        </div>
-                    </div>
-
-                    <div class="workflow-inspector-card card-specular-glow">
-                        <div class="inspector-header-bar">
-                            <div class="inspector-window-controls">
-                                <span class="win-dot red"></span>
-                                <span class="win-dot yellow"></span>
-                                <span class="win-dot green"></span>
-                            </div>
-
-                            <div class="inspector-tabs" role="tablist">
-                                <button class="inspector-tab-btn active" data-tab="paper" role="tab" aria-selected="true">
-                                    <i data-lucide="file-text" style="width: 13px; height: 13px;"></i>
-                                    <span>Generated Review</span>
-                                </button>
-                                <button class="inspector-tab-btn" data-tab="prisma" role="tab" aria-selected="false">
-                                    <i data-lucide="git-merge" style="width: 13px; height: 13px;"></i>
-                                    <span>PRISMA Study Flow</span>
-                                </button>
-                                <button class="inspector-tab-btn" data-tab="matrix" role="tab" aria-selected="false">
-                                    <i data-lucide="table" style="width: 13px; height: 13px;"></i>
-                                    <span>Evidence Matrix</span>
-                                </button>
-                                <button class="inspector-tab-btn" data-tab="flow" role="tab" aria-selected="false">
-                                    <i data-lucide="layers" style="width: 13px; height: 13px;"></i>
-                                    <span>Pipeline DAG</span>
-                                </button>
-                            </div>
-
-                            <div class="inspector-status-badge">
-                                <span class="status-pulse"></span>
-                                <span>Checkpoint 3 Approved</span>
-                            </div>
-                        </div>
-
-                        <div class="inspector-content-panel">
-                            <!-- Tab 1: Generated Paper Review -->
-                            <div class="tab-pane active" id="tab-pane-paper">
-                                <div class="paper-mockup-sheet">
-                                    <div class="paper-header-actions">
-                                        <div>
-                                            <div class="paper-mock-title" id="paper-mock-title">Mitigating Hallucinations in Large Language Models: A Systematic Literature Review</div>
-                                            <div class="paper-mock-meta" id="paper-mock-meta">
-                                                <span>CiteProof Synthesis</span> • <span>31 Included Studies</span> • <span>Indexed via Crossref, PubMed, OpenAlex &amp; arXiv</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="paper-mock-abstract" id="paper-mock-abstract">
-                                        <strong>Abstract:</strong> <span id="paper-mock-abstract-text">Hallucination remains a critical bottleneck in deploying large language models for high-stakes decision making. This systematic literature review synthesizes 31 empirical studies spanning retrieval-augmented generation (RAG), fine-grained verification, decoding-time constraints, and chain-of-thought grounding. We extract an actionable taxonomy of mitigation mechanisms and identify key gaps in benchmark reproducibility.</span>
-                                    </div>
-                                    <div class="paper-mock-body">
-                                        <p id="paper-mock-body-text">Recent empirical analyses <span class="citation-pill">(Ji et al., 2023)</span> categorize model unfaithfulness into intrinsic contradictions and extrinsic fabrications. Retrieval-augmented architectures <span class="citation-pill">(Lewis et al., 2020)</span> significantly reduce factual errors by grounding generation on indexed document corpora. Furthermore, post-hoc verification agents <span class="citation-pill">(Gao et al., 2023)</span> enforce bidirectional citation tracing, reducing unsupported claims across multi-turn reasoning workflows...</p>
-                                    </div>
-                                    <div class="paper-mock-citations">
-                                        <div class="paper-mock-citations-label">Key Citations</div>
-                                        <ul id="paper-mock-citations-list">
-                                            <li>Ji, Z. et al. (2023). Survey of Hallucination in Natural Language Generation.</li>
-                                            <li>Lewis, P. et al. (2020). Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks.</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Tab 2: PRISMA Diagram -->
-                            <div class="tab-pane" id="tab-pane-prisma">
-                                <div class="prisma-diagram-preview" id="prisma-diagram-preview">
-                                    <div class="prisma-step-row">
-                                        <div class="prisma-box">
-                                            <div class="prisma-box-title">1. Identification</div>
-                                            <div class="prisma-box-stat">143 Records Discovered</div>
-                                            <div class="prisma-box-sub">OpenAlex (52) · Crossref (38) · PubMed (25) · arXiv (28)</div>
-                                        </div>
-                                        <div class="prisma-box prisma-box-excluded">
-                                            <div class="prisma-box-title">Deduplication</div>
-                                            <div class="prisma-box-stat">56 Excluded</div>
-                                            <div class="prisma-box-sub">Identical DOIs &amp; normalized title matches</div>
-                                        </div>
-                                    </div>
-                                    <div class="prisma-step-row">
-                                        <div class="prisma-box">
-                                            <div class="prisma-box-title">2. Screening</div>
-                                            <div class="prisma-box-stat">87 Records Screened</div>
-                                            <div class="prisma-box-sub">Abstract relevance scored against research scope</div>
-                                        </div>
-                                        <div class="prisma-box prisma-box-excluded">
-                                            <div class="prisma-box-title">Irrelevant</div>
-                                            <div class="prisma-box-stat">56 Excluded</div>
-                                            <div class="prisma-box-sub">Score &lt; 6.0 / 10 against criteria</div>
-                                        </div>
-                                    </div>
-                                    <div class="prisma-step-row">
-                                        <div class="prisma-box">
-                                            <div class="prisma-box-title">3. Included Corpus</div>
-                                            <div class="prisma-box-stat">31 Studies Included</div>
-                                            <div class="prisma-box-sub">Full text resolved for final synthesis &amp; matrix</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Tab 3: Evidence Matrix -->
-                            <div class="tab-pane" id="tab-pane-matrix">
-                                <div class="table-preview-wrapper">
-                                    <table class="evidence-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Study &amp; Year</th>
-                                                <th>Mitigation Focus</th>
-                                                <th>Methodology</th>
-                                                <th>Key Empirical Finding</th>
-                                                <th>Evidence Level</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="evidence-table-body">
-                                            <tr>
-                                                <td><strong>Ji et al. (2023)</strong></td>
-                                                <td>Taxonomy &amp; Evaluation</td>
-                                                <td>Comprehensive Survey</td>
-                                                <td>Establishes intrinsic vs. extrinsic hallucination categorization.</td>
-                                                <td><span class="evidence-tag">High (Foundational)</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td><strong>Lewis et al. (2020)</strong></td>
-                                                <td>Retrieval Grounding</td>
-                                                <td>RAG Architecture</td>
-                                                <td>Dense retrieval conditioning cuts factual hallucinations by ~68%.</td>
-                                                <td><span class="evidence-tag">High (Pivotal)</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td><strong>Gao et al. (2023)</strong></td>
-                                                <td>Citation Verification</td>
-                                                <td>RARR Automated Editing</td>
-                                                <td>External search verification resolves factual mistakes post-generation.</td>
-                                                <td><span class="evidence-tag">High (Empirical)</span></td>
-                                            </tr>
-                                            <tr>
-                                                <td><strong>Dhuliawala et al. (2023)</strong></td>
-                                                <td>Self-Contradiction Probing</td>
-                                                <td>Chain-of-Verification</td>
-                                                <td>Decomposing verification into sub-queries improves reliability.</td>
-                                                <td><span class="evidence-tag">Moderate-High</span></td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-
-                            <!-- Tab 4: Execution Graph -->
-                            <div class="tab-pane" id="tab-pane-flow">
-                                <div class="execution-flow-grid">
-                                    <div class="flow-node-card">
-                                        <div class="flow-node-header">
-                                            <div class="flow-node-icon">01</div>
-                                            <div class="flow-node-title">Scope &amp; Keywords</div>
-                                        </div>
-                                        <p class="flow-node-desc">Formulates research objectives, questions, and Boolean search keywords.</p>
-                                    </div>
-                                    <div class="flow-node-card">
-                                        <div class="flow-node-header">
-                                            <div class="flow-node-icon checkpoint">🧑</div>
-                                            <div class="flow-node-title">Checkpoint 1</div>
-                                        </div>
-                                        <p class="flow-node-desc">You approve scope and search queries before retrieving papers.</p>
-                                    </div>
-                                    <div class="flow-node-card">
-                                        <div class="flow-node-header">
-                                            <div class="flow-node-icon">02</div>
-                                            <div class="flow-node-title">Multi-Index Retrieval</div>
-                                        </div>
-                                        <p class="flow-node-desc">Queries OpenAlex, Semantic Scholar, and arXiv simultaneously.</p>
-                                    </div>
-                                    <div class="flow-node-card">
-                                        <div class="flow-node-header">
-                                            <div class="flow-node-icon">03</div>
-                                            <div class="flow-node-title">Screening &amp; Dedup</div>
-                                        </div>
-                                        <p class="flow-node-desc">Filters out duplicates and evaluates abstracts on 0–10 relevance score.</p>
-                                    </div>
-                                    <div class="flow-node-card">
-                                        <div class="flow-node-header">
-                                            <div class="flow-node-icon checkpoint">🧑</div>
-                                            <div class="flow-node-title">Checkpoint 2</div>
-                                        </div>
-                                        <p class="flow-node-desc">You inspect literature synthesis and research gaps.</p>
-                                    </div>
-                                    <div class="flow-node-card">
-                                        <div class="flow-node-header">
-                                            <div class="flow-node-icon">04</div>
-                                            <div class="flow-node-title">Synthesis &amp; Checks</div>
-                                        </div>
-                                        <p class="flow-node-desc">Drafts paper sections, checks citation references, and compares reported numbers against extracted evidence.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="run-example-cta">
-                        <a href="/app?mode=researchmode&q=What%20techniques%20mitigate%20hallucinations%20in%20large%20language%20models%3F" class="btn-primary btn-lg" id="run-example-btn">
-                            <span>Run this research yourself</span>
-                            <i data-lucide="arrow-right" style="width: 15px; height: 15px;"></i>
-                        </a>
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-
-        <!-- ==========================================================================
-             3. WHY DEEPRESEARCH (APPLE CONTRAST BENTO)
-             ========================================================================== -->
-        <section class="section section-alt" id="why-different">
-            <div class="container">
-                <div class="section-header apple-scroll-reveal">
-                    <span class="section-eyebrow">Designed Around the Research Process</span>
-                    <h2 class="section-title">Research shouldn't be a black box.</h2>
-                    <p class="section-desc">
-                        Traditional AI chatbots give you a one-shot answer from unseen training data. CiteProof executes a structured, source-traceable research process with human review at every stage.
-                    </p>
-                </div>
-
-                <div class="comparison-dual-cards">
-                    <!-- Column 1: Traditional AI -->
-                    <div class="comparison-card traditional-ai card-specular-glow apple-scroll-reveal delay-1">
-                        <div class="comp-card-header">
-                            <div class="comp-badge bad">Traditional AI Chat</div>
-                            <h3 class="comp-title">One-Shot Generation</h3>
-                        </div>
-                        <ul class="comp-list">
-                            <li><i data-lucide="x" style="width: 16px; height: 16px;"></i> <span><strong>One-shot prompt:</strong> Tries to write everything in a single ungrounded pass.</span></li>
-                            <li><i data-lucide="x" style="width: 16px; height: 16px;"></i> <span><strong>Opaque sources:</strong> Hallucinates non-existent DOIs and author citations.</span></li>
-                            <li><i data-lucide="x" style="width: 16px; height: 16px;"></i> <span><strong>No review gates:</strong> Runs entirely uncontrolled until output completes.</span></li>
-                            <li><i data-lucide="x" style="width: 16px; height: 16px;"></i> <span><strong>Chat responses:</strong> Produces unstructured conversational text.</span></li>
-                        </ul>
-                    </div>
-
-                    <!-- Column 2: CiteProof -->
-                    <div class="comparison-card deepresearch-ai card-specular-glow apple-scroll-reveal delay-2">
-                        <div class="comp-card-header">
-                            <div class="comp-badge good">CiteProof</div>
-                            <h3 class="comp-title">Multi-Stage Evidence Pipeline</h3>
-                        </div>
-                        <ul class="comp-list">
-                            <li><i data-lucide="check" style="width: 16px; height: 16px;"></i> <span><strong>Structured pipeline:</strong> Scope → Literature → Evidence → Synthesis → Paper.</span></li>
-                            <li><i data-lucide="check" style="width: 16px; height: 16px;"></i> <span><strong>Traceable evidence:</strong> Queries 320M+ indexed papers (OpenAlex, S2, Crossref, Europe PMC, PubMed, DOAJ, DataCite &amp; arXiv).</span></li>
-                            <li><i data-lucide="check" style="width: 16px; height: 16px;"></i> <span><strong>Human review gates:</strong> Pauses at 3 checkpoints so you can guide the direction.</span></li>
-                            <li><i data-lucide="check" style="width: 16px; height: 16px;"></i> <span><strong>Publication artifacts:</strong> PRISMA-style flow, evidence matrix, PDF and Word export.</span></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-
-        <!-- ==========================================================================
-             4. CORE WORKFLOW CAPABILITIES (APPLE 6-GRID)
-             ========================================================================== -->
-        <section class="section" id="workflow">
-            <div class="container">
-                <div class="section-header apple-scroll-reveal">
-                    <span class="section-eyebrow">Core Capabilities</span>
-                    <h2 class="section-title">Everything you need to write literature reviews.</h2>
-                    <p class="section-desc">
-                        Built for researchers, academics, and analysts who need reliable, citation-backed literature synthesis.
-                    </p>
-                </div>
-
-                <div class="features-grid">
-                    <div class="feature-card card-specular-glow apple-scroll-reveal delay-1">
-                        <div class="feature-icon-wrapper">
-                            <i data-lucide="search" style="width: 22px; height: 22px;"></i>
-                        </div>
-                        <h3 class="feature-card-title">Find the literature</h3>
-                        <p class="feature-card-desc">
-                            Search multiple academic indexes (OpenAlex, Semantic Scholar, and arXiv) simultaneously from a single research question.
-                        </p>
-                    </div>
-
-                    <div class="feature-card card-specular-glow apple-scroll-reveal delay-2">
-                        <div class="feature-icon-wrapper indigo">
-                            <i data-lucide="filter" style="width: 22px; height: 22px;"></i>
-                        </div>
-                        <h3 class="feature-card-title">Screen the evidence</h3>
-                        <p class="feature-card-desc">
-                            Deduplicate and score papers on a 0–10 relevance threshold against your defined research scope.
-                        </p>
-                    </div>
-
-                    <div class="feature-card card-specular-glow apple-scroll-reveal delay-3">
-                        <div class="feature-icon-wrapper emerald">
-                            <i data-lucide="layers" style="width: 22px; height: 22px;"></i>
-                        </div>
-                        <h3 class="feature-card-title">Understand the literature</h3>
-                        <p class="feature-card-desc">
-                            Extract themes, gaps, frameworks, and comparative findings from the screened corpus.
-                        </p>
-                    </div>
-
-                    <div class="feature-card card-specular-glow apple-scroll-reveal delay-4">
-                        <div class="feature-icon-wrapper amber">
-                            <i data-lucide="shield-check" style="width: 22px; height: 22px;"></i>
-                        </div>
-                        <h3 class="feature-card-title">Trace the claims</h3>
-                        <p class="feature-card-desc">
-                            Trace claims to retrieved source passages and flag citations that do not resolve to papers in the corpus.
-                        </p>
-                    </div>
-
-                    <div class="feature-card card-specular-glow apple-scroll-reveal delay-5">
-                        <div class="feature-icon-wrapper">
-                            <i data-lucide="user-check" style="width: 22px; height: 22px;"></i>
-                        </div>
-                        <h3 class="feature-card-title">Stay in control</h3>
-                        <p class="feature-card-desc">
-                            Approve or revise the research direction in plain English before the next stage runs.
-                        </p>
-                    </div>
-
-                    <div class="feature-card card-specular-glow apple-scroll-reveal delay-6">
-                        <div class="feature-icon-wrapper emerald">
-                            <i data-lucide="file-down" style="width: 22px; height: 22px;"></i>
-                        </div>
-                        <h3 class="feature-card-title">Produce the paper</h3>
-                        <p class="feature-card-desc">
-                            Turn the research into a structured 14-section paper with PRISMA-style figures, matrix, and PDF/DOCX export.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-
-        <!-- ==========================================================================
-             5. HUMAN-IN-THE-LOOP SECTION
-             ========================================================================== -->
-        <section class="section section-alt" id="hitl">
-            <div class="container">
-                <div class="hitl-container-grid">
-                    <div class="hitl-text-pane apple-scroll-reveal">
-                        <span class="section-eyebrow">Human-In-The-Loop</span>
-                        <h2>AI does the heavy research.<br>You make the decisions.</h2>
-                        <p>
-                            CiteProof uses LangGraph state gates to pause at three strategic checkpoints. Review findings, refine queries in natural language, or steer hypotheses before the pipeline proceeds.
-                        </p>
-                        <p>
-                            The system never commits to downstream synthesis without your explicit approval.
-                        </p>
-                        <a href="/app" class="btn-primary btn-lg" style="margin-top: 0.5rem;">
-                            <span>Start a Research Run</span>
-                            <i data-lucide="arrow-right" style="width: 15px; height: 15px;"></i>
-                        </a>
-                    </div>
-
-                    <div class="checkpoints-timeline apple-scroll-reveal delay-1">
-                        <div class="cp-timeline-item card-specular-glow">
-                            <div class="cp-icon-ring">1</div>
-                            <div class="cp-item-content">
-                                <h4>Checkpoint 1 · Scope &amp; Keywords</h4>
-                                <p>Approve the research problem statement and search query terms before querying databases.</p>
-                            </div>
-                        </div>
-                        <div class="cp-timeline-item card-specular-glow">
-                            <div class="cp-icon-ring">2</div>
-                            <div class="cp-item-content">
-                                <h4>Checkpoint 2 · Literature &amp; Framework</h4>
-                                <p>Inspect synthesized findings, identified research gaps, and screened evidence papers.</p>
-                            </div>
-                        </div>
-                        <div class="cp-timeline-item card-specular-glow">
-                            <div class="cp-icon-ring">3</div>
-                            <div class="cp-item-content">
-                                <h4>Checkpoint 3 · Theoretical Hypotheses</h4>
-                                <p>Validate proposed hypotheses before methodology, analysis planning, and full paper assembly begin.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-
-        <!-- ==========================================================================
-             6. TWO WAYS TO RESEARCH (APPLE TIER COMPARISON)
-             ========================================================================== -->
-        <section class="section" id="modes">
-            <div class="container">
-                <div class="section-header apple-scroll-reveal">
-                    <span class="section-eyebrow">Flexible Research Modes</span>
-                    <h2 class="section-title">Two Ways to Research</h2>
-                    <p class="section-desc">
-                        Choose between fast, cited web reports or comprehensive academic literature review synthesis.
-                    </p>
-                </div>
-
-                <div class="modes-comparison-grid">
-                    <!-- DeepSearch Mode Card -->
-                    <div class="mode-card card-specular-glow apple-scroll-reveal delay-1">
-                        <div class="mode-header">
-                            <div class="mode-title">DeepSearch</div>
-                            <div class="mode-tagline">Fast web research &amp; cited synthesis</div>
-                        </div>
-                        <ul class="mode-specs-list">
-                            <li class="mode-spec-item">
-                                <i data-lucide="clock" style="width: 16px; height: 16px;"></i>
-                                <span><strong>Runtime:</strong> ~5–10 minutes</span>
-                            </li>
-                            <li class="mode-spec-item">
-                                <i data-lucide="users" style="width: 16px; height: 16px;"></i>
-                                <span><strong>Agents:</strong> 5 parallel search agents</span>
-                            </li>
-                            <li class="mode-spec-item">
-                                <i data-lucide="globe" style="width: 16px; height: 16px;"></i>
-                                <span><strong>Sources:</strong> Tavily Web Search (News, Finance, Academic)</span>
-                            </li>
-                            <li class="mode-spec-item">
-                                <i data-lucide="shield" style="width: 16px; height: 16px;"></i>
-                                <span><strong>Checkpoints:</strong> 1 (Plan approval &amp; revisions)</span>
-                            </li>
-                            <li class="mode-spec-item">
-                                <i data-lucide="file-text" style="width: 16px; height: 16px;"></i>
-                                <span><strong>Output:</strong> Cited Markdown report with web sources</span>
-                            </li>
-                        </ul>
-                        <a href="/app?mode=deepsearch" class="btn-secondary" style="font-size: 1rem; font-weight: 500;">
-                            <span>Try DeepSearch</span>
-                            <span style="margin-left: 2px;">›</span>
-                        </a>
-                    </div>
-
-                    <!-- Research Mode Card -->
-                    <div class="mode-card featured card-specular-glow apple-scroll-reveal delay-2">
-                        <span class="mode-badge-top">Recommended for Academics</span>
-                        <div class="mode-header">
-                            <div class="mode-title">Research Mode</div>
-                            <div class="mode-tagline">Full academic paper &amp; literature synthesis</div>
-                        </div>
-                        <ul class="mode-specs-list">
-                            <li class="mode-spec-item">
-                                <i data-lucide="clock" style="width: 16px; height: 16px;"></i>
-                                <span><strong>Runtime:</strong> ~15–25 minutes</span>
-                            </li>
-                            <li class="mode-spec-item">
-                                <i data-lucide="cpu" style="width: 16px; height: 16px;"></i>
-                                <span><strong>Agents:</strong> 24-agent research pipeline</span>
-                            </li>
-                            <li class="mode-spec-item">
-                                <i data-lucide="book-open" style="width: 16px; height: 16px;"></i>
-                                <span><strong>Sources:</strong> OpenAlex, Semantic Scholar, arXiv, Europe PMC, CORE</span>
-                            </li>
-                            <li class="mode-spec-item">
-                                <i data-lucide="user-check" style="width: 16px; height: 16px;"></i>
-                                <span><strong>Checkpoints:</strong> 3 Human-in-the-Loop decision gates</span>
-                            </li>
-                            <li class="mode-spec-item">
-                                <i data-lucide="file-check" style="width: 16px; height: 16px;"></i>
-                                <span><strong>Output:</strong> 14-section paper, PRISMA-style flow, Matrix, PDF/DOCX</span>
-                            </li>
-                        </ul>
-                        <a href="/app?mode=researchmode" class="btn-primary btn-lg" style="width: 100%; justify-content: center;">
-                            <span>Start Research Mode</span>
-                            <i data-lucide="arrow-right" style="width: 15px; height: 15px;"></i>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-
-        <!-- ==========================================================================
-             7. TECHNICAL ARCHITECTURE & BYOK
-             ========================================================================== -->
-        <section class="section section-alt" id="architecture">
-            <div class="container">
-                <div class="section-header apple-scroll-reveal">
-                    <span class="section-eyebrow">Technical Architecture</span>
-                    <h2 class="section-title">Built as a real research system.</h2>
-                    <p class="section-desc">
-                        Engineered for reproducibility, state persistence, and open self-hosting.
-                    </p>
-                </div>
-
-                <div class="tech-grid apple-scroll-reveal delay-1">
-                    <div class="tech-item-card card-specular-glow">
-                        <div class="tech-item-title">LangGraph State Machine</div>
-                        <div class="tech-item-desc">Resumable DAG execution with native <code style="font-family: var(--font-mono); font-size: 0.76rem;">interrupt()</code> HITL checkpoints.</div>
-                    </div>
-                    <div class="tech-item-card card-specular-glow">
-                        <div class="tech-item-title">Global Scholarly APIs</div>
-                        <div class="tech-item-desc">Direct querying against OpenAlex, Semantic Scholar, arXiv, Unpaywall, and Europe PMC.</div>
-                    </div>
-                    <div class="tech-item-card card-specular-glow">
-                        <div class="tech-item-title">FastAPI + SSE Streaming</div>
-                        <div class="tech-item-desc">Asynchronous backend streaming live token-by-token progress and agent states.</div>
-                    </div>
-                    <div class="tech-item-card card-specular-glow">
-                        <div class="tech-item-title">SQLite Checkpointing</div>
-                        <div class="tech-item-desc">Persistent graph state surviving backend restarts with zero progress loss.</div>
-                    </div>
-                    <div class="tech-item-card card-specular-glow">
-                        <div class="tech-item-title">Self-Hostable &amp; BYOK</div>
-                        <div class="tech-item-desc">Bring your own API keys (DeepSeek, OpenAI, Ollama, vLLM) kept in the backend's <code style="font-family: var(--font-mono); font-size: 0.76rem;">.env</code> (local if you self-host).</div>
-                    </div>
-                    <div class="tech-item-card card-specular-glow">
-                        <div class="tech-item-title">PRISMA-Style Flow</div>
-                        <div class="tech-item-desc">Generated directly from pipeline identification, deduplication, screening, and inclusion counts.</div>
-                    </div>
-                </div>
-
-                <div class="github-open-source-banner card-specular-glow apple-scroll-reveal delay-2">
-                    <div class="gh-banner-left">
-                        <h3>Open Source &amp; Community Driven</h3>
-                        <p>CiteProof is open source under the permissive MIT License, with two MCP files under Apache-2.0 (see the README for details). Inspect the graph code, extend agents, or self-host.</p>
-                    </div>
-                    <a href="https://github.com/Aryan-Pardeshi/CiteProof-AI-MCP" target="_blank" rel="noopener noreferrer" class="btn-primary btn-lg">
-                        <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
-                        <span>View Source on GitHub</span>
-                    </a>
-                </div>
-            </div>
-        </section>
-
-
-        <!-- ==========================================================================
-             8. FINAL CONVERSION CTA
-             ========================================================================== -->
-        <section class="cta-section">
-            <div class="container">
-                <div class="cta-box-card card-specular-glow apple-scroll-reveal">
-                    <h2 class="cta-title">Start your next research project with CiteProof.</h2>
-                    <p class="cta-subtitle">
-                        Turn your research question into a structured literature review whose cited claims link back to their sources, with human review at every major step.
-                    </p>
-                    <div class="hero-btn-group" style="margin-bottom: 0;">
-                        <a href="/app" class="btn-primary btn-lg">
-                            <span>Start a Research Run</span>
-                            <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
-                        </a>
-                        <a href="https://github.com/Aryan-Pardeshi/CiteProof-AI-MCP" target="_blank" rel="noopener noreferrer" class="btn-secondary btn-lg">
-                            <span>View on GitHub</span>
-                            <span style="margin-left: 2px;">›</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-    </main>
+  <main id="main-content" role="main">
 
     <!-- ==========================================================================
-         APPLE FOOTER DIRECTORY
+         HERO SECTION (Living Mesh Gradient + Floating Chips + Tilt/Wash)
+         One h1, one-sentence subtitle, two pills, blurred mesh, small mono line
          ========================================================================== -->
-    <footer class="landing-footer" role="contentinfo">
-        <div class="container">
-            <div class="footer-grid">
-                <div class="footer-brand-col">
-                    <div class="logo-brand">
-                        <img src="/assets/logo.png" alt="CiteProof Logo" class="brand-logo-img footer-logo-img" width="32" height="32">
-                        <div class="brand-text-col">
-                            <span class="brand-name">CiteProof</span>
-                            <span class="brand-sub">Lab</span>
-                        </div>
-                    </div>
-                    <p>
-                        An autonomous, multi-agent AI research assistant with human-in-the-loop checkpoints, PRISMA-style study selection, and literature synthesis across global academic databases.
-                    </p>
-                    <div class="footer-tech-tags">
-                        <span class="f-tag">LangGraph</span>
-                        <span class="f-tag">FastAPI</span>
-                        <span class="f-tag">OpenAlex</span>
-                        <span class="f-tag">Semantic Scholar</span>
-                        <span class="f-tag">arXiv</span>
-                    </div>
-                </div>
+    <section class="hero-section" id="hero" data-wash="blue">
+      <a class="hero-gh" href="https://github.com/Aryan-Pardeshi/CiteProof-AI-MCP" target="_blank" rel="noopener noreferrer" aria-label="CiteProof on GitHub: star the repository">
+        <svg class="hero-gh-logo" width="16" height="16" aria-hidden="true"><use href="#logo-github"></use></svg>
+        <span class="hero-gh-star"><span id="gh-star-count">Star</span></span>
+      </a>
+      <div class="hero-gradient-mesh" aria-hidden="true">
+        <div class="mesh-blob mesh-blob-1"></div>
+        <div class="mesh-blob mesh-blob-2"></div>
+        <div class="mesh-blob mesh-blob-3"></div>
+      </div>
 
-                <div class="footer-col">
-                    <h3 class="footer-heading">Capabilities</h3>
-                    <ul class="footer-links">
-                        <li><a href="/app?mode=deepsearch">DeepSearch Mode</a></li>
-                        <li><a href="/app?mode=researchmode">Research Mode</a></li>
-                        <li><a href="#hitl">Human-in-the-Loop Review</a></li>
-                        <li><a href="#example-paper">PRISMA &amp; Evidence Matrix</a></li>
-                        <li><a href="/app">PDF &amp; Word Export</a></li>
-                    </ul>
-                </div>
+      <div class="cp-container hero-container">
+        <!-- Floating hero chips (decorative, hidden on small screens) -->
+        <div class="hero-floating-chips" aria-hidden="true">
+          <div class="floating-hero-card floating-card-1">
+            <div class="fcard-header"><span class="fcard-title">PRISMA flow</span></div>
+            <div class="fcard-reveal"><div class="fcard-value">892 found, 802 screened, 40 included</div></div>
+          </div>
 
-                <div class="footer-col">
-                    <h3 class="footer-heading">Academic Indexes</h3>
-                    <ul class="footer-links">
-                        <li><a href="https://openalex.org" target="_blank" rel="noopener noreferrer">OpenAlex Catalog</a></li>
-                        <li><a href="https://www.semanticscholar.org" target="_blank" rel="noopener noreferrer">Semantic Scholar</a></li>
-                        <li><a href="https://arxiv.org" target="_blank" rel="noopener noreferrer">arXiv Preprints</a></li>
-                        <li><a href="https://unpaywall.org" target="_blank" rel="noopener noreferrer">Unpaywall Open Access</a></li>
-                    </ul>
-                </div>
+          <div class="floating-hero-card floating-card-2">
+            <div class="fcard-header"><span class="fcard-title">DOI check</span></div>
+            <div class="fcard-reveal"><div class="fcard-value">Resolves against Crossref and DataCite</div></div>
+          </div>
 
-                <div class="footer-col">
-                    <h3 class="footer-heading">Project</h3>
-                    <ul class="footer-links">
-                        <li><a href="https://github.com/Aryan-Pardeshi" target="_blank" rel="noopener noreferrer">GitHub · Aryan Pardeshi</a></li>
-                        <li><a href="https://github.com/Aryan-Pardeshi/CiteProof-AI-MCP" target="_blank" rel="noopener noreferrer">CiteProof Repository</a></li>
-                        <li><span>MIT License (Open Source)</span></li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="footer-bottom-bar">
-                <div>&copy; 2026 CiteProof. Released under MIT License.</div>
-                <div>Self-hostable architecture · Configurable local API keys</div>
-            </div>
+          <div class="floating-hero-card floating-card-3">
+            <div class="fcard-header"><span class="fcard-title">Claim support</span></div>
+            <div class="fcard-reveal"><div class="fcard-value">Checked by a model against source text</div></div>
+          </div>
         </div>
-    </footer>
 
-    <!-- Landing Page Logic -->
-    <script src="landing.js?v=3.8.1"></script>
+        <div class="hero-content">
+          <h1 class="hero-title">
+            <span class="sr-only">Turn a research question into evidence-grounded literature reviews.</span>
+            <span class="hero-title-visible" aria-hidden="true">
+              <span class="hero-title-line">Turn a research question into</span>
+              <span class="hero-rotator">
+                <span class="hero-rotator-word" data-state="active">evidence-grounded</span>
+                <span class="hero-rotator-word" data-state="after">citation-checked</span>
+                <span class="hero-rotator-word" data-state="after">PRISMA-tracked</span>
+                <span class="hero-rotator-word" data-state="after">human-reviewed</span>
+              </span>
+              <span class="hero-title-line">literature reviews.</span>
+            </span>
+          </h1>
+          <p class="hero-subtitle">Search academic literature, extract evidence, check citations, and generate a structured research paper.</p>
+
+          <div class="hero-btn-group">
+            <a href="#example" class="btn btn-outline btn-lg">
+              <span>See an example</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
+            </a>
+            <a href="/app" class="btn btn-default btn-lg btn-hero-cta">
+              <span>Start researching</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </a>
+            <a href="#mcp" class="btn btn-white btn-lg">
+              <svg class="btn-logo" width="18" height="18" aria-hidden="true"><use href="#logo-mcp"></use></svg>
+              <span>CiteProof MCP for Claude Science</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </a>
+  
+
+          </div>
+        <div class="sources-strip-container">
+        <div class="sources-strip-header">
+          <span class="marquee-label">Searches across</span>
+        </div>
+
+        <ul class="sources-list" aria-label="Supported academic data sources">
+          <li class="source-item">
+            <a class="source-tile" href="https://openalex.org" target="_blank" rel="noopener noreferrer" aria-label="OpenAlex (opens in a new tab)" title="OpenAlex">
+              <img src="/assets/openalex.png" alt="OpenAlex" height="24" width="80" loading="eager" fetchpriority="high" decoding="async" class="source-logo">
+            </a>
+          </li>
+          <li class="source-item">
+            <a class="source-tile" href="https://www.semanticscholar.org" target="_blank" rel="noopener noreferrer" aria-label="Semantic Scholar (opens in a new tab)" title="Semantic Scholar">
+              <img src="/assets/semantic-scholar.png" alt="Semantic Scholar" height="24" width="110" loading="eager" fetchpriority="high" decoding="async" class="source-logo">
+            </a>
+          </li>
+          <li class="source-item">
+            <a class="source-tile" href="https://arxiv.org" target="_blank" rel="noopener noreferrer" aria-label="arXiv (opens in a new tab)" title="arXiv">
+              <img src="/assets/arxiv.png" alt="arXiv" height="24" width="60" loading="eager" fetchpriority="high" decoding="async" class="source-logo">
+            </a>
+          </li>
+          <li class="source-item">
+            <a class="source-tile" href="https://www.crossref.org" target="_blank" rel="noopener noreferrer" aria-label="Crossref (opens in a new tab)" title="Crossref">
+              <img src="/assets/crossref.svg" alt="Crossref" height="24" width="85" loading="eager" fetchpriority="high" decoding="async" class="source-logo">
+            </a>
+          </li>
+          <li class="source-item">
+            <a class="source-tile" href="https://datacite.org" target="_blank" rel="noopener noreferrer" aria-label="DataCite (opens in a new tab)" title="DataCite">
+              <img src="/assets/datacite.png" alt="DataCite" height="24" width="75" loading="eager" fetchpriority="high" decoding="async" class="source-logo">
+            </a>
+          </li>
+          <li class="source-item">
+            <a class="source-tile" href="https://europepmc.org" target="_blank" rel="noopener noreferrer" aria-label="Europe PMC (opens in a new tab)" title="Europe PMC">
+              <img src="/assets/europe-pmc.png" alt="Europe PMC" height="24" width="85" loading="eager" fetchpriority="high" decoding="async" class="source-logo">
+            </a>
+          </li>
+          <li class="source-item">
+            <a class="source-tile" href="https://pubmed.ncbi.nlm.nih.gov" target="_blank" rel="noopener noreferrer" aria-label="PubMed (opens in a new tab)" title="PubMed">
+              <img src="/assets/pubmed.svg" alt="PubMed" height="24" width="75" loading="eager" fetchpriority="high" decoding="async" class="source-logo">
+            </a>
+          </li>
+          <li class="source-item">
+            <a class="source-tile" href="https://doaj.org" target="_blank" rel="noopener noreferrer" aria-label="DOAJ (opens in a new tab)" title="DOAJ">
+              <img src="/assets/doaj.svg" alt="DOAJ" height="24" width="65" loading="eager" fetchpriority="high" decoding="async" class="source-logo">
+            </a>
+          </li>
+          <li class="source-item">
+            <a class="source-tile" href="https://unpaywall.org" target="_blank" rel="noopener noreferrer" aria-label="Unpaywall (opens in a new tab)" title="Unpaywall">
+              <span class="source-tile-text">Unpaywall</span>
+            </a>
+          </li>
+        </ul>
+
+      </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================================================
+         REAL EXAMPLE OUTPUT (Dark Showcase Band with Tabs)
+         Three tabs from examples.json, question, 3 counts, PRISMA, matrix, preview
+         ========================================================================== -->
+    <section class="showcase-band" id="example" data-wash="purple">
+      <div class="cp-container">
+        <div class="section-header scroll-reveal">
+          
+          <h2 class="section-title">Structured literature synthesis, from query to paper.</h2>
+          <p class="section-desc">Inspect real research runs with PRISMA study flow, evidence extraction, and drafted review sections.</p>
+        </div>
+
+
+        <div class="tabs example-tabs">
+          <div class="tabs-list example-selector-row scroll-reveal" role="tablist" aria-label="Example research runs">
+            <button class="tabs-trigger example-select-btn" data-state="active" data-example-id="hallucination" role="tab" aria-selected="true" id="tab-ex-hallucination" tabindex="0">
+              <span class="example-select-title">AI hallucination mitigation</span>
+              <span class="example-select-sub">View completed research</span>
+            </button>
+            <button class="tabs-trigger example-select-btn" data-state="inactive" data-example-id="rag-vs-finetuning" role="tab" aria-selected="false" id="tab-ex-rag" tabindex="-1">
+              <span class="example-select-title">RAG vs fine-tuning</span>
+              <span class="example-select-sub">View completed research</span>
+            </button>
+            <button class="tabs-trigger example-select-btn" data-state="inactive" data-example-id="multi-agent-healthcare" role="tab" aria-selected="false" id="tab-ex-healthcare" tabindex="-1">
+              <span class="example-select-title">Multi-agent systems in healthcare</span>
+              <span class="example-select-sub">View completed research</span>
+            </button>
+  
+
+
+          </div>
+        </div>
+        <div class="example-question-box scroll-reveal">
+          <div class="example-question-left">
+            <span class="example-label">Input research question</span>
+            <p class="example-question-text" id="example-question-text">"What techniques reduce hallucinations in large language models?"</p>
+  
+          </div>
+          <div class="example-counts-row">
+            <div class="badge badge-secondary metric-chip"><strong class="metric-num" id="metric-discovered">143</strong> discovered</div>
+            <div class="badge badge-secondary metric-chip"><strong class="metric-num" id="metric-screened">87</strong> screened</div>
+            <div class="badge badge-secondary metric-chip metric-chip-highlight"><strong class="metric-num" id="metric-included">31</strong> included</div>
+  
+
+
+          </div>
+        </div>
+        <div class="output-window scroll-reveal" data-expanded="false">
+          <div class="output-window-topbar">
+            <div class="window-dots" aria-hidden="true">
+              <span class="win-dot"></span>
+              <span class="win-dot"></span>
+              <span class="win-dot"></span>
+    
+            </div>
+            <div class="tabs-list window-subtabs" role="tablist" aria-label="Output views">
+              <button class="tabs-trigger window-subtab-btn" data-state="active" data-tab="paper" role="tab" aria-selected="true" id="subtab-paper" aria-controls="tab-pane-paper" tabindex="0">Generated review</button>
+              <button class="tabs-trigger window-subtab-btn" data-state="inactive" data-tab="prisma" role="tab" aria-selected="false" id="subtab-prisma" aria-controls="tab-pane-prisma" tabindex="-1">PRISMA study flow</button>
+              <button class="tabs-trigger window-subtab-btn" data-state="inactive" data-tab="matrix" role="tab" aria-selected="false" id="subtab-matrix" aria-controls="tab-pane-matrix" tabindex="-1">Evidence table</button>
+    
+            </div>
+          </div>
+          <div class="output-window-body" id="output-window-body">
+            <!-- Tab 1: Generated Review -->
+            <div class="tabs-content window-tab-pane" data-state="active" id="tab-pane-paper" role="tabpanel" aria-labelledby="subtab-paper" tabindex="0">
+              <div class="paper-preview-card">
+                <h3 class="paper-mock-title" id="paper-mock-title">Mitigating Hallucinations in Large Language Models: A Systematic Literature Review</h3>
+                <p class="paper-mock-meta" id="paper-mock-meta">CiteProof Synthesis • 31 Included Studies • Indexed via Crossref, PubMed, OpenAlex, arXiv</p>
+                <div class="paper-mock-abstract" id="paper-mock-abstract">
+                  <span class="paper-abstract-label">Abstract:</span>
+                  <span id="paper-mock-abstract-text">Hallucination remains a critical bottleneck in deploying large language models for high-stakes decision making. This systematic literature review synthesizes empirical studies spanning retrieval-augmented generation, fine-grained verification, decoding-time constraints, and chain-of-thought grounding.</span>
+                </div>
+
+                <div class="paper-mock-body">
+                  <span class="paper-body-label">Draft excerpt:</span>
+                  <p id="paper-mock-body-text">Recent empirical analyses categorize model unfaithfulness into intrinsic contradictions and extrinsic fabrications. Retrieval-augmented architectures significantly reduce factual errors by grounding generation on indexed document corpora...</p>
+                </div>
+
+                <div class="paper-mock-citations">
+                  <span class="paper-citations-label">Key citations</span>
+                  <ul class="paper-citations-list" id="paper-mock-citations-list">
+                    <li>Ji, Z. et al. (2023). Survey of Hallucination in Natural Language Generation.</li>
+                    <li>Lewis, P. et al. (2020). Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab 2: PRISMA Diagram -->
+            <div class="tabs-content window-tab-pane" data-state="inactive" id="tab-pane-prisma" role="tabpanel" aria-labelledby="subtab-prisma" tabindex="0">
+              <div class="prisma-diagram-container" id="prisma-diagram-preview">
+                <div class="prisma-step-row">
+                  <div class="prisma-box">
+                    <div class="prisma-box-title">1. Identification</div>
+                    <div class="prisma-box-stat">143 Records Discovered</div>
+                    <div class="prisma-box-sub">OpenAlex (52) · Crossref (38) · PubMed (25) · arXiv (28)</div>
+                  </div>
+                  <div class="prisma-box prisma-box-excluded">
+                    <div class="prisma-box-title">Deduplication</div>
+                    <div class="prisma-box-stat">56 Excluded</div>
+                    <div class="prisma-box-sub">Identical DOIs &amp; normalized title matches</div>
+                  </div>
+                </div>
+                <div class="prisma-step-row">
+                  <div class="prisma-box">
+                    <div class="prisma-box-title">2. Screening</div>
+                    <div class="prisma-box-stat">87 Records Screened</div>
+                    <div class="prisma-box-sub">Abstract relevance scored against research scope</div>
+                  </div>
+                  <div class="prisma-box prisma-box-excluded">
+                    <div class="prisma-box-title">Irrelevant</div>
+                    <div class="prisma-box-stat">56 Excluded</div>
+                    <div class="prisma-box-sub">Score below relevance threshold against criteria</div>
+                  </div>
+                </div>
+                <div class="prisma-step-row">
+                  <div class="prisma-box">
+                    <div class="prisma-box-title">3. Included Corpus</div>
+                    <div class="prisma-box-stat">31 Studies Included</div>
+                    <div class="prisma-box-sub">Full text resolved for final synthesis &amp; matrix</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab 3: Evidence Matrix -->
+            <div class="tabs-content window-tab-pane" data-state="inactive" id="tab-pane-matrix" role="tabpanel" aria-labelledby="subtab-matrix" tabindex="0">
+              <div class="table-scroll-wrap">
+                <table class="evidence-matrix-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Study &amp; Year</th>
+                      <th scope="col">Focus</th>
+                      <th scope="col">Methodology</th>
+                      <th scope="col">Key Empirical Finding</th>
+                      <th scope="col">Evidence Level</th>
+                    </tr>
+                  </thead>
+                  <tbody id="evidence-table-body">
+                    <tr>
+                      <td><strong>Ji et al. (2023)</strong></td>
+                      <td>Taxonomy &amp; Evaluation</td>
+                      <td>Comprehensive Survey</td>
+                      <td>Establishes intrinsic vs. extrinsic hallucination categorization.</td>
+                      <td><span class="evidence-tag">High (Foundational)</span></td>
+                    </tr>
+                    <tr>
+                      <td><strong>Lewis et al. (2020)</strong></td>
+                      <td>Retrieval Grounding</td>
+                      <td>RAG Architecture</td>
+                      <td>Dense retrieval conditioning cuts factual hallucinations by ~68%.</td>
+                      <td><span class="evidence-tag">High (Pivotal)</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+      
+    
+  
+
+
+              </div>
+            </div>
+          </div>
+          <div class="output-expand-wrap">
+            <button type="button" class="output-expand" id="output-expand" aria-expanded="false" aria-controls="output-window-body">
+              <span class="output-expand-label">Expand output</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="showcase-cta-bar scroll-reveal">
+          <a href="/app?mode=researchmode&amp;q=What%20techniques%20mitigate%20hallucinations%20in%20large%20language%20models%3F" class="btn btn-default btn-lg" id="run-example-btn">
+            <span>Run this research yourself</span>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="8" x2="13" y2="8"></line><polyline points="9 4 13 8 9 12"></polyline></svg>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <div class="separator" role="separator" aria-orientation="horizontal"></div>
+
+    <!-- ==========================================================================
+         WORKS INSIDE CLAUDE SCIENCE (MCP)
+         Checklist and honesty note on the left, three-node diagram on the right
+         ========================================================================== -->
+    <section class="section mcp-section" id="mcp" data-wash="blue">
+      <div class="cp-container">
+        <div class="mcp-layout">
+          <div class="mcp-text scroll-reveal">
+            <div class="mcp-logos" aria-hidden="true"><svg class="mcp-logo-claude" width="30" height="30"><use href="#logo-claude"></use></svg><span class="mcp-logos-plus">+</span><svg class="mcp-logo-mcp" width="30" height="30"><use href="#logo-mcp"></use></svg></div>
+            <h2 class="section-title">Works inside Claude Science</h2>
+            <p class="mcp-subtitle">CiteProof also ships as a local MCP server. Your AI agent does the thinking; CiteProof keeps the record straight.</p>
+
+            <ul class="mcp-feature-list">
+              <li class="mcp-feature">
+                <svg class="mcp-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Stores every review decision in a per-review local database</span>
+              </li>
+              <li class="mcp-feature">
+                <svg class="mcp-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Counts PRISMA numbers and checks that they add up</span>
+              </li>
+              <li class="mcp-feature">
+                <svg class="mcp-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Checks quotes against the source text you supply</span>
+              </li>
+              <li class="mcp-feature">
+                <svg class="mcp-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Records screening decisions and computes reviewer agreement (Cohen's kappa)</span>
+              </li>
+              <li class="mcp-feature">
+                <svg class="mcp-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Finds duplicate records and clusters them</span>
+              </li>
+              <li class="mcp-feature">
+                <svg class="mcp-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Checks DOIs and flags retractions through Crossref</span>
+              </li>
+              <li class="mcp-feature">
+                <svg class="mcp-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Exports an audit bundle you can keep with the review</span>
+              </li>
+            </ul>
+
+            <p class="mcp-honesty">The server contains no language model. The agent makes every judgement; CiteProof stores it and checks it where it can.</p>
+
+            <div class="mcp-actions">
+              <a href="https://github.com/Aryan-Pardeshi/CiteProof-AI-MCP" target="_blank" rel="noopener noreferrer" class="btn btn-white btn-lg"><svg class="btn-logo" width="18" height="18" aria-hidden="true"><use href="#logo-github"></use></svg><span>CiteProof MCP on GitHub</span></a>
+              <a href="https://github.com/Aryan-Pardeshi/CiteProof-AI-MCP/blob/main/MCP/docs/CLAUDE_SCIENCE.md" target="_blank" rel="noopener noreferrer" class="mcp-text-link">How to connect</a>
+            </div>
+          </div>
+
+          <div class="mcp-diagram-panel mcp-card scroll-reveal">
+            <svg class="mcp-diagram mcp-diagram-desktop" viewBox="0 0 620 752" role="img" aria-label="Architecture diagram. On your computer, an AI agent such as Claude Science calls the citeproof-mcp server over stdio using JSON-RPC. The server has 24 tools in 7 groups and runs deterministic checks. It reads and writes a SQLite database with one file per review, and exports an audit bundle and PRISMA outputs. For DOI checks it calls Crossref and doi.org over HTTPS.">
+<defs>
+<marker id="mcp-arrowhead" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="mcp-arrowhead" d="M0 0 L10 5 L0 10 z"></path></marker>
+<filter id="mcp-soft-blur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="30"></feGaussianBlur></filter>
+</defs>
+<ellipse class="mcp-glow" cx="310" cy="340" rx="250" ry="170" filter="url(#mcp-soft-blur)"></ellipse>
+<rect class="mcpd-boundary" x="8" y="8" width="604" height="636" rx="24"></rect>
+<text class="mcpd-mono" x="28" y="34">YOUR COMPUTER</text>
+<rect class="mcpd-box" x="28" y="50" width="564" height="124" rx="16"></rect>
+<use href="#logo-claude" class="mcp-claude-mark" x="48" y="70" width="28" height="28"></use>
+<text class="mcpd-title" x="88" y="90">Claude Science</text>
+<text class="mcpd-sub" x="88" y="110">or any MCP client</text>
+<text class="mcpd-mono mcpd-mono-s" x="48" y="150">LANGUAGE MODEL LIVES HERE</text>
+<text class="mcpd-mono" x="340" y="74">THE AGENT</text>
+<circle class="mcpd-dot" cx="344" cy="94" r="3"></circle>
+<text class="mcpd-item" x="358" y="98">Searches and reads papers</text>
+<circle class="mcpd-dot" cx="344" cy="116" r="3"></circle>
+<text class="mcpd-item" x="358" y="120">Makes every judgement</text>
+<circle class="mcpd-dot" cx="344" cy="138" r="3"></circle>
+<text class="mcpd-item" x="358" y="142">Sends the quote and its source text</text>
+<line class="mcp-arrow" x1="110" y1="176" x2="110" y2="220" marker-start="url(#mcp-arrowhead)" marker-end="url(#mcp-arrowhead)"></line>
+<line class="mcp-flow mcp-flow-short" x1="110" y1="176" x2="110" y2="220"></line>
+<use href="#logo-mcp" class="mcp-arrow-logo" x="128" y="187" width="20" height="20"></use>
+<text class="mcpd-mono mcpd-mono-s" x="158" y="202">tools/call · stdio · JSON-RPC 2.0</text>
+<rect class="mcpd-box mcpd-box-main" x="28" y="222" width="564" height="252" rx="16"></rect>
+<image href="/assets/logo.png" x="48" y="240" width="30" height="30" preserveAspectRatio="xMidYMid meet"></image>
+<text class="mcpd-title" x="90" y="260">citeproof-mcp</text>
+<text class="mcpd-sub" x="90" y="280">local server · stdio · Python 3.12+</text>
+<rect class="mcpd-chip mcpd-chip-blue" x="424" y="242" width="148" height="28" rx="14"></rect>
+<text class="mcpd-chip-text mcpd-chip-text-blue" x="439" y="261">No language model</text>
+<text class="mcpd-mono" x="48" y="318">24 TOOLS IN 7 GROUPS</text>
+<rect class="mcpd-chip" x="48" y="330" width="124" height="28" rx="14"></rect>
+<text class="mcpd-chip-text" x="62" y="349">Set up · 4</text>
+<rect class="mcpd-chip" x="184" y="330" width="124" height="28" rx="14"></rect>
+<text class="mcpd-chip-text" x="198" y="349">Searches · 3</text>
+<rect class="mcpd-chip" x="320" y="330" width="124" height="28" rx="14"></rect>
+<text class="mcpd-chip-text" x="334" y="349">Screening · 4</text>
+<rect class="mcpd-chip" x="456" y="330" width="124" height="28" rx="14"></rect>
+<text class="mcpd-chip-text" x="470" y="349">PRISMA · 3</text>
+<rect class="mcpd-chip" x="48" y="366" width="124" height="28" rx="14"></rect>
+<text class="mcpd-chip-text" x="62" y="385">Evidence · 6</text>
+<rect class="mcpd-chip" x="184" y="366" width="124" height="28" rx="14"></rect>
+<text class="mcpd-chip-text" x="198" y="385">Citations · 3</text>
+<rect class="mcpd-chip" x="320" y="366" width="124" height="28" rx="14"></rect>
+<text class="mcpd-chip-text" x="334" y="385">Export · 1</text>
+<text class="mcpd-mono" x="48" y="420">DETERMINISTIC CHECKS</text>
+<circle class="mcpd-dot" cx="51" cy="440" r="3"></circle>
+<text class="mcpd-item" x="62" y="444">Quote found in source</text>
+<circle class="mcpd-dot" cx="231" cy="440" r="3"></circle>
+<text class="mcpd-item" x="242" y="444">Numbers come from quote</text>
+<circle class="mcpd-dot" cx="411" cy="440" r="3"></circle>
+<text class="mcpd-item" x="422" y="444">PRISMA counts add up</text>
+<circle class="mcpd-dot" cx="51" cy="460" r="3"></circle>
+<text class="mcpd-item" x="62" y="464">Cohen's kappa</text>
+<circle class="mcpd-dot" cx="231" cy="460" r="3"></circle>
+<text class="mcpd-item" x="242" y="464">Duplicate clusters</text>
+<circle class="mcpd-dot" cx="411" cy="460" r="3"></circle>
+<text class="mcpd-item" x="422" y="464">RoB 2, ROBINS-I, NOS</text>
+<line class="mcp-arrow" x1="116" y1="476" x2="116" y2="520" marker-start="url(#mcp-arrowhead)" marker-end="url(#mcp-arrowhead)"></line>
+<line class="mcp-flow mcp-flow-short" x1="116" y1="476" x2="116" y2="520"></line>
+<line class="mcp-arrow" x1="310" y1="476" x2="310" y2="520" marker-end="url(#mcp-arrowhead)"></line>
+<line class="mcp-flow mcp-flow-short" x1="310" y1="476" x2="310" y2="520"></line>
+<line class="mcp-arrow" x1="504" y1="476" x2="504" y2="520" marker-end="url(#mcp-arrowhead)"></line>
+<line class="mcp-flow mcp-flow-short" x1="504" y1="476" x2="504" y2="520"></line>
+<rect class="mcpd-box" x="28" y="522" width="176" height="108" rx="14"></rect>
+<g class="mcpd-icon" transform="translate(44,540)"><ellipse cx="12" cy="5" rx="11" ry="4.5"></ellipse><path d="M1 5v14c0 2.5 5 4.5 11 4.5s11-2 11-4.5V5"></path><path d="M1 12c0 2.5 5 4.5 11 4.5s11-2 11-4.5"></path></g>
+<text class="mcpd-title mcpd-title-s" x="80" y="556">Review database</text>
+<text class="mcpd-sub" x="44" y="584">SQLite, WAL mode</text>
+<text class="mcpd-sub" x="44" y="602">one file per review</text>
+<rect class="mcpd-box" x="222" y="522" width="176" height="108" rx="14"></rect>
+<g class="mcpd-icon" transform="translate(240,536)"><path d="M4 2h11l5 5v15H4z"></path><path d="M15 2v5h5"></path><path d="M8 13h8M8 17h8"></path></g>
+<text class="mcpd-title mcpd-title-s" x="274" y="556">Audit bundle</text>
+<text class="mcpd-sub" x="238" y="584">export_bundle</text>
+<text class="mcpd-sub" x="238" y="602">whole trail, one document</text>
+<rect class="mcpd-box" x="416" y="522" width="176" height="108" rx="14"></rect>
+<g class="mcpd-icon" transform="translate(434,536)"><path d="M3 4h18l-7 8v7l-4 2v-9z"></path></g>
+<text class="mcpd-title mcpd-title-s" x="468" y="556">PRISMA outputs</text>
+<text class="mcpd-sub" x="432" y="584">prisma_flow_diagram</text>
+<text class="mcpd-sub" x="432" y="602">prisma_checklist</text>
+<text class="mcpd-mono mcpd-mono-s" x="44" y="622">$CITEPROOF_MCP_HOME</text>
+<text class="mcpd-mono" x="300" y="672">THE INTERNET</text>
+<rect class="mcpd-ext" x="300" y="682" width="292" height="60" rx="14"></rect>
+<text class="mcpd-title mcpd-title-s" x="318" y="706">Crossref and doi.org</text>
+<text class="mcpd-sub" x="318" y="724">DOI and retraction lookups</text>
+<text class="mcpd-mono mcpd-mono-s" x="462" y="724">verify_dois · HTTPS</text>
+<path class="mcp-arrow mcp-arrow-dashed" d="M592 350 H602 V712 H594" marker-end="url(#mcp-arrowhead)"></path>
+</svg>
+            <svg class="mcp-diagram mcp-diagram-mobile" viewBox="0 0 340 1070" role="img" aria-label="Architecture diagram, stacked for phones. On your computer, an AI agent such as Claude Science calls the citeproof-mcp server over stdio using JSON-RPC. The server has 24 tools in 7 groups and runs deterministic checks. It reads and writes a SQLite database with one file per review, and exports an audit bundle and PRISMA outputs. For DOI checks it calls Crossref and doi.org over HTTPS.">
+<rect class="mcpd-boundary" x="3" y="8" width="334" height="944" rx="22"></rect>
+<text class="mcpd-mono" x="22" y="32">YOUR COMPUTER</text>
+<rect class="mcpd-box" x="20" y="46" width="300" height="190" rx="16"></rect>
+<use href="#logo-claude" class="mcp-claude-mark" x="36" y="62" width="26" height="26"></use>
+<text class="mcpd-title mcpd-title-s" x="72" y="80">Claude Science</text>
+<text class="mcpd-sub" x="72" y="98">or any MCP client</text>
+<text class="mcpd-mono" x="36" y="128">THE AGENT</text>
+<circle class="mcpd-dot" cx="40" cy="146" r="3"></circle>
+<text class="mcpd-item" x="52" y="150">Searches and reads papers</text>
+<circle class="mcpd-dot" cx="40" cy="166" r="3"></circle>
+<text class="mcpd-item" x="52" y="170">Makes every judgement</text>
+<circle class="mcpd-dot" cx="40" cy="186" r="3"></circle>
+<text class="mcpd-item" x="52" y="190">Sends the quote and its source text</text>
+<text class="mcpd-mono mcpd-mono-s" x="36" y="220">LANGUAGE MODEL LIVES HERE</text>
+<line class="mcp-arrow" x1="46" y1="238" x2="46" y2="294" marker-start="url(#mcp-arrowhead)" marker-end="url(#mcp-arrowhead)"></line>
+<line class="mcp-flow mcp-flow-short" x1="46" y1="238" x2="46" y2="294"></line>
+<use href="#logo-mcp" class="mcp-arrow-logo" x="64" y="248" width="20" height="20"></use>
+<text class="mcpd-mono mcpd-mono-s" x="92" y="258">tools/call</text>
+<text class="mcpd-mono mcpd-mono-s" x="92" y="274">stdio · JSON-RPC 2.0</text>
+<rect class="mcpd-box mcpd-box-main" x="20" y="296" width="300" height="410" rx="16"></rect>
+<image href="/assets/logo.png" x="36" y="312" width="28" height="28" preserveAspectRatio="xMidYMid meet"></image>
+<text class="mcpd-title mcpd-title-s" x="72" y="330">citeproof-mcp</text>
+<text class="mcpd-sub" x="72" y="348">local server · stdio · Python 3.12+</text>
+<text class="mcpd-mono" x="36" y="384">24 TOOLS IN 7 GROUPS</text>
+<rect class="mcpd-chip" x="36" y="396" width="132" height="28" rx="14"></rect>
+<text class="mcpd-chip-text" x="50" y="415">Set up · 4</text>
+<rect class="mcpd-chip" x="176" y="396" width="132" height="28" rx="14"></rect>
+<text class="mcpd-chip-text" x="190" y="415">Searches · 3</text>
+<rect class="mcpd-chip" x="36" y="430" width="132" height="28" rx="14"></rect>
+<text class="mcpd-chip-text" x="50" y="449">Screening · 4</text>
+<rect class="mcpd-chip" x="176" y="430" width="132" height="28" rx="14"></rect>
+<text class="mcpd-chip-text" x="190" y="449">PRISMA · 3</text>
+<rect class="mcpd-chip" x="36" y="464" width="132" height="28" rx="14"></rect>
+<text class="mcpd-chip-text" x="50" y="483">Evidence · 6</text>
+<rect class="mcpd-chip" x="176" y="464" width="132" height="28" rx="14"></rect>
+<text class="mcpd-chip-text" x="190" y="483">Citations · 3</text>
+<rect class="mcpd-chip" x="36" y="498" width="132" height="28" rx="14"></rect>
+<text class="mcpd-chip-text" x="50" y="517">Export · 1</text>
+<rect class="mcpd-chip mcpd-chip-blue" x="176" y="498" width="132" height="28" rx="14"></rect>
+<text class="mcpd-chip-text mcpd-chip-text-blue" x="190" y="517">No language model</text>
+<text class="mcpd-mono" x="36" y="562">DETERMINISTIC CHECKS</text>
+<circle class="mcpd-dot" cx="40" cy="582" r="3"></circle>
+<text class="mcpd-item" x="52" y="586">Quote found in source</text>
+<circle class="mcpd-dot" cx="40" cy="602" r="3"></circle>
+<text class="mcpd-item" x="52" y="606">Numbers come from quote</text>
+<circle class="mcpd-dot" cx="40" cy="622" r="3"></circle>
+<text class="mcpd-item" x="52" y="626">PRISMA counts add up</text>
+<circle class="mcpd-dot" cx="40" cy="642" r="3"></circle>
+<text class="mcpd-item" x="52" y="646">Cohen's kappa</text>
+<circle class="mcpd-dot" cx="40" cy="662" r="3"></circle>
+<text class="mcpd-item" x="52" y="666">Duplicate clusters</text>
+<circle class="mcpd-dot" cx="40" cy="682" r="3"></circle>
+<text class="mcpd-item" x="52" y="686">RoB 2, ROBINS-I, NOS</text>
+<path class="mcp-arrow" d="M170 706 V720 H10 V738"></path>
+<rect class="mcpd-box" x="20" y="730" width="300" height="66" rx="14"></rect>
+<g class="mcpd-icon" transform="translate(36,750)"><ellipse cx="12" cy="5" rx="11" ry="4.5"></ellipse><path d="M1 5v14c0 2.5 5 4.5 11 4.5s11-2 11-4.5V5"></path><path d="M1 12c0 2.5 5 4.5 11 4.5s11-2 11-4.5"></path></g>
+<text class="mcpd-title mcpd-title-s" x="74" y="754">Review database</text>
+<text class="mcpd-sub mcpd-sub-s" x="74" y="772">SQLite, WAL mode · one file per review</text>
+<line class="mcp-arrow" x1="10" y1="763" x2="18" y2="763" marker-end="url(#mcp-arrowhead)"></line>
+<rect class="mcpd-box" x="20" y="806" width="300" height="58" rx="14"></rect>
+<g class="mcpd-icon" transform="translate(38,822)"><path d="M4 2h11l5 5v15H4z"></path><path d="M15 2v5h5"></path><path d="M8 13h8M8 17h8"></path></g>
+<text class="mcpd-title mcpd-title-s" x="74" y="830">Audit bundle</text>
+<text class="mcpd-sub mcpd-sub-s" x="74" y="848">export_bundle · one document</text>
+<line class="mcp-arrow" x1="10" y1="835" x2="18" y2="835" marker-end="url(#mcp-arrowhead)"></line>
+<rect class="mcpd-box" x="20" y="874" width="300" height="58" rx="14"></rect>
+<g class="mcpd-icon" transform="translate(38,890)"><path d="M3 4h18l-7 8v7l-4 2v-9z"></path></g>
+<text class="mcpd-title mcpd-title-s" x="74" y="898">PRISMA outputs</text>
+<text class="mcpd-sub mcpd-sub-s" x="74" y="916">prisma_flow_diagram · prisma_checklist</text>
+<line class="mcp-arrow" x1="10" y1="903" x2="18" y2="903" marker-end="url(#mcp-arrowhead)"></line>
+<text class="mcpd-mono mcpd-mono-s" x="36" y="944">$CITEPROOF_MCP_HOME</text>
+<text class="mcpd-mono" x="22" y="982">THE INTERNET</text>
+<rect class="mcpd-ext" x="20" y="992" width="300" height="62" rx="14"></rect>
+<text class="mcpd-title mcpd-title-s" x="38" y="1016">Crossref and doi.org</text>
+<text class="mcpd-sub mcpd-sub-s" x="38" y="1034">DOI and retraction lookups</text>
+<text class="mcpd-mono mcpd-mono-s" x="38" y="1048">verify_dois · HTTPS only</text>
+<path class="mcp-arrow mcp-arrow-dashed" d="M320 520 H328 V1018 H322" marker-end="url(#mcp-arrowhead)"></path>
+</svg>
+          </div>
+        </div>
+
+        <p class="mcp-footnote">Works with Claude Science and other MCP clients. Claude is a trademark of Anthropic; CiteProof is not affiliated with Anthropic.</p>
+      </div>
+    </section>
+
+    <div class="separator" role="separator" aria-orientation="horizontal"></div>
+
+    <!-- ==========================================================================
+         HOW IT WORKS (Four Steps)
+         Search, Screen with PRISMA counts, Extract evidence, Write and check citations
+         ========================================================================== -->
+    <section class="section" id="how-it-works" data-wash="teal">
+      <div class="cp-container">
+        <div class="section-header scroll-reveal">
+          
+          <h2 class="section-title">How it works</h2>
+          <p class="section-desc">A structured four-stage research workflow built for reproducible, citation-grounded literature synthesis.</p>
+        </div>
+
+
+        <div class="steps-grid">
+          <div class="card step-card scroll-reveal">
+            <div class="card-header">
+              <span class="badge badge-secondary step-num-badge">01</span>
+              <h3 class="card-title step-title">Search</h3>
+            </div>
+    
+            <div class="card-content">
+              <p class="card-description step-desc">Query multiple academic indexes—including OpenAlex, Semantic Scholar, and arXiv—simultaneously from a single research question.</p>
+            </div>
+          </div>
+    
+  
+
+          <div class="card step-card scroll-reveal">
+            <div class="card-header">
+              <span class="badge badge-secondary step-num-badge">02</span>
+              <h3 class="card-title step-title">Screen with PRISMA counts</h3>
+            </div>
+    
+            <div class="card-content">
+              <p class="card-description step-desc">Deduplicate papers by DOI and normalized title, then score abstracts against research criteria on a 0–10 relevance scale while tracking identification, deduplication, screening, and inclusion numbers.</p>
+            </div>
+          </div>
+    
+  
+
+          <div class="card step-card scroll-reveal">
+            <div class="card-header">
+              <span class="badge badge-secondary step-num-badge">03</span>
+              <h3 class="card-title step-title">Extract evidence</h3>
+            </div>
+    
+            <div class="card-content">
+              <p class="card-description step-desc">Extract key findings, methodologies, domain frameworks, and research gaps from the screened corpus into a structured evidence table.</p>
+            </div>
+          </div>
+    
+  
+
+          <div class="card step-card scroll-reveal">
+            <div class="card-header">
+              <span class="badge badge-secondary step-num-badge">04</span>
+              <h3 class="card-title step-title">Write and check citations</h3>
+            </div>
+    
+            <div class="card-content">
+              <p class="card-description step-desc">Draft structured review sections with claims evaluated against source text by a model, and unresolved or retracted citations flagged before export.</p>
+            </div>
+          </div>
+        </div>
+    
+  
+
+      </div>
+    </section>
+
+    <div class="separator" role="separator" aria-orientation="horizontal"></div>
+
+    <!-- ==========================================================================
+         EVIDENCE AND CITATIONS
+         DOI and retraction check, claim-support check by a model, evidence table, prose lint
+         ========================================================================== -->
+    <section class="section section-soft" id="evidence" data-wash="blue">
+      <div class="cp-container">
+        <div class="section-header scroll-reveal">
+          
+          <h2 class="section-title">Evidence and citation checks</h2>
+          <p class="section-desc">Honest validation at every step. Model judgements are backed by extracted source passages.</p>
+        </div>
+
+
+        <div class="checks-grid">
+          <div class="card check-card scroll-reveal">
+            <div class="card-header">
+              <div class="check-card-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+      
+              </div>
+              <h3 class="card-title check-card-title">DOI and retraction check</h3>
+            </div>
+    
+            <div class="card-content">
+              <p class="card-description check-card-desc">Resolves identifiers against Crossref and DataCite to confirm paper records exist, identify duplicates, and flag retracted literature before synthesis.</p>
+            </div>
+          </div>
+    
+  
+
+          <div class="card check-card scroll-reveal">
+            <div class="card-header">
+              <div class="check-card-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+      
+              </div>
+              <h3 class="card-title check-card-title">Claim-support check by a model</h3>
+            </div>
+    
+            <div class="card-content">
+              <p class="card-description check-card-desc">Every generated claim is checked by a model against retrieved full-text evidence. Unsupported statements are flagged or rewritten before assembly.</p>
+            </div>
+          </div>
+    
+  
+
+          <div class="card check-card scroll-reveal">
+            <div class="card-header">
+              <div class="check-card-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line></svg>
+      
+              </div>
+              <h3 class="card-title check-card-title">Evidence table</h3>
+            </div>
+    
+            <div class="card-content">
+              <p class="card-description check-card-desc">Assembles a structured matrix tabulating study authors, methodology, empirical findings, and evidence levels for transparent auditability.</p>
+            </div>
+          </div>
+    
+  
+
+          <div class="card check-card scroll-reveal">
+            <div class="card-header">
+              <div class="check-card-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+      
+              </div>
+              <h3 class="card-title check-card-title">Prose lint</h3>
+            </div>
+    
+            <div class="card-content">
+              <p class="card-description check-card-desc">Scans draft sections for ungrounded generalizations, vague quantifiers and process narration before assembling the final document.</p>
+            </div>
+          </div>
+        </div>
+    
+  
+
+      </div>
+    </section>
+
+    <div class="separator" role="separator" aria-orientation="horizontal"></div>
+
+    <!-- ==========================================================================
+         TWO MODES
+         DeepSearch and Research Mode side by side
+         ========================================================================== -->
+    <section class="section" id="modes" data-wash="pink">
+      <div class="cp-container">
+        <div class="section-header scroll-reveal">
+          
+          <h2 class="section-title">Two ways to research</h2>
+          <p class="section-desc">Choose between fast cited web synthesis and comprehensive academic literature reviews.</p>
+        </div>
+
+
+        <div class="modes-grid">
+          <!-- Mode 1: DeepSearch -->
+          <div class="card mode-card scroll-reveal">
+            <div class="card-header mode-card-header">
+              <h3 class="card-title mode-title">DeepSearch</h3>
+              <p class="card-description mode-tagline">Fast web research &amp; cited synthesis</p>
+            </div>
+    
+            <div class="card-content">
+              <ul class="mode-specs">
+                <li class="mode-spec-item">
+                  <span class="mode-spec-label">Runtime</span>
+                  <span class="mode-spec-value">~5–10 minutes</span>
+                </li>
+                <li class="mode-spec-item">
+                  <span class="mode-spec-label">Agents</span>
+                  <span class="mode-spec-value">5 parallel search agents</span>
+                </li>
+                <li class="mode-spec-item">
+                  <span class="mode-spec-label">Sources</span>
+                  <span class="mode-spec-value">Tavily Web Search (News, Finance, Academic)</span>
+                </li>
+                <li class="mode-spec-item">
+                  <span class="mode-spec-label">Checkpoints</span>
+                  <span class="mode-spec-value">1 (Plan approval &amp; revisions)</span>
+                </li>
+                <li class="mode-spec-item">
+                  <span class="mode-spec-label">Output</span>
+                  <span class="mode-spec-value">Cited Markdown report with web sources</span>
+                </li>
+              </ul>
+            </div>
+    
+            <div class="card-footer mode-card-footer">
+              <a href="/app?mode=deepsearch" class="btn btn-secondary mode-btn">Try DeepSearch</a>
+            </div>
+          </div>
+    
+  
+
+          <!-- Mode 2: Research Mode -->
+          <div class="card mode-card mode-card-featured scroll-reveal">
+            <div class="badge badge-default mode-badge">Comprehensive</div>
+            <div class="card-header mode-card-header">
+              <h3 class="card-title mode-title">Research Mode</h3>
+              <p class="card-description mode-tagline">Full academic paper &amp; literature synthesis</p>
+            </div>
+    
+            <div class="card-content">
+              <ul class="mode-specs">
+                <li class="mode-spec-item">
+                  <span class="mode-spec-label">Runtime</span>
+                  <span class="mode-spec-value">~15–25 minutes</span>
+                </li>
+                <li class="mode-spec-item">
+                  <span class="mode-spec-label">Agents</span>
+                  <span class="mode-spec-value">24-agent research pipeline</span>
+                </li>
+                <li class="mode-spec-item">
+                  <span class="mode-spec-label">Sources</span>
+                  <span class="mode-spec-value">OpenAlex, Semantic Scholar, arXiv, Europe PMC, CORE</span>
+                </li>
+                <li class="mode-spec-item">
+                  <span class="mode-spec-label">Checkpoints</span>
+                  <span class="mode-spec-value">3 Human-in-the-Loop decision gates</span>
+                </li>
+                <li class="mode-spec-item">
+                  <span class="mode-spec-label">Output</span>
+                  <span class="mode-spec-value">14-section paper, PRISMA flow, Matrix, PDF/DOCX</span>
+                </li>
+              </ul>
+            </div>
+    
+            <div class="card-footer mode-card-footer">
+              <a href="/app?mode=researchmode" class="btn btn-default mode-btn">Start Research Mode</a>
+            </div>
+          </div>
+        </div>
+    
+  
+
+      </div>
+    </section>
+
+    <div class="separator" role="separator" aria-orientation="horizontal"></div>
+
+    <!-- ==========================================================================
+         HUMAN REVIEW
+         Three decision checkpoints
+         ========================================================================== -->
+    <section class="section section-soft" id="human-review" data-wash="amber">
+      <div class="cp-container">
+        <div class="section-header scroll-reveal">
+          
+          <h2 class="section-title">AI does the heavy research. You make the decisions.</h2>
+          <p class="section-desc">CiteProof pauses at three strategic checkpoints so you can guide the direction. The system never commits to downstream synthesis without your explicit approval.</p>
+        </div>
+
+
+        <div class="checkpoints-grid">
+          <div class="card checkpoint-card scroll-reveal">
+            <div class="card-header">
+              <span class="checkpoint-num" aria-hidden="true">01</span>
+              <h3 class="card-title checkpoint-title">Checkpoint 1 · Scope &amp; Keywords</h3>
+            </div>
+    
+            <div class="card-content">
+              <p class="card-description checkpoint-desc">Approve the research problem statement and search query terms before querying databases.</p>
+            </div>
+          </div>
+    
+  
+
+          <div class="card checkpoint-card scroll-reveal">
+            <div class="card-header">
+              <span class="checkpoint-num" aria-hidden="true">02</span>
+              <h3 class="card-title checkpoint-title">Checkpoint 2 · Literature &amp; Framework</h3>
+            </div>
+    
+            <div class="card-content">
+              <p class="card-description checkpoint-desc">Inspect synthesized findings, identified research gaps, and screened evidence papers.</p>
+            </div>
+          </div>
+    
+  
+
+          <div class="card checkpoint-card scroll-reveal">
+            <div class="card-header">
+              <span class="checkpoint-num" aria-hidden="true">03</span>
+              <h3 class="card-title checkpoint-title">Checkpoint 3 · Theoretical Hypotheses</h3>
+            </div>
+    
+            <div class="card-content">
+              <p class="card-description checkpoint-desc">Validate proposed hypotheses before methodology, analysis planning, and full paper assembly begin.</p>
+            </div>
+          </div>
+        </div>
+    
+  
+
+      </div>
+    </section>
+
+    <div class="separator" role="separator" aria-orientation="horizontal"></div>
+
+    <!-- ==========================================================================
+         FINAL CALL TO ACTION
+         ========================================================================== -->
+    <section class="cta-section" id="cta" data-wash="blue">
+      <div class="cp-container">
+        <div class="card cta-card scroll-reveal">
+          <div class="card-header">
+            <h2 class="card-title cta-title">Start your next research project with CiteProof.</h2>
+          </div>
+  
+          <div class="card-content">
+            <p class="card-description cta-desc">Turn your research question into a structured literature review whose cited claims link back to their sources, with human review at every major step.</p>
+          </div>
+  
+          <div class="card-footer cta-btn-group">
+            <a href="/app" class="btn btn-default btn-lg">Start a research run</a>
+            <a href="https://github.com/Aryan-Pardeshi/CiteProof-AI-MCP" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-lg"><svg class="btn-logo" width="18" height="18" aria-hidden="true"><use href="#logo-github"></use></svg><span>CiteProof on GitHub</span></a>
+          </div>
+        </div>
+  
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==========================================================================
+       10. FOOTER
+       Large-wordmark footer, 4 link columns, Geist type, tokenized colors
+       ========================================================================== -->
+  <footer role="contentinfo" class="cp-footer">
+    <div class="cp-container">
+      <div class="cp-footer-top scroll-reveal">
+        <!-- Left Block -->
+        <div class="cp-footer-left">
+          <h3 class="cp-footer-brand-heading">
+            <a href="/" class="cp-footer-brand" aria-label="CiteProof home">
+              <img src="/assets/logo.png" alt="" width="32" height="32" class="cp-footer-logo">
+              <span class="cp-footer-brand-name">CiteProof</span>
+            </a>
+          </h3>
+          <p class="cp-footer-tagline">Evidence-grounded literature reviews, with a human in the loop.</p>
+          <a href="/app" class="cp-footer-btn">Start a research run</a>
+          <p class="cp-footer-copyright">Copyright 2026 CiteProof. Logos belong to their owners.</p>
+        </div>
+
+
+        <!-- Right Block: Navigation Link Lists -->
+        <div class="cp-footer-right">
+          <div class="cp-footer-grid">
+            <nav class="cp-footer-nav" aria-label="Product">
+              <h3 class="cp-footer-heading">Product</h3>
+              <ul class="cp-footer-links">
+                <li><a href="#example">Example output</a></li>
+                <li><a href="#how-it-works">How it works</a></li>
+                <li><a href="#evidence">Evidence checks</a></li>
+                <li><a href="#modes">Modes</a></li>
+                <li><a href="/app">Open the app</a></li>
+              </ul>
+            </nav>
+
+            <nav class="cp-footer-nav" aria-label="Research">
+              <h3 class="cp-footer-heading">Research</h3>
+              <ul class="cp-footer-links">
+                <li><a href="/app?mode=deepsearch">DeepSearch Mode</a></li>
+                <li><a href="/app?mode=researchmode">Research Mode</a></li>
+                <li><a href="#mcp">Claude Science MCP</a></li>
+                <li><a href="#human-review">Human review gates</a></li>
+              </ul>
+            </nav>
+
+            <nav class="cp-footer-nav" aria-label="Sources">
+              <h3 class="cp-footer-heading">Sources</h3>
+              <ul class="cp-footer-links">
+                <li><a href="https://openalex.org" target="_blank" rel="noopener noreferrer" class="cp-footer-link-logo"><img src="/assets/openalex.png" alt="" width="16" height="16" loading="lazy">OpenAlex</a></li>
+                <li><a href="https://www.semanticscholar.org" target="_blank" rel="noopener noreferrer" class="cp-footer-link-logo"><img src="/assets/semantic-scholar.png" alt="" width="16" height="16" loading="lazy">Semantic Scholar</a></li>
+                <li><a href="https://arxiv.org" target="_blank" rel="noopener noreferrer" class="cp-footer-link-logo"><img src="/assets/arxiv.png" alt="" width="16" height="16" loading="lazy">arXiv</a></li>
+                <li><a href="https://unpaywall.org" target="_blank" rel="noopener noreferrer">Unpaywall</a></li>
+                <li><a href="https://europepmc.org" target="_blank" rel="noopener noreferrer" class="cp-footer-link-logo"><img src="/assets/europe-pmc.png" alt="" width="16" height="16" loading="lazy">Europe PMC</a></li>
+              </ul>
+            </nav>
+
+            <nav class="cp-footer-nav" aria-label="Project">
+              <h3 class="cp-footer-heading">Project</h3>
+              <ul class="cp-footer-links">
+                <li><a href="https://github.com/Aryan-Pardeshi/CiteProof-AI-MCP" target="_blank" rel="noopener noreferrer" class="cp-footer-link-logo"><svg width="16" height="16" aria-hidden="true"><use href="#logo-github"></use></svg>GitHub</a></li>
+                <li><a href="https://github.com/Aryan-Pardeshi" target="_blank" rel="noopener noreferrer">Author</a></li>
+                <li><a href="https://github.com/Aryan-Pardeshi/CiteProof-AI-MCP/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a></li>
+                <li><a href="https://github.com/Aryan-Pardeshi/CiteProof-AI-MCP/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer">Contributing</a></li>
+                <li><a href="https://github.com/Aryan-Pardeshi/CiteProof-AI-MCP/issues" target="_blank" rel="noopener noreferrer">Issues</a></li>
+              </ul>
+            </nav>
+  
+
+      </div>
+
+        </div>
+      </div>
+
+      <!-- Large Wordmark -->
+      <div class="cp-footer-wordmark-wrap">
+        <div class="cp-footer-wordmark scroll-reveal" aria-hidden="true">CiteProof</div>
+      </div>
+    </div>
+    <noscript>
+      <style>
+        .cp-footer .scroll-reveal {
+          opacity: 1 !important;
+          transform: none !important;
+        }
+      </style>
+    </noscript>
+  </footer>
+
+  <!-- Landing Page Logic -->
+  <script src="landing.js?v=3.0.0"></script>
 </body>
 </html>

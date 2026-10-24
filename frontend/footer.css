@@ -1,0 +1,295 @@
+/*
+ * CiteProof Footer Stylesheet
+ * Large-wordmark footer ported from shadcn/ui to plain HTML and CSS.
+ * Adheres to DESIGN.md and tokens.css. All rules scoped under .cp-footer.
+ */
+
+.cp-footer {
+  background-color: var(--cp-canvas-soft);
+  border-top: none;
+  padding-top: var(--cp-space-12, 48px);
+  padding-bottom: 0;
+  overflow: hidden;
+  position: relative;
+  color: var(--cp-body);
+  font-family: var(--cp-font-sans);
+}
+
+/* Container helper (self-contained fallback for .cp-container) */
+.cp-footer .cp-container {
+  width: 100%;
+  max-width: var(--cp-max-width, 1200px);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--cp-gutter, 24px);
+  padding-right: var(--cp-gutter, 24px);
+  box-sizing: border-box;
+}
+
+/* Top row: desktop side by side (space between), mobile stacked */
+.cp-footer-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--cp-space-12, 48px);
+}
+
+/* Left block: brand, tagline, action button, copyright */
+.cp-footer-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--cp-space-4, 16px);
+  max-width: 320px;
+  flex-shrink: 0;
+}
+
+.cp-footer-brand-heading {
+  margin: 0;
+  font-family: var(--cp-font-sans);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: -0.3px;
+}
+
+.cp-footer-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cp-space-2, 8px);
+  color: var(--cp-ink);
+  text-decoration: none;
+}
+
+.cp-footer-logo {
+  width: 32px;
+  height: 32px;
+  display: block;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+.cp-footer-brand-name {
+  font-family: var(--cp-font-sans);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 24px;
+  color: var(--cp-ink);
+}
+
+.cp-footer-tagline {
+  margin: 0;
+  font-family: var(--cp-font-sans);
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--cp-muted);
+}
+
+/* Shadcn-style secondary outline button */
+.cp-footer-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  padding: 0 var(--cp-space-4, 16px);
+  border-radius: var(--cp-radius-pill, 100px);
+  font-family: var(--cp-font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  text-decoration: none;
+  color: var(--cp-ink);
+  background-color: var(--cp-canvas-soft-2);
+  border: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color var(--cp-dur, 150ms) var(--cp-ease, cubic-bezier(0.2, 0, 0, 1)),
+              color var(--cp-dur, 150ms) var(--cp-ease, cubic-bezier(0.2, 0, 0, 1)),
+              transform var(--cp-dur, 150ms) var(--cp-ease, cubic-bezier(0.2, 0, 0, 1));
+}
+
+.cp-footer-btn:hover {
+  background-color: var(--cp-canvas);
+  color: var(--cp-ink);
+}
+
+.cp-footer-btn:active {
+  transform: scale(0.98);
+}
+
+.cp-footer-copyright {
+  margin: 0;
+  font-family: var(--cp-font-mono);
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--cp-muted);
+}
+
+/* Right block: link lists grid */
+.cp-footer-right {
+  flex: 1;
+  max-width: 720px;
+}
+
+.cp-footer-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--cp-space-8, 32px);
+}
+
+.cp-footer-nav {
+  display: flex;
+  flex-direction: column;
+}
+
+.cp-footer-heading {
+  margin: 0 0 var(--cp-space-3, 12px) 0;
+  font-family: var(--cp-font-sans);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+  color: var(--cp-ink);
+}
+
+.cp-footer-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cp-space-2, 8px);
+}
+
+.cp-footer-links li {
+  margin: 0;
+  padding: 0;
+}
+
+.cp-footer-links a {
+  display: inline-block;
+  font-family: var(--cp-font-sans);
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--cp-muted);
+  text-decoration: none;
+  transition: color var(--cp-dur, 150ms) var(--cp-ease, cubic-bezier(0.2, 0, 0, 1));
+}
+
+.cp-footer-links a:hover {
+  color: var(--cp-ink);
+}
+
+/* Accessible focus ring (2px ink outline, 2px offset) */
+.cp-footer a:focus-visible,
+.cp-footer button:focus-visible {
+  outline: 2px solid var(--cp-ink);
+  outline-offset: 2px;
+}
+
+/* Large wordmark section */
+.cp-footer-wordmark-wrap {
+  position: relative;
+  width: 100%;
+  margin-top: var(--cp-space-12, 48px);
+  text-align: center;
+  overflow: hidden;
+  line-height: 0.9;
+  pointer-events: none;
+}
+
+/* Subtle accent glow behind wordmark (single radial gradient <= 8% opacity) */
+.cp-footer-wordmark-wrap::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: min(800px, 90%);
+  height: 120px;
+  background: radial-gradient(ellipse 60% 80px at 50% 100%, rgba(82, 168, 255, 0.06), transparent 70%);
+  background: radial-gradient(ellipse 60% 80px at 50% 100%, color-mix(in srgb, var(--cp-link) 6%, transparent), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+html.light-mode .cp-footer-wordmark-wrap::before {
+  background: radial-gradient(ellipse 60% 80px at 50% 100%, rgba(0, 112, 243, 0.04), transparent 70%);
+  background: radial-gradient(ellipse 60% 80px at 50% 100%, color-mix(in srgb, var(--cp-link) 4%, transparent), transparent 70%);
+}
+
+.cp-footer-wordmark {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  text-align: center;
+  font-family: var(--cp-font-sans);
+  font-size: clamp(3rem, 16vw, 13rem);
+  font-weight: 600;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  text-decoration: none;
+  margin: 0 0 -0.05em 0;
+  padding: 0;
+
+  /* Dark mode gradient: mid-tone ink (~35%) fading to transparent at bottom */
+  background-image: linear-gradient(180deg, rgba(237, 237, 237, 0.45) 0%, rgba(237, 237, 237, 0) 100%);
+  background-image: linear-gradient(180deg, color-mix(in srgb, var(--cp-ink) 45%, transparent) 0%, transparent 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* Light mode gradient: ink (~80%) fading to faint ink (~5%) at bottom */
+html.light-mode .cp-footer-wordmark {
+  background-image: linear-gradient(180deg, rgba(23, 23, 23, 0.8) 0%, rgba(23, 23, 23, 0.05) 100%);
+  background-image: linear-gradient(180deg, color-mix(in srgb, var(--cp-ink) 80%, transparent) 0%, color-mix(in srgb, var(--cp-ink) 5%, transparent) 100%);
+}
+
+/* Reduced motion and no-JS resilience */
+@media (prefers-reduced-motion: reduce) {
+  .cp-footer .scroll-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/* Responsive: tablet and mobile */
+@media (max-width: 960px) {
+  .cp-footer-top {
+    flex-direction: column;
+    gap: var(--cp-space-8, 32px);
+  }
+
+  .cp-footer-left {
+    max-width: 100%;
+  }
+
+  .cp-footer-right {
+    max-width: 100%;
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .cp-footer .cp-container {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .cp-footer-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--cp-space-8, 32px);
+  }
+
+  .cp-footer-wordmark-wrap {
+    margin-top: var(--cp-space-8, 32px);
+  }
+}
