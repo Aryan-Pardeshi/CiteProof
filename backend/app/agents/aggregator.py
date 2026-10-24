@@ -4,7 +4,7 @@ import logging
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
 from backend.app.graph.state import ResearchState
-from backend.app.llm import llm_pro
+from backend.app.llm import ainvoke_llm, llm_pro
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +59,7 @@ async def aggregator_node(state: ResearchState) -> dict:
         messages_history = list(messages)
         
         while True:
-            response = await llm_with_tools.ainvoke(messages_history)
+            response = await ainvoke_llm(llm_with_tools, messages_history)
             messages_history.append(response)
             
             if response.tool_calls:
